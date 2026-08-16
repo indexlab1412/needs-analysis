@@ -14,6 +14,7 @@ import { LoanRefinanceView } from "./LoanRefinanceView";
 import { CouplePlannerView } from "./CouplePlannerView";
 import { EducationPlannerView } from "./EducationPlannerView";
 import { MonthlyHistoryModal } from "./MonthlyHistoryModal";
+import { QuickMonthlyCheckinModal } from "./QuickMonthlyCheckinModal";
 import {
   Sparkles,
   ArrowRight,
@@ -56,6 +57,7 @@ export const DashboardView: React.FC = () => {
   } = useFinancialStore();
   const [loggedToast, setLoggedToast] = useState<string | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isQuickCheckinOpen, setIsQuickCheckinOpen] = useState(false);
   const {
     netWorth,
     cashFlow,
@@ -276,17 +278,24 @@ export const DashboardView: React.FC = () => {
               </div>
 
               {/* Monthly Transition Action Buttons */}
-              <div className="grid grid-cols-2 gap-2 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+                <button
+                  onClick={() => setIsQuickCheckinOpen(true)}
+                  className="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 col-span-1 sm:col-span-1"
+                >
+                  <Zap className="w-4 h-4 fill-current" />
+                  <span>1-Click Monthly Check-In</span>
+                </button>
+
                 <button
                   onClick={() => {
                     logMonthlyCashflow();
                     setLoggedToast(`Updated snapshot for ${activeMonthLabel}!`);
                     setTimeout(() => setLoggedToast(null), 3000);
                   }}
-                  className="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Zap className="w-3.5 h-3.5 text-amber-500" />
-                  <span>Save {activeMonthLabel}</span>
+                  <span>Quick Save</span>
                 </button>
 
                 <button
@@ -295,7 +304,7 @@ export const DashboardView: React.FC = () => {
                     setLoggedToast(`Archived ${activeMonthLabel} snapshot & advanced to ${nextMonthLabel}!`);
                     setTimeout(() => setLoggedToast(null), 4000);
                   }}
-                  className="py-2 px-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-sm transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
                   <span>Close & Start {nextMonthLabel.split(" ")[0]}</span>
@@ -305,9 +314,14 @@ export const DashboardView: React.FC = () => {
           ) : (
             <div className="fin-card p-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 rounded-3xl shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
-                  <Calendar className="w-3 h-3 text-indigo-500" /> Annual Review
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
+                    <Calendar className="w-3 h-3 text-indigo-500" /> Annual Review
+                  </span>
+                  <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
+                    ⏳ 11 Months to Next Review
+                  </span>
+                </div>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
                   {profile.yearlySnapshots?.length || 0} Annual Records
                 </span>
@@ -333,17 +347,26 @@ export const DashboardView: React.FC = () => {
                 </div>
               </div>
 
-              <button
-                onClick={() => {
-                  captureYearlySnapshot();
-                  setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
-                  setTimeout(() => setLoggedToast(null), 3000);
-                }}
-                className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
-              >
-                <Calendar className="w-3.5 h-3.5" />
-                <span>Capture {new Date().getFullYear()} Snapshot</span>
-              </button>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => {
+                    captureYearlySnapshot();
+                    setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
+                    setTimeout(() => setLoggedToast(null), 3000);
+                  }}
+                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Capture {new Date().getFullYear()} Snapshot</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab("wizard")}
+                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                >
+                  <span>Full Annual Check-In</span>
+                </button>
+              </div>
             </div>
           )}
 
@@ -729,6 +752,16 @@ export const DashboardView: React.FC = () => {
       <MonthlyHistoryModal
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
+      />
+
+      {/* 1-Click Streamlined Monthly Check-In Modal */}
+      <QuickMonthlyCheckinModal
+        isOpen={isQuickCheckinOpen}
+        onClose={() => setIsQuickCheckinOpen(false)}
+        onSuccessToast={(msg) => {
+          setLoggedToast(msg);
+          setTimeout(() => setLoggedToast(null), 4000);
+        }}
       />
     </div>
   );

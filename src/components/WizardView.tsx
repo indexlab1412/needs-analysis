@@ -469,6 +469,37 @@ export const WizardView: React.FC = () => {
       {/* STEP 2: Monthly Paycheck */}
       {currentStep === 2 && (
         <div className="space-y-4">
+          {/* Cadence Guidance Banner */}
+          {(profile.planningCadence || "monthly") === "monthly" ? (
+            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-amber-900 dark:text-amber-200 flex items-center gap-1.5">
+                  <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" /> Monthly Pulse Cadence Active
+                </span>
+                <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300">
+                  {profile.activePlanningMonthYear || "2026-08"} Check-In
+                </span>
+              </div>
+              <p className="text-[11px] text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
+                Update your monthly take-home salary and living bills here. You can also use the <strong>1-Click Monthly Check-In</strong> on your Dashboard anytime.
+              </p>
+            </div>
+          ) : (
+            <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-900/60 rounded-2xl text-xs space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-indigo-900 dark:text-indigo-200 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Annual Review Cadence Active
+                </span>
+                <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-300 bg-white dark:bg-slate-800 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
+                  ⏳ 11 Months to Next Review
+                </span>
+              </div>
+              <p className="text-[11px] text-indigo-800/80 dark:text-indigo-300/80 leading-relaxed">
+                Key in your annualized monthly averages once a year. We'll remind you for your next comprehensive check-in.
+              </p>
+            </div>
+          )}
+
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
             <div className="flex items-center justify-between">
               <div>
