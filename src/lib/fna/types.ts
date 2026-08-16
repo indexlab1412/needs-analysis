@@ -3,6 +3,8 @@
 export type EmploymentType = "employed" | "self-employed" | "civil-servant" | "business-owner" | "unemployed" | "retired";
 export type MaritalStatus = "single" | "married" | "divorced" | "widowed";
 export type RiskProfile = "conservative" | "moderate" | "balanced" | "growth" | "aggressive";
+export type PlanningCadence = "yearly" | "monthly";
+export type PlanningScope = "individual" | "joint";
 
 export type EducationDestinationPreset =
   | "local_public"
@@ -146,6 +148,18 @@ export interface CpfLifeSettings {
   currentCpfBalance?: number;
 }
 
+export interface MonthlyCashflowLog {
+  id: string;
+  monthYear: string; // e.g. "2026-08"
+  dateRecorded: string;
+  totalIncome: number;
+  totalExpenses: number;
+  totalDcaInvested: number;
+  netSavings: number;
+  netWorthAtMonthEnd: number;
+  keyNotes?: string;
+}
+
 export interface YearlySnapshot {
   id: string;
   year: number; // e.g. 2024, 2025, 2026
@@ -209,7 +223,12 @@ export interface UserFinancialProfile {
   riskProfile: RiskProfile;
   currency: string;
   
+  // Planning Cadence & Scope
+  planningCadence?: PlanningCadence; // "yearly" | "monthly"
+  planningScope?: PlanningScope; // "individual" | "joint"
+  
   cpfLife?: CpfLifeSettings;
+  monthlyLogs?: MonthlyCashflowLog[];
   yearlySnapshots?: YearlySnapshot[];
   partner?: PartnerProfile;
   divorceSettings?: DivorceSettings;

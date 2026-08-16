@@ -27,6 +27,9 @@ import {
   TrendingUp,
   CreditCard,
   Sparkles,
+  Zap,
+  Calendar,
+  Heart,
 } from "lucide-react";
 import { RiskProfilerModal, RISK_PROFILES_META } from "./RiskProfilerModal";
 
@@ -180,6 +183,99 @@ export const WizardView: React.FC = () => {
       {/* STEP 1: Personal & Family */}
       {currentStep === 1 && (
         <div className="space-y-4">
+          {/* 1. Planning Cadence & Scope Selector */}
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+            <div>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                Planning Rhythm & Scope
+              </span>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
+                How do you prefer to manage your money?
+              </h3>
+            </div>
+
+            {/* Cadence Selector */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => updateProfile((p) => ({ ...p, planningCadence: "monthly" }))}
+                className={`p-3 rounded-2xl border text-left transition-all space-y-1 ${
+                  (profile.planningCadence || "monthly") === "monthly"
+                    ? "bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-500 ring-2 ring-indigo-500/20"
+                    : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <Zap className="w-3.5 h-3.5 text-amber-500" /> Monthly Pulse
+                  </span>
+                  {(profile.planningCadence || "monthly") === "monthly" && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Maintain monthly cashflow, DCA investments & track leaky buckets regularly.
+                </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => updateProfile((p) => ({ ...p, planningCadence: "yearly" }))}
+                className={`p-3 rounded-2xl border text-left transition-all space-y-1 ${
+                  profile.planningCadence === "yearly"
+                    ? "bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-500 ring-2 ring-indigo-500/20"
+                    : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700"
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-indigo-500" /> Annual Review
+                  </span>
+                  {profile.planningCadence === "yearly" && (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
+                  Update your numbers once a year (tax season or year-end). Fast & frictionless.
+                </p>
+              </button>
+            </div>
+
+            {/* Scope Selector */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => updateProfile((p) => ({ ...p, planningScope: "individual" }))}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                  profile.planningScope !== "joint"
+                    ? "bg-indigo-50 dark:bg-indigo-950/50 border-indigo-500 font-bold text-indigo-900 dark:text-indigo-200"
+                    : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                }`}
+              >
+                <span className="flex items-center gap-1.5 text-xs">
+                  <User className="w-3.5 h-3.5" /> Solo Planning
+                </span>
+                {profile.planningScope !== "joint" && <CheckCircle2 className="w-3.5 h-3.5 text-indigo-600" />}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => updateProfile((p) => ({ ...p, planningScope: "joint" }))}
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                  profile.planningScope === "joint"
+                    ? "bg-rose-50 dark:bg-rose-950/50 border-rose-500 font-bold text-rose-900 dark:text-rose-200"
+                    : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                }`}
+              >
+                <span className="flex items-center gap-1.5 text-xs">
+                  <Heart className="w-3.5 h-3.5 text-rose-500 fill-rose-500/40" /> Couple / Joint
+                </span>
+                {profile.planningScope === "joint" && <CheckCircle2 className="w-3.5 h-3.5 text-rose-600" />}
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Basic Personal Details */}
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3.5">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">

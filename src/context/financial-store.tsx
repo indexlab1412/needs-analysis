@@ -1,7 +1,15 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { UserFinancialProfile, FNAReportSummary, PartnerProfile } from "@/lib/fna/types";
+import {
+  UserFinancialProfile,
+  FNAReportSummary,
+  PartnerProfile,
+  PlanningCadence,
+  PlanningScope,
+  MonthlyCashflowLog,
+  YearlySnapshot,
+} from "@/lib/fna/types";
 import { analyzeFinancialNeeds } from "@/lib/fna/engine";
 import { SAMPLE_PROFILES, DEFAULT_BLANK_PROFILE } from "@/lib/fna/sample-data";
 import { generateId } from "@/lib/utils";
@@ -24,6 +32,10 @@ interface FinancialStoreContextType {
   setActiveTab: (tab: TabType) => void;
   updateProfile: (updater: (prev: UserFinancialProfile) => UserFinancialProfile) => void;
   setProfile: (newProfile: UserFinancialProfile) => void;
+  setPlanningCadence: (cadence: PlanningCadence) => void;
+  setPlanningScope: (scope: PlanningScope) => void;
+  logMonthlyCashflow: (notes?: string) => void;
+  captureYearlySnapshot: (milestone?: string, notes?: string) => void;
   loadPreset: (key: string) => void;
   resetProfile: () => void;
   exportData: () => void;
@@ -41,7 +53,11 @@ const STORAGE_KEY = "fna_user_profile_v1";
 const FinancialStoreContext = createContext<FinancialStoreContextType | undefined>(undefined);
 
 export function FinancialStoreProvider({ children }: { children: ReactNode }) {
-  const [profile, setProfileState] = useState<UserFinancialProfile>(SAMPLE_PROFILES.fresh_grad.data);
+  const [profile, setProfileState] = useState<UserFinancialProfile>({
+    ...SAMPLE_PROFILES.fresh_grad.data,
+    planningCadence: "monthly",
+    planningScope: "individual",
+  });
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
@@ -53,7 +69,11 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.id) {
-          setProfileState(parsed);
+          setProfileState((prev) => ({
+            ...parsed,
+            planningCadence: parsed.planningCadence || "monthly",
+            planningScope: parsed.planningScope || (parsed.partner?.isEnabled ? "joint" : "individual"),
+          }));
         }
       }
     } catch (e) {
@@ -63,20 +83,19 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Save to local storage on profile changes
+  // Sync to local storage on changes
   useEffect(() => {
-    if (!isInitialized) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-    } catch (e) {
-      console.error("Failed to persist profile to localStorage:", e);
+    if (isInitialized) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      } catch (e) {
+        console.error("Failed to save to localStorage", e);
+      }
     }
   }, [profile, isInitialized]);
 
-  // Compute live analysis whenever profile changes
-  const summary = React.useMemo(() => {
-    return analyzeFinancialNeeds(profile);
-  }, [profile]);
+  // Compute live FNA summary
+  const summary: FNAReportSummary = analyzeFinancialNeeds(profile);
 
   const updateProfile = (updater: (prev: UserFinancialProfile) => UserFinancialProfile) => {
     setProfileState((prev) => updater(prev));
@@ -84,6 +103,89 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
 
   const setProfile = (newProfile: UserFinancialProfile) => {
     setProfileState(newProfile);
+  };
+
+  const setPlanningCadence = (cadence: PlanningCadence) => {
+    updateProfile((p) => ({ ...p, planningCadence: cadence }));
+  };
+
+  const setPlanningScope = (scope: PlanningScope) => {
+    updateProfile((p) => {
+      const isJoint = scope === "joint";
+      return {
+        ...p,
+        planningScope: scope,
+        partner: p.partner
+          ? { ...p.partner, isEnabled: isJoint }
+          : isJoint
+          ? {
+              isEnabled: true,
+              name: "Chloe (Partner)",
+              currentAge: Math.max(20, p.currentAge - 1),
+              targetRetirementAge: p.targetRetirementAge,
+              monthlyIncome: 3500,
+              monthlyPersonalExpenses: 800,
+              personalDebts: 8000,
+              monthlyDebtRepayment: 200,
+              liquidSavings: 12000,
+              investmentsValue: 10000,
+              monthlyDCA: 200,
+              deathBenefit: 300000,
+              ciBenefit: 150000,
+              cpfLifeEstimatedMonthlyToday: 1650,
+            }
+          : undefined,
+      };
+    });
+  };
+
+  const logMonthlyCashflow = (notes?: string) => {
+    const today = new Date();
+    const monthYear = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+    const newLog: MonthlyCashflowLog = {
+      id: generateId("log"),
+      monthYear,
+      dateRecorded: today.toISOString().split("T")[0],
+      totalIncome: summary.cashFlow.totalMonthlyIncome,
+      totalExpenses: summary.cashFlow.totalMonthlyExpenses,
+      totalDcaInvested: summary.cashFlow.totalMonthlyDCAInvestments,
+      netSavings: summary.cashFlow.monthlyNetSavings,
+      netWorthAtMonthEnd: summary.netWorth.netWorth,
+      keyNotes: notes || "Regular monthly update recorded.",
+    };
+
+    updateProfile((p) => {
+      const existing = p.monthlyLogs || [];
+      // Replace if same month exists, else append
+      const filtered = existing.filter((l) => l.monthYear !== monthYear);
+      return { ...p, monthlyLogs: [...filtered, newLog] };
+    });
+  };
+
+  const captureYearlySnapshot = (milestone?: string, notes?: string) => {
+    const currentYear = new Date().getFullYear();
+    const newSnap: YearlySnapshot = {
+      id: generateId("snap"),
+      year: currentYear,
+      dateRecorded: new Date().toISOString().split("T")[0],
+      totalNetWorth: summary.netWorth.netWorth,
+      totalLiquidSavings: summary.netWorth.liquidAssets,
+      totalInvestments: summary.profile.assets
+        .filter((a) => !a.isLiquid && a.category !== "cash_savings")
+        .reduce((sum, a) => sum + (Number(a.currentValue) || 0), 0),
+      totalLiabilities: summary.netWorth.totalLiabilities,
+      annualIncome: summary.cashFlow.totalMonthlyIncome * 12,
+      annualSavingsRate: summary.cashFlow.savingsRatePercentage,
+      financialHealthScore: summary.overallFinancialHealthScore,
+      keyMilestoneAchieved: milestone || "Annual review snapshot captured.",
+      reflectionNotes: notes || "Review completed.",
+    };
+
+    updateProfile((p) => {
+      const existing = p.yearlySnapshots || [];
+      const filtered = existing.filter((s) => s.year !== currentYear);
+      return { ...p, yearlySnapshots: [...filtered, newSnap].sort((a, b) => a.year - b.year) };
+    });
   };
 
   const loadPreset = (key: string) => {
@@ -104,7 +206,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profile, null, 2));
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `FNA_Profile_${(profile.name || "User").replace(/\s+/g, "_")}_${new Date().toISOString().slice(0, 10)}.json`);
+    downloadAnchor.setAttribute("download", `financial-plan-${profile.name.toLowerCase().replace(/\s+/g, "-")}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -113,7 +215,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const importData = (jsonStr: string): boolean => {
     try {
       const parsed = JSON.parse(jsonStr);
-      if (parsed && typeof parsed === "object" && parsed.id) {
+      if (parsed && parsed.id && parsed.incomes && parsed.expenses) {
         setProfileState(parsed);
         return true;
       }
@@ -123,77 +225,76 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Merge partner's independent profile JSON into single combined household plan
   const mergePartnerProfile = (jsonStr: string): MergeResult => {
     try {
       const partnerData: UserFinancialProfile = JSON.parse(jsonStr);
-      if (!partnerData || !partnerData.id) {
-        return { success: false, error: "Invalid partner profile data." };
+      if (!partnerData || !partnerData.id || !partnerData.name) {
+        return { success: false, error: "Invalid financial plan file format." };
       }
 
       const partnerName = partnerData.name || "Partner";
 
-      // Tag & merge incomes
+      // Tag and merge incomes
       const mergedIncomes = [
         ...profile.incomes,
         ...partnerData.incomes.map((inc) => ({
           ...inc,
-          id: generateId("inc-ptn"),
+          id: generateId("p-inc"),
           description: `[${partnerName}] ${inc.description}`,
         })),
       ];
 
-      // Tag & merge expenses
+      // Tag and merge expenses
       const mergedExpenses = [
         ...profile.expenses,
         ...partnerData.expenses.map((exp) => ({
           ...exp,
-          id: generateId("exp-ptn"),
+          id: generateId("p-exp"),
           description: `[${partnerName}] ${exp.description}`,
         })),
       ];
 
-      // Tag & merge assets
+      // Tag and merge assets
       const mergedAssets = [
         ...profile.assets,
         ...partnerData.assets.map((ast) => ({
           ...ast,
-          id: generateId("ast-ptn"),
+          id: generateId("p-ast"),
           description: `[${partnerName}] ${ast.description}`,
         })),
       ];
 
-      // Tag & merge liabilities
+      // Tag and merge liabilities
       const mergedLiabilities = [
         ...profile.liabilities,
         ...partnerData.liabilities.map((lia) => ({
           ...lia,
-          id: generateId("lia-ptn"),
+          id: generateId("p-lia"),
           description: `[${partnerName}] ${lia.description}`,
         })),
       ];
 
-      // Tag & merge insurance policies
+      // Tag and merge insurance policies
       const mergedPolicies = [
         ...profile.insurancePolicies,
         ...partnerData.insurancePolicies.map((pol) => ({
           ...pol,
-          id: generateId("pol-ptn"),
+          id: generateId("p-pol"),
           policyName: `[${partnerName}] ${pol.policyName}`,
         })),
       ];
 
-      // Tag & merge goals
+      // Merge goals
       const mergedGoals = [
         ...profile.goals,
-        ...(partnerData.goals || []).map((g) => ({
+        ...partnerData.goals.map((g) => ({
           ...g,
-          id: generateId("goal-ptn"),
+          id: generateId("p-goal"),
           name: `[${partnerName}] ${g.name}`,
         })),
       ];
 
-      // Build PartnerProfile for Couple planning
+      // Construct PartnerProfile
       const partnerMonthlyIncome = partnerData.incomes.reduce((sum, i) => sum + (Number(i.monthlyAmount) || 0), 0);
       const partnerMonthlyExpenses = partnerData.expenses.reduce((sum, e) => sum + (Number(e.monthlyAmount) || 0), 0);
       const partnerDebts = partnerData.liabilities.reduce((sum, l) => sum + (Number(l.outstandingBalance) || 0), 0);
@@ -229,6 +330,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       setProfileState((prev) => ({
         ...prev,
         maritalStatus: "married",
+        planningScope: "joint",
         incomes: mergedIncomes,
         expenses: mergedExpenses,
         assets: mergedAssets,
@@ -259,6 +361,10 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         setActiveTab,
         updateProfile,
         setProfile,
+        setPlanningCadence,
+        setPlanningScope,
+        logMonthlyCashflow,
+        captureYearlySnapshot,
         loadPreset,
         resetProfile,
         exportData,
