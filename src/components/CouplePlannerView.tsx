@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { PartnerProfile } from "@/lib/fna/types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, parseNumberInput } from "@/lib/utils";
 import {
   Users,
   Heart,
@@ -436,8 +436,8 @@ export const CouplePlannerView: React.FC = () => {
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Monthly Take-Home Pay ({currency})</label>
                 <input
                   type="number"
-                  value={partner.monthlyIncome}
-                  onChange={(e) => updatePartner({ monthlyIncome: Number(e.target.value) || 0 })}
+                  value={partner.monthlyIncome || ""}
+                  onChange={(e) => updatePartner({ monthlyIncome: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-emerald-600 dark:text-emerald-400"
                 />
               </div>
@@ -446,8 +446,8 @@ export const CouplePlannerView: React.FC = () => {
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Personal Debts ({currency})</label>
                 <input
                   type="number"
-                  value={partner.personalDebts}
-                  onChange={(e) => updatePartner({ personalDebts: Number(e.target.value) || 0 })}
+                  value={partner.personalDebts || ""}
+                  onChange={(e) => updatePartner({ personalDebts: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-rose-600 dark:text-rose-400"
                 />
               </div>
@@ -456,8 +456,8 @@ export const CouplePlannerView: React.FC = () => {
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Debt Payment ({currency}/mo)</label>
                 <input
                   type="number"
-                  value={partner.monthlyDebtRepayment}
-                  onChange={(e) => updatePartner({ monthlyDebtRepayment: Number(e.target.value) || 0 })}
+                  value={partner.monthlyDebtRepayment || ""}
+                  onChange={(e) => updatePartner({ monthlyDebtRepayment: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
               </div>
@@ -466,8 +466,8 @@ export const CouplePlannerView: React.FC = () => {
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Bank Cash ({currency})</label>
                 <input
                   type="number"
-                  value={partner.liquidSavings}
-                  onChange={(e) => updatePartner({ liquidSavings: Number(e.target.value) || 0 })}
+                  value={partner.liquidSavings || ""}
+                  onChange={(e) => updatePartner({ liquidSavings: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
               </div>
@@ -476,8 +476,8 @@ export const CouplePlannerView: React.FC = () => {
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Investments & Robos ({currency})</label>
                 <input
                   type="number"
-                  value={partner.investmentsValue}
-                  onChange={(e) => updatePartner({ investmentsValue: Number(e.target.value) || 0 })}
+                  value={partner.investmentsValue || ""}
+                  onChange={(e) => updatePartner({ investmentsValue: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
               </div>
@@ -486,8 +486,8 @@ export const CouplePlannerView: React.FC = () => {
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Monthly Auto-DCA ({currency}/mo)</label>
                 <input
                   type="number"
-                  value={partner.monthlyDCA}
-                  onChange={(e) => updatePartner({ monthlyDCA: Number(e.target.value) || 0 })}
+                  value={partner.monthlyDCA || ""}
+                  onChange={(e) => updatePartner({ monthlyDCA: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-indigo-600 dark:text-indigo-400"
                 />
               </div>
@@ -496,8 +496,8 @@ export const CouplePlannerView: React.FC = () => {
                 <label className="text-[10px] text-slate-400 font-bold uppercase">Critical Illness Cover ({currency})</label>
                 <input
                   type="number"
-                  value={partner.ciBenefit}
-                  onChange={(e) => updatePartner({ ciBenefit: Number(e.target.value) || 0 })}
+                  value={partner.ciBenefit || ""}
+                  onChange={(e) => updatePartner({ ciBenefit: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
               </div>

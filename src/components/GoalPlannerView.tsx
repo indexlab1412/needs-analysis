@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { FinancialGoal, GoalCategory, GoalHorizonBucket } from "@/lib/fna/types";
-import { formatCurrency, generateId } from "@/lib/utils";
+import { formatCurrency, generateId, parseNumberInput } from "@/lib/utils";
 import {
   Target,
   Sparkles,
@@ -304,8 +304,8 @@ export const GoalPlannerView: React.FC = () => {
                     <label className="text-[9px] text-slate-400 font-bold uppercase">Target Amount ({currency})</label>
                     <input
                       type="number"
-                      value={goal.targetAmount}
-                      onChange={(e) => updateGoal(goal.id, { targetAmount: Number(e.target.value) || 0 })}
+                      value={goal.targetAmount || ""}
+                      onChange={(e) => updateGoal(goal.id, { targetAmount: parseNumberInput(e.target.value) })}
                       className="w-full bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                     />
                   </div>
@@ -314,8 +314,8 @@ export const GoalPlannerView: React.FC = () => {
                     <input
                       type="number"
                       step="0.5"
-                      value={goal.targetYearsFromNow}
-                      onChange={(e) => updateGoal(goal.id, { targetYearsFromNow: Number(e.target.value) || 1 })}
+                      value={goal.targetYearsFromNow || ""}
+                      onChange={(e) => updateGoal(goal.id, { targetYearsFromNow: parseNumberInput(e.target.value) })}
                       className="w-full bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                     />
                   </div>
@@ -323,8 +323,8 @@ export const GoalPlannerView: React.FC = () => {
                     <label className="text-[9px] text-slate-400 font-bold uppercase">Saved in Bank ({currency})</label>
                     <input
                       type="number"
-                      value={goal.currentSavingsAssigned}
-                      onChange={(e) => updateGoal(goal.id, { currentSavingsAssigned: Number(e.target.value) || 0 })}
+                      value={goal.currentSavingsAssigned || ""}
+                      onChange={(e) => updateGoal(goal.id, { currentSavingsAssigned: parseNumberInput(e.target.value) })}
                       className="w-full bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                     />
                   </div>

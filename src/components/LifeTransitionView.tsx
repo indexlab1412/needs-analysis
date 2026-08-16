@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { DivorceSettings, WidowedSettings, MaritalStatus } from "@/lib/fna/types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, parseNumberInput } from "@/lib/utils";
 import {
   HeartCrack,
   ShieldCheck,
@@ -260,8 +260,8 @@ export const LifeTransitionView: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={divorceSettings.childMaintenanceMonthlyAmount}
-                    onChange={(e) => updateDivorce({ childMaintenanceMonthlyAmount: Number(e.target.value) || 0 })}
+                    value={divorceSettings.childMaintenanceMonthlyAmount || ""}
+                    onChange={(e) => updateDivorce({ childMaintenanceMonthlyAmount: parseNumberInput(e.target.value) })}
                     className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                   />
                 </div>
@@ -271,8 +271,8 @@ export const LifeTransitionView: React.FC = () => {
                   </label>
                   <input
                     type="number"
-                    value={divorceSettings.maintenanceEndAgeOfChild || 21}
-                    onChange={(e) => updateDivorce({ maintenanceEndAgeOfChild: Number(e.target.value) || 21 })}
+                    value={divorceSettings.maintenanceEndAgeOfChild || ""}
+                    onChange={(e) => updateDivorce({ maintenanceEndAgeOfChild: parseNumberInput(e.target.value) })}
                     className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                   />
                 </div>
@@ -352,8 +352,8 @@ export const LifeTransitionView: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  value={widowedSettings.insuranceLumpSumReceived}
-                  onChange={(e) => updateWidowed({ insuranceLumpSumReceived: Number(e.target.value) || 0 })}
+                  value={widowedSettings.insuranceLumpSumReceived || ""}
+                  onChange={(e) => updateWidowed({ insuranceLumpSumReceived: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-emerald-600 dark:text-emerald-400"
                 />
               </div>
@@ -364,8 +364,8 @@ export const LifeTransitionView: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  value={widowedSettings.cpfNominationPayoutReceived}
-                  onChange={(e) => updateWidowed({ cpfNominationPayoutReceived: Number(e.target.value) || 0 })}
+                  value={widowedSettings.cpfNominationPayoutReceived || ""}
+                  onChange={(e) => updateWidowed({ cpfNominationPayoutReceived: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-emerald-600 dark:text-emerald-400"
                 />
               </div>
@@ -376,8 +376,8 @@ export const LifeTransitionView: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  value={widowedSettings.monthlyIncomeToReplace}
-                  onChange={(e) => updateWidowed({ monthlyIncomeToReplace: Number(e.target.value) || 0 })}
+                  value={widowedSettings.monthlyIncomeToReplace || ""}
+                  onChange={(e) => updateWidowed({ monthlyIncomeToReplace: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
               </div>
@@ -388,8 +388,8 @@ export const LifeTransitionView: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  value={widowedSettings.familySupportYearsNeeded}
-                  onChange={(e) => updateWidowed({ familySupportYearsNeeded: Number(e.target.value) || 15 })}
+                  value={widowedSettings.familySupportYearsNeeded || ""}
+                  onChange={(e) => updateWidowed({ familySupportYearsNeeded: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
               </div>

@@ -11,7 +11,7 @@ import {
   InsurancePolicy,
   FinancialGoal,
 } from "@/lib/fna/types";
-import { generateId } from "@/lib/utils";
+import { generateId, parseNumberInput } from "@/lib/utils";
 import {
   User,
   Users,
@@ -204,8 +204,8 @@ export const WizardView: React.FC = () => {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Your Current Age</label>
                 <input
                   type="number"
-                  value={profile.currentAge}
-                  onChange={(e) => updateProfile((p) => ({ ...p, currentAge: Number(e.target.value) || 18 }))}
+                  value={profile.currentAge || ""}
+                  onChange={(e) => updateProfile((p) => ({ ...p, currentAge: parseNumberInput(e.target.value) }))}
                   className="mt-1 w-full text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -214,8 +214,8 @@ export const WizardView: React.FC = () => {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Dream Retirement Age</label>
                 <input
                   type="number"
-                  value={profile.targetRetirementAge}
-                  onChange={(e) => updateProfile((p) => ({ ...p, targetRetirementAge: Number(e.target.value) || 60 }))}
+                  value={profile.targetRetirementAge || ""}
+                  onChange={(e) => updateProfile((p) => ({ ...p, targetRetirementAge: parseNumberInput(e.target.value) }))}
                   className="mt-1 w-full text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -347,8 +347,8 @@ export const WizardView: React.FC = () => {
                         <label className="text-[10px] text-slate-400 font-semibold">Their Age</label>
                         <input
                           type="number"
-                          value={dep.age}
-                          onChange={(e) => updateDependent(dep.id, { age: Number(e.target.value) || 0 })}
+                          value={dep.age || ""}
+                          onChange={(e) => updateDependent(dep.id, { age: parseNumberInput(e.target.value) })}
                           className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold"
                         />
                       </div>
@@ -356,8 +356,8 @@ export const WizardView: React.FC = () => {
                         <label className="text-[10px] text-slate-400 font-semibold">Years of Support Needed</label>
                         <input
                           type="number"
-                          value={dep.yearsOfSupportNeeded}
-                          onChange={(e) => updateDependent(dep.id, { yearsOfSupportNeeded: Number(e.target.value) || 0 })}
+                          value={dep.yearsOfSupportNeeded || ""}
+                          onChange={(e) => updateDependent(dep.id, { yearsOfSupportNeeded: parseNumberInput(e.target.value) })}
                           className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold"
                         />
                       </div>
@@ -411,12 +411,12 @@ export const WizardView: React.FC = () => {
                     <span className="absolute left-2 top-1.5 text-[10px] text-slate-400 font-semibold">{currency}</span>
                     <input
                       type="number"
-                      value={inc.monthlyAmount}
+                      value={inc.monthlyAmount || ""}
                       onChange={(e) =>
                         updateProfile((p) => ({
                           ...p,
                           incomes: p.incomes.map((i) =>
-                            i.id === inc.id ? { ...i, monthlyAmount: Number(e.target.value) || 0 } : i
+                            i.id === inc.id ? { ...i, monthlyAmount: parseNumberInput(e.target.value) } : i
                           ),
                         }))
                       }
@@ -469,12 +469,12 @@ export const WizardView: React.FC = () => {
                     <span className="absolute left-2 top-1.5 text-[10px] text-slate-400 font-semibold">{currency}</span>
                     <input
                       type="number"
-                      value={exp.monthlyAmount}
+                      value={exp.monthlyAmount || ""}
                       onChange={(e) =>
                         updateProfile((p) => ({
                           ...p,
                           expenses: p.expenses.map((ex) =>
-                            ex.id === exp.id ? { ...ex, monthlyAmount: Number(e.target.value) || 0 } : ex
+                            ex.id === exp.id ? { ...ex, monthlyAmount: parseNumberInput(e.target.value) } : ex
                           ),
                         }))
                       }
@@ -552,12 +552,12 @@ export const WizardView: React.FC = () => {
                       <label className="text-[10px] text-slate-400 font-bold">Current Cash Value</label>
                       <input
                         type="number"
-                        value={ast.currentValue}
+                        value={ast.currentValue || ""}
                         onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
                             assets: p.assets.map((a) =>
-                              a.id === ast.id ? { ...a, currentValue: Number(e.target.value) || 0 } : a
+                              a.id === ast.id ? { ...a, currentValue: parseNumberInput(e.target.value) } : a
                             ),
                           }))
                         }
@@ -568,12 +568,12 @@ export const WizardView: React.FC = () => {
                       <label className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">Monthly DCA ($/mo)</label>
                       <input
                         type="number"
-                        value={ast.monthlyContribution || 0}
+                        value={ast.monthlyContribution || ""}
                         onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
                             assets: p.assets.map((a) =>
-                              a.id === ast.id ? { ...a, monthlyContribution: Number(e.target.value) || 0 } : a
+                              a.id === ast.id ? { ...a, monthlyContribution: parseNumberInput(e.target.value) } : a
                             ),
                           }))
                         }
@@ -586,12 +586,12 @@ export const WizardView: React.FC = () => {
                       <input
                         type="number"
                         step="0.5"
-                        value={ast.expectedReturnRate}
+                        value={ast.expectedReturnRate || ""}
                         onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
                             assets: p.assets.map((a) =>
-                              a.id === ast.id ? { ...a, expectedReturnRate: Number(e.target.value) || 0 } : a
+                              a.id === ast.id ? { ...a, expectedReturnRate: parseNumberInput(e.target.value) } : a
                             ),
                           }))
                         }
@@ -650,12 +650,12 @@ export const WizardView: React.FC = () => {
                       <label className="text-[10px] text-slate-400 font-bold">Remaining Debt</label>
                       <input
                         type="number"
-                        value={lia.outstandingBalance}
+                        value={lia.outstandingBalance || ""}
                         onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
                             liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, outstandingBalance: Number(e.target.value) || 0 } : l
+                              l.id === lia.id ? { ...l, outstandingBalance: parseNumberInput(e.target.value) } : l
                             ),
                           }))
                         }
@@ -667,12 +667,12 @@ export const WizardView: React.FC = () => {
                       <input
                         type="number"
                         step="0.1"
-                        value={lia.interestRate}
+                        value={lia.interestRate || ""}
                         onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
                             liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, interestRate: Number(e.target.value) || 0 } : l
+                              l.id === lia.id ? { ...l, interestRate: parseNumberInput(e.target.value) } : l
                             ),
                           }))
                         }
@@ -683,12 +683,12 @@ export const WizardView: React.FC = () => {
                       <label className="text-[10px] text-slate-400 font-bold">Monthly Payment</label>
                       <input
                         type="number"
-                        value={lia.monthlyRepayment}
+                        value={lia.monthlyRepayment || ""}
                         onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
                             liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, monthlyRepayment: Number(e.target.value) || 0 } : l
+                              l.id === lia.id ? { ...l, monthlyRepayment: parseNumberInput(e.target.value) } : l
                             ),
                           }))
                         }
@@ -699,12 +699,12 @@ export const WizardView: React.FC = () => {
                       <label className="text-[10px] text-slate-400 font-bold">Years Left</label>
                       <input
                         type="number"
-                        value={lia.tenureYearsRemaining || 5}
+                        value={lia.tenureYearsRemaining || ""}
                         onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
                             liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, tenureYearsRemaining: Number(e.target.value) || 1 } : l
+                              l.id === lia.id ? { ...l, tenureYearsRemaining: parseNumberInput(e.target.value) } : l
                             ),
                           }))
                         }
@@ -800,13 +800,13 @@ export const WizardView: React.FC = () => {
                           <label className="text-[10px] text-slate-400 font-semibold">Life / Disability Payout</label>
                           <input
                             type="number"
-                            value={pol.deathBenefit}
+                            value={pol.deathBenefit || ""}
                             onChange={(e) =>
                               updateProfile((p) => ({
                                 ...p,
                                 insurancePolicies: p.insurancePolicies.map((x) =>
                                   x.id === pol.id
-                                    ? { ...x, deathBenefit: Number(e.target.value) || 0, tpdBenefit: Number(e.target.value) || 0 }
+                                    ? { ...x, deathBenefit: parseNumberInput(e.target.value), tpdBenefit: parseNumberInput(e.target.value) }
                                     : x
                                 ),
                               }))
@@ -818,12 +818,12 @@ export const WizardView: React.FC = () => {
                           <label className="text-[10px] text-slate-400 font-semibold">Critical Illness Payout</label>
                           <input
                             type="number"
-                            value={pol.majorCiBenefit}
+                            value={pol.majorCiBenefit || ""}
                             onChange={(e) =>
                               updateProfile((p) => ({
                                 ...p,
                                 insurancePolicies: p.insurancePolicies.map((x) =>
-                                  x.id === pol.id ? { ...x, majorCiBenefit: Number(e.target.value) || 0 } : x
+                                  x.id === pol.id ? { ...x, majorCiBenefit: parseNumberInput(e.target.value) } : x
                                 ),
                               }))
                             }
@@ -845,12 +845,12 @@ export const WizardView: React.FC = () => {
                               </label>
                               <input
                                 type="number"
-                                value={pol.currentCashValue || 0}
+                                value={pol.currentCashValue || ""}
                                 onChange={(e) =>
                                   updateProfile((p) => ({
                                     ...p,
                                     insurancePolicies: p.insurancePolicies.map((x) =>
-                                      x.id === pol.id ? { ...x, currentCashValue: Number(e.target.value) || 0 } : x
+                                      x.id === pol.id ? { ...x, currentCashValue: parseNumberInput(e.target.value) } : x
                                     ),
                                   }))
                                 }
@@ -864,13 +864,13 @@ export const WizardView: React.FC = () => {
                               </label>
                               <input
                                 type="number"
-                                value={pol.projectedRetirementMaturityValue || 0}
+                                value={pol.projectedRetirementMaturityValue || ""}
                                 onChange={(e) =>
                                   updateProfile((p) => ({
                                     ...p,
                                     insurancePolicies: p.insurancePolicies.map((x) =>
                                       x.id === pol.id
-                                        ? { ...x, projectedRetirementMaturityValue: Number(e.target.value) || 0 }
+                                        ? { ...x, projectedRetirementMaturityValue: parseNumberInput(e.target.value) }
                                         : x
                                     ),
                                   }))
@@ -971,15 +971,15 @@ export const WizardView: React.FC = () => {
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Custom Spend in Today's Dollars ({currency}/mo)
+                  Desired Spend in Today's Dollars ({currency}/month)
                 </label>
                 <input
                   type="number"
-                  value={profile.desiredMonthlyRetirementSpendToday}
+                  value={profile.desiredMonthlyRetirementSpendToday || ""}
                   onChange={(e) =>
                     updateProfile((p) => ({
                       ...p,
-                      desiredMonthlyRetirementSpendToday: Number(e.target.value) || 2000,
+                      desiredMonthlyRetirementSpendToday: parseNumberInput(e.target.value),
                       retirementLifestylePreset: "custom",
                     }))
                   }
@@ -993,11 +993,11 @@ export const WizardView: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  value={profile.lifeExpectancy || 88}
+                  value={profile.lifeExpectancy || ""}
                   onChange={(e) =>
                     updateProfile((p) => ({
                       ...p,
-                      lifeExpectancy: Number(e.target.value) || 88,
+                      lifeExpectancy: parseNumberInput(e.target.value),
                     }))
                   }
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none font-bold"
@@ -1123,14 +1123,14 @@ export const WizardView: React.FC = () => {
                     </label>
                     <input
                       type="number"
-                      value={profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650}
+                      value={profile.cpfLife?.estimatedMonthlyPayoutToday ?? ""}
                       onChange={(e) =>
                         updateProfile((p) => ({
                           ...p,
                           cpfLife: {
                             ...(p.cpfLife || { planTier: "custom", payoutStartAge: 65 }),
                             isEnabled: true,
-                            estimatedMonthlyPayoutToday: Number(e.target.value) || 0,
+                            estimatedMonthlyPayoutToday: parseNumberInput(e.target.value),
                             planTier: "custom",
                           },
                         }))
@@ -1145,14 +1145,14 @@ export const WizardView: React.FC = () => {
                     </label>
                     <input
                       type="number"
-                      value={profile.cpfLife?.payoutStartAge || 65}
+                      value={profile.cpfLife?.payoutStartAge || ""}
                       onChange={(e) =>
                         updateProfile((p) => ({
                           ...p,
                           cpfLife: {
                             ...(p.cpfLife || { planTier: "full_frs", estimatedMonthlyPayoutToday: 1650 }),
                             isEnabled: true,
-                            payoutStartAge: Number(e.target.value) || 65,
+                            payoutStartAge: parseNumberInput(e.target.value),
                           },
                         }))
                       }
@@ -1315,15 +1315,15 @@ export const WizardView: React.FC = () => {
 
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                          <label className="text-[10px] text-slate-400 font-bold">Target ({currency})</label>
+                          <label className="text-[10px] text-slate-400 font-bold">Target Cost ({currency})</label>
                           <input
                             type="number"
-                            value={goal.targetAmount}
+                            value={goal.targetAmount || ""}
                             onChange={(e) =>
                               updateProfile((p) => ({
                                 ...p,
                                 goals: p.goals.map((x) =>
-                                  x.id === goal.id ? { ...x, targetAmount: Number(e.target.value) || 0 } : x
+                                  x.id === goal.id ? { ...x, targetAmount: parseNumberInput(e.target.value) } : x
                                 ),
                               }))
                             }
@@ -1335,12 +1335,12 @@ export const WizardView: React.FC = () => {
                           <input
                             type="number"
                             step="0.5"
-                            value={goal.targetYearsFromNow}
+                            value={goal.targetYearsFromNow || ""}
                             onChange={(e) =>
                               updateProfile((p) => ({
                                 ...p,
                                 goals: p.goals.map((x) =>
-                                  x.id === goal.id ? { ...x, targetYearsFromNow: Number(e.target.value) || 1 } : x
+                                  x.id === goal.id ? { ...x, targetYearsFromNow: parseNumberInput(e.target.value) } : x
                                 ),
                               }))
                             }
@@ -1351,12 +1351,12 @@ export const WizardView: React.FC = () => {
                           <label className="text-[10px] text-slate-400 font-bold">Saved in Bank</label>
                           <input
                             type="number"
-                            value={goal.currentSavingsAssigned}
+                            value={goal.currentSavingsAssigned || ""}
                             onChange={(e) =>
                               updateProfile((p) => ({
                                 ...p,
                                 goals: p.goals.map((x) =>
-                                  x.id === goal.id ? { ...x, currentSavingsAssigned: Number(e.target.value) || 0 } : x
+                                  x.id === goal.id ? { ...x, currentSavingsAssigned: parseNumberInput(e.target.value) } : x
                                 ),
                               }))
                             }

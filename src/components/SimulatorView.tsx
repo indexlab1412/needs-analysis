@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, parseNumberInput } from "@/lib/utils";
 import { LifeTransitionView } from "./LifeTransitionView";
 import {
   Sliders,
@@ -299,8 +299,8 @@ export const SimulatorView: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  value={severancePayout}
-                  onChange={(e) => setSeverancePayout(Number(e.target.value) || 0)}
+                  value={severancePayout || ""}
+                  onChange={(e) => setSeverancePayout(parseNumberInput(e.target.value))}
                   placeholder="e.g. 8000"
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
@@ -312,8 +312,8 @@ export const SimulatorView: React.FC = () => {
                 </label>
                 <input
                   type="number"
-                  value={freelanceMonthlyIncome}
-                  onChange={(e) => setFreelanceMonthlyIncome(Number(e.target.value) || 0)}
+                  value={freelanceMonthlyIncome || ""}
+                  onChange={(e) => setFreelanceMonthlyIncome(parseNumberInput(e.target.value))}
                   placeholder="e.g. 500"
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />

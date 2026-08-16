@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { LiabilityItem } from "@/lib/fna/types";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, parseNumberInput } from "@/lib/utils";
 import {
   CreditCard,
   Percent,
@@ -236,8 +236,8 @@ export const LoanRefinanceView: React.FC = () => {
             </label>
             <input
               type="number"
-              value={extraMonthlyPayment}
-              onChange={(e) => setExtraMonthlyPayment(Number(e.target.value) || 0)}
+              value={extraMonthlyPayment || ""}
+              onChange={(e) => setExtraMonthlyPayment(parseNumberInput(e.target.value))}
               className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-xs"
               placeholder="e.g. 150"
             />
@@ -249,8 +249,8 @@ export const LoanRefinanceView: React.FC = () => {
             </label>
             <input
               type="number"
-              value={lumpSumPrepayment}
-              onChange={(e) => setLumpSumPrepayment(Number(e.target.value) || 0)}
+              value={lumpSumPrepayment || ""}
+              onChange={(e) => setLumpSumPrepayment(parseNumberInput(e.target.value))}
               className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold text-xs"
               placeholder="e.g. 5000"
             />

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { ExpenseCategory, ExpenseItem } from "@/lib/fna/types";
-import { formatCurrency, generateId } from "@/lib/utils";
+import { formatCurrency, generateId, parseNumberInput } from "@/lib/utils";
 import {
   Wallet,
   PieChart,
@@ -344,8 +344,8 @@ export const ExpenseTrackerView: React.FC = () => {
                   <span className="text-[10px] text-slate-400 font-bold">{currency}</span>
                   <input
                     type="number"
-                    value={exp.monthlyAmount}
-                    onChange={(e) => updateExpense(exp.id, { monthlyAmount: Number(e.target.value) || 0 })}
+                    value={exp.monthlyAmount || ""}
+                    onChange={(e) => updateExpense(exp.id, { monthlyAmount: parseNumberInput(e.target.value) })}
                     className="w-20 bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                   />
                   <button

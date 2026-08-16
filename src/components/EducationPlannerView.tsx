@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { Dependent, EducationDestinationPreset } from "@/lib/fna/types";
-import { formatCurrency, generateId } from "@/lib/utils";
+import { formatCurrency, generateId, parseNumberInput } from "@/lib/utils";
 import {
   GraduationCap,
   Sparkles,
@@ -287,9 +287,9 @@ export const EducationPlannerView: React.FC = () => {
                         <span className="text-[10px] text-slate-400">{currency}</span>
                         <input
                           type="number"
-                          value={child.currentEducationSavingsAssigned || 0}
+                          value={child.currentEducationSavingsAssigned || ""}
                           onChange={(e) =>
-                            updateChild(child.id, { currentEducationSavingsAssigned: Number(e.target.value) || 0 })
+                            updateChild(child.id, { currentEducationSavingsAssigned: parseNumberInput(e.target.value) })
                           }
                           className="w-16 bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded border border-slate-200 dark:border-slate-700 font-bold text-xs"
                         />

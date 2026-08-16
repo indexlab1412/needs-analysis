@@ -32,3 +32,9 @@ export function formatPercent(value: number): string {
 export function generateId(prefix: string = "id"): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 }
+
+export function parseNumberInput(val: string): number {
+  if (val === "" || val === undefined || val === null) return 0;
+  const num = Number(val);
+  return isNaN(num) ? 0 : num;
+}
