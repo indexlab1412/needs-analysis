@@ -1,0 +1,16 @@
+{
+  "name": "Financial Needs Analysis Pro",
+  "short_name": "FNA Pro",
+  "description": "Mobile-first financial needs analysis, shortfall calculations and net worth tracking.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f2744",
+  "theme_color": "#0f2744",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
