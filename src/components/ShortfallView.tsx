@@ -14,13 +14,34 @@ import {
   ChevronUp,
   Sliders,
   CheckCircle2,
+  Calculator,
 } from "lucide-react";
+import { FormulaModal, FormulaKey } from "./FormulaModal";
 
 export const ShortfallView: React.FC = () => {
   const { summary, currency, setActiveTab } = useFinancialStore();
   const { shortfalls } = summary;
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
+  const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
+  const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("retirement_nest_egg");
+
+  const getFormulaKey = (category: string): FormulaKey => {
+    switch (category) {
+      case "emergency_fund":
+        return "emergency_fund";
+      case "life_protection":
+        return "life_protection";
+      case "critical_illness":
+        return "critical_illness";
+      case "retirement":
+        return "retirement_nest_egg";
+      case "education":
+        return "education_compounding";
+      default:
+        return "retirement_nest_egg";
+    }
+  };
 
   const getIcon = (category: string) => {
     switch (category) {
@@ -174,8 +195,22 @@ export const ShortfallView: React.FC = () => {
                   {/* Breakdown Items */}
                   {item.breakdown && item.breakdown.length > 0 && (
                     <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1.5">
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">
-                        How We Calculated This
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                          How We Calculated This
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedFormulaKey(getFormulaKey(item.category));
+                            setIsFormulaModalOpen(true);
+                          }}
+                          className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors"
+                        >
+                          <Calculator className="w-3 h-3" />
+                          <span>See Exact Math Formula</span>
+                        </button>
                       </div>
                       {item.breakdown.map((b, i) => (
                         <div key={i} className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-300">
@@ -191,11 +226,24 @@ export const ShortfallView: React.FC = () => {
                   )}
 
                   {/* Recommendation Callout */}
-                  <div className={`p-3 rounded-xl text-xs leading-relaxed ${theme.bg} ${theme.border} border`}>
-                    <span className="font-bold text-slate-900 dark:text-white block mb-0.5 flex items-center gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" /> What to do next:
-                    </span>
-                    <p className="text-slate-600 dark:text-slate-300">{item.recommendation}</p>
+                  <div className={`p-3 rounded-xl text-xs leading-relaxed ${theme.bg} ${theme.border} border flex items-start justify-between gap-2`}>
+                    <div>
+                      <span className="font-bold text-slate-900 dark:text-white block mb-0.5 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-indigo-500" /> What to do next:
+                      </span>
+                      <p className="text-slate-600 dark:text-slate-300">{item.recommendation}</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFormulaKey(getFormulaKey(item.category));
+                        setIsFormulaModalOpen(true);
+                      }}
+                      className="px-2 py-1 rounded-lg bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-[10px] font-bold shrink-0 hover:bg-indigo-50 transition-colors"
+                    >
+                      Formula 💡
+                    </button>
                   </div>
                 </div>
               )}
@@ -219,6 +267,13 @@ export const ShortfallView: React.FC = () => {
           Open Simulator
         </button>
       </div>
+
+      {/* Formula Explanation Modal */}
+      <FormulaModal
+        isOpen={isFormulaModalOpen}
+        onClose={() => setIsFormulaModalOpen(false)}
+        initialKey={selectedFormulaKey}
+      />
     </div>
   );
 };

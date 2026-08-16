@@ -15,6 +15,7 @@ import { CouplePlannerView } from "./CouplePlannerView";
 import { EducationPlannerView } from "./EducationPlannerView";
 import { MonthlyHistoryModal } from "./MonthlyHistoryModal";
 import { QuickMonthlyCheckinModal } from "./QuickMonthlyCheckinModal";
+import { FormulaModal, FormulaKey } from "./FormulaModal";
 import {
   Sparkles,
   ArrowRight,
@@ -39,6 +40,7 @@ import {
   CheckCircle2,
   History,
   Clock,
+  Calculator,
 } from "lucide-react";
 
 type MainDashboardTab = "overview" | "goals" | "invest" | "debts" | "couple";
@@ -58,6 +60,8 @@ export const DashboardView: React.FC = () => {
   const [loggedToast, setLoggedToast] = useState<string | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isQuickCheckinOpen, setIsQuickCheckinOpen] = useState(false);
+  const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
+  const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("retirement_nest_egg");
   const {
     netWorth,
     cashFlow,
@@ -490,6 +494,26 @@ export const DashboardView: React.FC = () => {
                 Save on loans <ChevronRight className="w-3 h-3" />
               </div>
             </div>
+
+            {/* Formula & Derivations Hub Card */}
+            <div
+              onClick={() => {
+                setSelectedFormulaKey("retirement_nest_egg");
+                setIsFormulaModalOpen(true);
+              }}
+              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950/40 border border-indigo-100 dark:border-indigo-900 rounded-2xl cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200">Formula Guide</span>
+                <Calculator className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
+                Transparent math & derivations
+              </p>
+              <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                See Formulas 💡 <ChevronRight className="w-3 h-3" />
+              </div>
+            </div>
           </div>
 
           {/* Monthly Paycheck Flow Card */}
@@ -762,6 +786,13 @@ export const DashboardView: React.FC = () => {
           setLoggedToast(msg);
           setTimeout(() => setLoggedToast(null), 4000);
         }}
+      />
+
+      {/* Formula & Derivation Guide Modal */}
+      <FormulaModal
+        isOpen={isFormulaModalOpen}
+        onClose={() => setIsFormulaModalOpen(false)}
+        initialKey={selectedFormulaKey}
       />
     </div>
   );

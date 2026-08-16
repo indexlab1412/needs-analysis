@@ -8,6 +8,7 @@ import {
   Users,
   Heart,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
   TrendingUp,
   AlertTriangle,
@@ -19,9 +20,13 @@ import {
   Building2,
   Lock,
   Zap,
+  Calculator,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 import { PartnerMergeModal } from "./PartnerMergeModal";
+import { FormulaModal, FormulaKey } from "./FormulaModal";
 
 export const CouplePlannerView: React.FC = () => {
   const { profile, updateProfile, summary, currency } = useFinancialStore();
@@ -52,6 +57,9 @@ export const CouplePlannerView: React.FC = () => {
   const [testedScenario, setTestedScenario] = useState<"jobless" | "illness">("jobless");
   const [affectedPartner, setAffectedPartner] = useState<"user" | "partner">("partner");
   const [stressMonths, setStressMonths] = useState<number>(6);
+  const [isFormulaModalOpen, setIsFormulaModalOpen] = useState<boolean>(false);
+  const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("couple_burn_rate");
+  const [isHedgingGuideOpen, setIsHedgingGuideOpen] = useState<boolean>(false);
 
   const updatePartner = (updates: Partial<PartnerProfile>) => {
     updateProfile((p) => ({
@@ -227,7 +235,102 @@ export const CouplePlannerView: React.FC = () => {
                   </span>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedFormulaKey("dual_cpf_life");
+                  setIsFormulaModalOpen(true);
+                }}
+                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 text-white font-extrabold text-[10px] shrink-0 transition-colors flex items-center gap-1"
+              >
+                <Calculator className="w-3 h-3" />
+                <span>Formula</span>
+              </button>
             </div>
+          </div>
+
+          {/* ========================================================================= */}
+          {/* EDUCATIONAL & HEDGING FRAMEWORK: THE 4 COUPLE SAFETY SHIELDS */}
+          {/* ========================================================================= */}
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    How Couple Values Are Captured & Hedged Against Uncertainties
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    The 4 financial safety shields protecting your joint household
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsHedgingGuideOpen(!isHedgingGuideOpen)}
+                className="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1 hover:underline p-1"
+              >
+                <span>{isHedgingGuideOpen ? "Hide Framework" : "Explore 4 Shields"}</span>
+                {isHedgingGuideOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+
+            {/* Collapsible 4 Shields Grid */}
+            {isHedgingGuideOpen && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 animate-in fade-in duration-150 text-xs">
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Briefcase className="w-3.5 h-3.5 text-amber-500" /> 1. Job Loss / Breadwinner Shield
+                    </span>
+                    <span className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">6-12 Mo Runway</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <strong>Hedge:</strong> Maintain a joint emergency bank buffer equal to 6 months of combined living bills + debt repayments. If one partner loses a job, the household never defaults on mortgages.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Activity className="w-3.5 h-3.5 text-rose-500" /> 2. Critical Illness & Health Shield
+                    </span>
+                    <span className="text-[10px] text-rose-600 dark:text-rose-400 font-bold">3-5 Yrs Income</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <strong>Hedge:</strong> Ensure each partner holds Critical Illness insurance paying 3–5 years of gross salary lump sum so joint retirement investments are never liquidated during medical treatments.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-indigo-500" /> 3. Mortgage & HPS Protection
+                    </span>
+                    <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">Debt → $0</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <strong>Hedge:</strong> Under Singapore's Home Protection Scheme (HPS) or joint mortgage term insurance, if either spouse passes away, the outstanding loan is wiped clean, leaving $0 debt for the surviving partner.
+                  </p>
+                </div>
+
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-500" /> 4. Dual Longevity Annuity (CPF)
+                    </span>
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">Lifelong Floor</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <strong>Hedge:</strong> Dual CPF LIFE payouts ($3,300/mo combined) guarantee that no matter how long either partner lives (even past age 95+), fundamental living expenses are guaranteed by the government.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* ========================================================================= */}
@@ -347,16 +450,30 @@ export const CouplePlannerView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-xs leading-relaxed">
-                  {isSurvivingDeficit ? (
-                    <p>
-                      ⚠️ <strong>Cashflow Drain:</strong> The remaining income leaves a monthly gap of <strong>-{formatCurrency(monthlyCashDrain, currency)}/month</strong>. Your combined liquid savings of <strong>{formatCurrency(jointLiquidCash, currency)}</strong> will sustain the household for <strong>{coupleRunwayMonths} months</strong> before cash runs out.
-                    </p>
-                  ) : (
-                    <p>
-                      🎉 <strong>Immense Resilience:</strong> One income of <strong>{formatCurrency(survivingIncome, currency)}/mo</strong> is sufficient to cover 100% of joint living costs and all debt repayments, still leaving <strong>+{formatCurrency(survivingMonthlySurplusDeficit, currency)}/month</strong> in surplus!
-                    </p>
-                  )}
+                <div className="flex items-center justify-between pt-1 border-t border-black/5 dark:border-white/5 text-xs">
+                  <div className="text-xs leading-relaxed flex-1">
+                    {isSurvivingDeficit ? (
+                      <p>
+                        ⚠️ <strong>Cashflow Drain:</strong> The remaining income leaves a monthly gap of <strong>-{formatCurrency(monthlyCashDrain, currency)}/month</strong>. Your combined liquid savings of <strong>{formatCurrency(jointLiquidCash, currency)}</strong> will sustain the household for <strong>{coupleRunwayMonths} months</strong> before cash runs out.
+                      </p>
+                    ) : (
+                      <p>
+                        🎉 <strong>Immense Resilience:</strong> One income of <strong>{formatCurrency(survivingIncome, currency)}/mo</strong> is sufficient to cover 100% of joint living costs and all debt repayments, still leaving <strong>+{formatCurrency(survivingMonthlySurplusDeficit, currency)}/month</strong> in surplus!
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFormulaKey("couple_burn_rate");
+                      setIsFormulaModalOpen(true);
+                    }}
+                    className="ml-2 px-2.5 py-1 rounded-xl bg-white/80 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-extrabold text-[10px] shrink-0 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1 hover:bg-indigo-50 transition-colors"
+                  >
+                    <Calculator className="w-3 h-3" />
+                    <span>Formula</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -367,7 +484,7 @@ export const CouplePlannerView: React.FC = () => {
                 className={`p-4 rounded-2xl border space-y-3 ${
                   ciCoverageRatio >= 100
                     ? "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 text-emerald-900 dark:text-emerald-200"
-                    : "bg-amber-50/80 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200"
+                    : "bg-amber-50/80 dark:amber-950/40 border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -400,16 +517,30 @@ export const CouplePlannerView: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="text-xs leading-relaxed">
-                  {ciInsuranceGap > 0 ? (
-                    <p>
-                      🛡️ <strong>Insurance Buffer:</strong> {illPartnerName}'s Critical Illness policy will pay out <strong>{formatCurrency(illPartnerCiCover, currency)}</strong> cash, covering {ciCoverageRatio}% of lost salary so the healthy partner is not forced to bear all personal loans and medical recovery costs alone. Adding <strong>{formatCurrency(ciInsuranceGap, currency)}</strong> in CI coverage would achieve 100% income replacement.
-                    </p>
-                  ) : (
-                    <p>
-                      🎉 <strong>Fully Protected:</strong> {illPartnerName} has <strong>{formatCurrency(illPartnerCiCover, currency)}</strong> in Critical Illness coverage, fully replacing 3 years of income with zero financial stress on the surviving partner!
-                    </p>
-                  )}
+                <div className="flex items-center justify-between pt-1 border-t border-black/5 dark:border-white/5 text-xs">
+                  <div className="text-xs leading-relaxed flex-1">
+                    {ciInsuranceGap > 0 ? (
+                      <p>
+                        🛡️ <strong>Insurance Buffer:</strong> {illPartnerName}'s Critical Illness policy will pay out <strong>{formatCurrency(illPartnerCiCover, currency)}</strong> cash, covering {ciCoverageRatio}% of lost salary so the healthy partner is not forced to bear all personal loans and medical recovery costs alone. Adding <strong>{formatCurrency(ciInsuranceGap, currency)}</strong> in CI coverage would achieve 100% income replacement.
+                      </p>
+                    ) : (
+                      <p>
+                        🎉 <strong>Fully Protected:</strong> {illPartnerName} has <strong>{formatCurrency(illPartnerCiCover, currency)}</strong> in Critical Illness coverage, fully replacing 3 years of income with zero financial stress on the surviving partner!
+                      </p>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedFormulaKey("critical_illness");
+                      setIsFormulaModalOpen(true);
+                    }}
+                    className="ml-2 px-2.5 py-1 rounded-xl bg-white/80 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 font-extrabold text-[10px] shrink-0 border border-indigo-200 dark:border-indigo-800 flex items-center gap-1 hover:bg-indigo-50 transition-colors"
+                  >
+                    <Calculator className="w-3 h-3" />
+                    <span>Formula</span>
+                  </button>
                 </div>
               </div>
             )}
@@ -453,17 +584,17 @@ export const CouplePlannerView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-400 font-bold uppercase">Debt Payment ({currency}/mo)</label>
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Personal Expenses & Loans ({currency}/mo)</label>
                 <input
                   type="number"
-                  value={partner.monthlyDebtRepayment || ""}
-                  onChange={(e) => updatePartner({ monthlyDebtRepayment: parseNumberInput(e.target.value) })}
+                  value={partner.monthlyPersonalExpenses || ""}
+                  onChange={(e) => updatePartner({ monthlyPersonalExpenses: parseNumberInput(e.target.value) })}
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 font-bold"
                 />
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-400 font-bold uppercase">Bank Cash ({currency})</label>
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Liquid Bank Cash ({currency})</label>
                 <input
                   type="number"
                   value={partner.liquidSavings || ""}
@@ -473,7 +604,7 @@ export const CouplePlannerView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-[10px] text-slate-400 font-bold uppercase">Investments & Robos ({currency})</label>
+                <label className="text-[10px] text-slate-400 font-bold uppercase">Investments & Stocks ({currency})</label>
                 <input
                   type="number"
                   value={partner.investmentsValue || ""}
@@ -505,6 +636,13 @@ export const CouplePlannerView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Formula & Derivation Guide Modal */}
+      <FormulaModal
+        isOpen={isFormulaModalOpen}
+        onClose={() => setIsFormulaModalOpen(false)}
+        initialKey={selectedFormulaKey}
+      />
     </div>
   );
 };
