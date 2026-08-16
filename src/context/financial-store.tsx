@@ -35,6 +35,7 @@ interface FinancialStoreContextType {
   setPlanningCadence: (cadence: PlanningCadence) => void;
   setPlanningScope: (scope: PlanningScope) => void;
   logMonthlyCashflow: (notes?: string) => void;
+  closeMonthAndRollNext: (notes?: string) => void;
   captureYearlySnapshot: (milestone?: string, notes?: string) => void;
   loadPreset: (key: string) => void;
   resetProfile: () => void;
@@ -140,25 +141,75 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   };
 
   const logMonthlyCashflow = (notes?: string) => {
-    const today = new Date();
-    const monthYear = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+    const activeMY = profile.activePlanningMonthYear || "2026-08";
+    const [yearStr, monthStr] = activeMY.split("-");
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const dateObj = new Date(year, month - 1, 1);
+    const monthLabel = dateObj.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
     const newLog: MonthlyCashflowLog = {
       id: generateId("log"),
-      monthYear,
-      dateRecorded: today.toISOString().split("T")[0],
+      monthYear: activeMY,
+      monthLabel,
+      dateRecorded: new Date().toISOString().split("T")[0],
       totalIncome: summary.cashFlow.totalMonthlyIncome,
       totalExpenses: summary.cashFlow.totalMonthlyExpenses,
       totalDcaInvested: summary.cashFlow.totalMonthlyDCAInvestments,
       netSavings: summary.cashFlow.monthlyNetSavings,
+      savingsRatePercentage: summary.cashFlow.savingsRatePercentage,
       netWorthAtMonthEnd: summary.netWorth.netWorth,
-      keyNotes: notes || "Regular monthly update recorded.",
+      keyNotes: notes || `Recorded cashflow snapshot for ${monthLabel}.`,
+      expensesSnapshot: JSON.parse(JSON.stringify(profile.expenses)),
     };
 
     updateProfile((p) => {
       const existing = p.monthlyLogs || [];
-      // Replace if same month exists, else append
-      const filtered = existing.filter((l) => l.monthYear !== monthYear);
-      return { ...p, monthlyLogs: [...filtered, newLog] };
+      const filtered = existing.filter((l) => l.monthYear !== activeMY);
+      return { ...p, monthlyLogs: [...filtered, newLog].sort((a, b) => a.monthYear.localeCompare(b.monthYear)) };
+    });
+  };
+
+  const closeMonthAndRollNext = (notes?: string) => {
+    const activeMY = profile.activePlanningMonthYear || "2026-08";
+    const [yearStr, monthStr] = activeMY.split("-");
+    const year = parseInt(yearStr, 10);
+    const month = parseInt(monthStr, 10);
+    const dateObj = new Date(year, month - 1, 1);
+    const monthLabel = dateObj.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+    const newLog: MonthlyCashflowLog = {
+      id: generateId("log"),
+      monthYear: activeMY,
+      monthLabel,
+      dateRecorded: new Date().toISOString().split("T")[0],
+      totalIncome: summary.cashFlow.totalMonthlyIncome,
+      totalExpenses: summary.cashFlow.totalMonthlyExpenses,
+      totalDcaInvested: summary.cashFlow.totalMonthlyDCAInvestments,
+      netSavings: summary.cashFlow.monthlyNetSavings,
+      savingsRatePercentage: summary.cashFlow.savingsRatePercentage,
+      netWorthAtMonthEnd: summary.netWorth.netWorth,
+      keyNotes: notes || `Closed ${monthLabel} and archived snapshot.`,
+      expensesSnapshot: JSON.parse(JSON.stringify(profile.expenses)),
+    };
+
+    // Calculate Next Month Year string
+    let nextYear = year;
+    let nextMonth = month + 1;
+    if (nextMonth > 12) {
+      nextMonth = 1;
+      nextYear += 1;
+    }
+    const nextMonthYear = `${nextYear}-${String(nextMonth).padStart(2, "0")}`;
+
+    updateProfile((p) => {
+      const existing = p.monthlyLogs || [];
+      const filtered = existing.filter((l) => l.monthYear !== activeMY);
+      return {
+        ...p,
+        activePlanningMonthYear: nextMonthYear,
+        monthlyLogs: [...filtered, newLog].sort((a, b) => a.monthYear.localeCompare(b.monthYear)),
+      };
     });
   };
 
@@ -364,6 +415,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         setPlanningCadence,
         setPlanningScope,
         logMonthlyCashflow,
+        closeMonthAndRollNext,
         captureYearlySnapshot,
         loadPreset,
         resetProfile,

@@ -151,13 +151,16 @@ export interface CpfLifeSettings {
 export interface MonthlyCashflowLog {
   id: string;
   monthYear: string; // e.g. "2026-08"
+  monthLabel: string; // e.g. "August 2026"
   dateRecorded: string;
   totalIncome: number;
   totalExpenses: number;
   totalDcaInvested: number;
   netSavings: number;
+  savingsRatePercentage: number;
   netWorthAtMonthEnd: number;
   keyNotes?: string;
+  expensesSnapshot?: ExpenseItem[];
 }
 
 export interface YearlySnapshot {
@@ -226,6 +229,8 @@ export interface UserFinancialProfile {
   // Planning Cadence & Scope
   planningCadence?: PlanningCadence; // "yearly" | "monthly"
   planningScope?: PlanningScope; // "individual" | "joint"
+  planningStartMonthYear?: string; // e.g. "2026-08"
+  activePlanningMonthYear?: string; // e.g. "2026-08"
   
   cpfLife?: CpfLifeSettings;
   monthlyLogs?: MonthlyCashflowLog[];

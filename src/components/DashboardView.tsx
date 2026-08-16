@@ -13,6 +13,7 @@ import { ExpenseTrackerView } from "./ExpenseTrackerView";
 import { LoanRefinanceView } from "./LoanRefinanceView";
 import { CouplePlannerView } from "./CouplePlannerView";
 import { EducationPlannerView } from "./EducationPlannerView";
+import { MonthlyHistoryModal } from "./MonthlyHistoryModal";
 import {
   Sparkles,
   ArrowRight,
@@ -36,6 +37,7 @@ import {
   Zap,
   CheckCircle2,
   History,
+  Clock,
 } from "lucide-react";
 
 type MainDashboardTab = "overview" | "goals" | "invest" | "debts" | "couple";
@@ -48,10 +50,12 @@ export const DashboardView: React.FC = () => {
     setActiveTab,
     setIsReportModalOpen,
     logMonthlyCashflow,
+    closeMonthAndRollNext,
     captureYearlySnapshot,
     setPlanningCadence,
   } = useFinancialStore();
   const [loggedToast, setLoggedToast] = useState<string | null>(null);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const {
     netWorth,
     cashFlow,
@@ -73,6 +77,20 @@ export const DashboardView: React.FC = () => {
   const criticalCount = shortfalls.filter((s) => s.status === "critical").length;
   const childCount = profile.dependents.filter((d) => d.relationship === "child").length;
   const isCoupleEnabled = profile.partner?.isEnabled;
+
+  const activeMonthYear = profile.activePlanningMonthYear || "2026-08";
+  const [yStr, mStr] = activeMonthYear.split("-");
+  const activeDate = new Date(parseInt(yStr || "2026", 10), parseInt(mStr || "8", 10) - 1, 1);
+  const activeMonthLabel = activeDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+
+  let nextMonthNum = parseInt(mStr || "8", 10) + 1;
+  let nextYearNum = parseInt(yStr || "2026", 10);
+  if (nextMonthNum > 12) {
+    nextMonthNum = 1;
+    nextYearNum += 1;
+  }
+  const nextDate = new Date(nextYearNum, nextMonthNum - 1, 1);
+  const nextMonthLabel = nextDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   return (
     <div className="space-y-4 pb-20">
@@ -205,80 +223,127 @@ export const DashboardView: React.FC = () => {
         <div className="space-y-4 animate-in fade-in duration-200">
           {/* Toast Notification */}
           {loggedToast && (
-            <div className="p-3 bg-emerald-500 text-white rounded-2xl text-xs font-bold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+            <div className="p-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
               <span className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4" /> {loggedToast}
+                <CheckCircle2 className="w-4 h-4 shrink-0" /> {loggedToast}
               </span>
-              <button onClick={() => setLoggedToast(null)} className="text-white/80 hover:text-white text-xs">
+              <button onClick={() => setLoggedToast(null)} className="text-white/80 hover:text-white text-xs font-black ml-2">
                 ✕
               </button>
             </div>
           )}
 
-          {/* Contextual Cadence Status Card */}
+          {/* High-Contrast Cadence Status & Monthly Lifecycle Card */}
           {(profile.planningCadence || "monthly") === "monthly" ? (
-            <div className="fin-card p-4 bg-gradient-to-r from-amber-500/10 via-slate-900 to-indigo-950/40 border border-amber-500/20 rounded-3xl space-y-2.5">
+            <div className="fin-card p-4 bg-white dark:bg-slate-900 border-2 border-amber-500/30 dark:border-amber-500/40 rounded-3xl shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold uppercase text-amber-500 flex items-center gap-1.5">
-                  <Zap className="w-4 h-4" /> Monthly Pulse Active
-                </span>
-                <span className="text-[10px] text-slate-400">
-                  {profile.monthlyLogs?.length || 0} Monthly Logs Recorded
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between text-xs pt-1">
-                <div>
-                  <span className="text-[10px] text-slate-400 block">Monthly Inflow - Outflow:</span>
-                  <span className="text-sm font-black text-emerald-400 mt-0.5 block">
-                    +{formatCurrency(cashFlow.monthlyNetSavings, currency)} / month net savings
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                    <Zap className="w-3 h-3 text-amber-500 fill-amber-500" /> Monthly Pulse
+                  </span>
+                  <span className="text-xs font-black text-slate-900 dark:text-white">
+                    {activeMonthLabel} (Active)
                   </span>
                 </div>
 
                 <button
+                  onClick={() => setIsHistoryModalOpen(true)}
+                  className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl transition-colors"
+                >
+                  <History className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Past Snapshots ({profile.monthlyLogs?.length || 0})</span>
+                </button>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
+                <div>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                    {activeMonthLabel} Net Cashflow:
+                  </span>
+                  <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                    +{formatCurrency(cashFlow.monthlyNetSavings, currency)} / month
+                  </span>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                    Monthly Savings Rate:
+                  </span>
+                  <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
+                    {cashFlow.savingsRatePercentage}% of pay
+                  </span>
+                </div>
+              </div>
+
+              {/* Monthly Transition Action Buttons */}
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
                   onClick={() => {
                     logMonthlyCashflow();
-                    setLoggedToast("Logged current monthly cashflow snapshot successfully!");
+                    setLoggedToast(`Updated snapshot for ${activeMonthLabel}!`);
                     setTimeout(() => setLoggedToast(null), 3000);
                   }}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-sm transition-all shrink-0"
+                  className="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-[11px] transition-all flex items-center justify-center gap-1.5"
                 >
-                  <Zap className="w-3.5 h-3.5 fill-current" />
-                  <span>Log This Month</span>
+                  <Zap className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Save {activeMonthLabel}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    closeMonthAndRollNext();
+                    setLoggedToast(`Archived ${activeMonthLabel} snapshot & advanced to ${nextMonthLabel}!`);
+                    setTimeout(() => setLoggedToast(null), 4000);
+                  }}
+                  className="py-2 px-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-[11px] shadow-sm transition-all flex items-center justify-center gap-1.5"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Close & Start {nextMonthLabel.split(" ")[0]}</span>
                 </button>
               </div>
             </div>
           ) : (
-            <div className="fin-card p-4 bg-gradient-to-r from-indigo-500/10 via-slate-900 to-slate-900 border border-indigo-500/20 rounded-3xl space-y-2.5">
+            <div className="fin-card p-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 rounded-3xl shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-extrabold uppercase text-indigo-400 flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4" /> Annual Review Active
+                <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
+                  <Calendar className="w-3 h-3 text-indigo-500" /> Annual Review
                 </span>
-                <span className="text-[10px] text-slate-400">
-                  {profile.yearlySnapshots?.length || 0} Years Recorded
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+                  {profile.yearlySnapshots?.length || 0} Annual Records
                 </span>
               </div>
 
-              <div className="flex items-center justify-between text-xs pt-1">
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Annual Savings Rate:</span>
-                  <span className="text-sm font-black text-indigo-300 mt-0.5 block">
-                    {cashFlow.savingsRatePercentage}% of gross income ({formatCurrency(cashFlow.monthlyNetSavings * 12, currency)}/yr)
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                    Annual Savings Created:
+                  </span>
+                  <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
+                    +{formatCurrency(cashFlow.monthlyNetSavings * 12, currency)} / year
                   </span>
                 </div>
 
-                <button
-                  onClick={() => {
-                    captureYearlySnapshot();
-                    setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
-                    setTimeout(() => setLoggedToast(null), 3000);
-                  }}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all shrink-0"
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>Capture {new Date().getFullYear()} Snapshot</span>
-                </button>
+                <div className="text-right">
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                    Savings Rate:
+                  </span>
+                  <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                    {cashFlow.savingsRatePercentage}%
+                  </span>
+                </div>
               </div>
+
+              <button
+                onClick={() => {
+                  captureYearlySnapshot();
+                  setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
+                  setTimeout(() => setLoggedToast(null), 3000);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
+              >
+                <Calendar className="w-3.5 h-3.5" />
+                <span>Capture {new Date().getFullYear()} Snapshot</span>
+              </button>
             </div>
           )}
 
@@ -659,6 +724,12 @@ export const DashboardView: React.FC = () => {
           <CouplePlannerView />
         </div>
       )}
+
+      {/* Monthly Historical Snapshots Modal */}
+      <MonthlyHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+      />
     </div>
   );
 };
