@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
-import { formatCurrency, parseNumberInput } from "@/lib/utils";
+import { IncomeItem, ExpenseItem, AssetItem } from "@/lib/fna/types";
+import { formatCurrency, generateId, parseNumberInput } from "@/lib/utils";
 import {
   X,
   Zap,
@@ -14,6 +15,7 @@ import {
   ArrowRight,
   Plus,
   Trash2,
+  Tag,
 } from "lucide-react";
 
 interface QuickMonthlyCheckinModalProps {
@@ -35,7 +37,6 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
   const activeMonthLabel = activeDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   const [monthlyNotes, setMonthlyNotes] = useState("");
-  const [stepTab, setStepTab] = useState<"review" | "done">("review");
 
   if (!isOpen) return null;
 
@@ -44,6 +45,55 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
   const totalDCA = profile.assets.reduce((sum, a) => sum + (Number(a.monthlyContribution) || 0), 0);
   const netSavings = totalIncome - totalExpenses;
   const savingsRate = totalIncome > 0 ? Math.round((netSavings / totalIncome) * 100) : 0;
+
+  // Add & remove handlers
+  const handleAddIncome = () => {
+    const newItem: IncomeItem = {
+      id: generateId("inc"),
+      category: "employment",
+      description: "Side Gig / Bonus",
+      monthlyAmount: 0,
+    };
+    updateProfile((p) => ({ ...p, incomes: [...p.incomes, newItem] }));
+  };
+
+  const handleRemoveIncome = (id: string) => {
+    updateProfile((p) => ({ ...p, incomes: p.incomes.filter((i) => i.id !== id) }));
+  };
+
+  const handleAddExpense = (presetName?: string) => {
+    const newItem: ExpenseItem = {
+      id: generateId("exp"),
+      category: "lifestyle",
+      description: presetName || "New Expense / Bill",
+      monthlyAmount: 0,
+      isEssential: false,
+    };
+    updateProfile((p) => ({ ...p, expenses: [...p.expenses, newItem] }));
+  };
+
+  const handleRemoveExpense = (id: string) => {
+    updateProfile((p) => ({ ...p, expenses: p.expenses.filter((e) => e.id !== id) }));
+  };
+
+  const handleAddDCA = () => {
+    const newItem: AssetItem = {
+      id: generateId("ast-dca"),
+      category: "stocks_funds",
+      description: "New ETF / Robo Plan",
+      currentValue: 0,
+      isLiquid: false,
+      expectedReturnRate: 6.5,
+      monthlyContribution: 100,
+      platformOrVehicle: "Robo / Broker",
+      targetPurpose: "wealth_growth",
+    };
+    updateProfile((p) => ({ ...p, assets: [...p.assets, newItem] }));
+  };
+
+  const handleRemoveDCA = (id: string) => {
+    updateProfile((p) => ({ ...p, assets: p.assets.filter((a) => a.id !== id) }));
+  };
 
   const handleCompleteCheckin = () => {
     logMonthlyCashflow(monthlyNotes || `Completed monthly check-in for ${activeMonthLabel}.`);
@@ -67,7 +117,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                 1-Click Monthly Check-In
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Update your numbers for <strong>{activeMonthLabel}</strong> in under 60 seconds
+                Update or add new income & expenses for <strong>{activeMonthLabel}</strong>
               </p>
             </div>
           </div>
@@ -106,24 +156,39 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
             </div>
           </div>
 
-          {/* Section 1: Income Adjustments */}
+          {/* Section 1: Income Adjustments & Add New Income */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <Wallet className="w-3.5 h-3.5 text-emerald-500" /> 1. Monthly Paycheck & Inflow
               </span>
-              <span className="text-[10px] text-slate-400">Did your salary or bonus change?</span>
+              <button
+                type="button"
+                onClick={handleAddIncome}
+                className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800"
+              >
+                <Plus className="w-3 h-3" /> Add Income
+              </button>
             </div>
 
             <div className="space-y-1.5">
               {profile.incomes.map((inc) => (
                 <div
                   key={inc.id}
-                  className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs"
+                  className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs"
                 >
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[140px]">
-                    {inc.description}
-                  </span>
+                  <input
+                    type="text"
+                    value={inc.description}
+                    onChange={(e) =>
+                      updateProfile((p) => ({
+                        ...p,
+                        incomes: p.incomes.map((i) => (i.id === inc.id ? { ...i, description: e.target.value } : i)),
+                      }))
+                    }
+                    className="flex-1 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold"
+                    placeholder="e.g. Salary / Bonus"
+                  />
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-slate-400">{currency}</span>
                     <input
@@ -140,29 +205,67 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                       className="w-24 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveIncome(inc.id)}
+                    className="text-slate-400 hover:text-rose-500 p-1"
+                    title="Remove this income item"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Section 2: Quick Spending Updates */}
+          {/* Section 2: Quick Spending Updates & Add New Category/Bill */}
           <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <Receipt className="w-3.5 h-3.5 text-rose-500" /> 2. Monthly Expenses & Living Bills
               </span>
-              <span className="text-[10px] text-slate-400">Adjust any line-items</span>
+              <button
+                type="button"
+                onClick={() => handleAddExpense()}
+                className="text-[11px] font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 flex items-center gap-1 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-lg border border-rose-200 dark:border-rose-800"
+              >
+                <Plus className="w-3 h-3" /> Add Bill / Category
+              </button>
             </div>
 
-            <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+            {/* Quick Expense Preset Chips */}
+            <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar text-[10px]">
+              <span className="text-slate-400 shrink-0 font-medium">Quick Add:</span>
+              {["Gym / Fitness", "Subscriptions", "Dining Out", "Travel Stash", "Pet Care"].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => handleAddExpense(preset)}
+                  className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 shrink-0 transition-colors"
+                >
+                  + {preset}
+                </button>
+              ))}
+            </div>
+
+            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
               {profile.expenses.map((exp) => (
                 <div
                   key={exp.id}
-                  className="flex items-center justify-between p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs"
+                  className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs"
                 >
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[140px]">
-                    {exp.description}
-                  </span>
+                  <input
+                    type="text"
+                    value={exp.description}
+                    onChange={(e) =>
+                      updateProfile((p) => ({
+                        ...p,
+                        expenses: p.expenses.map((ex) => (ex.id === exp.id ? { ...ex, description: e.target.value } : ex)),
+                      }))
+                    }
+                    className="flex-1 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold"
+                    placeholder="e.g. Groceries / Rent"
+                  />
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-slate-400">{currency}</span>
                     <input
@@ -179,20 +282,32 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                       className="w-24 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                     />
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveExpense(exp.id)}
+                    className="text-slate-400 hover:text-rose-500 p-1"
+                    title="Remove this bill"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Section 3: DCA Auto-Invest Check */}
+          {/* Section 3: DCA Auto-Invest Check & Add New DCA */}
           <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5 text-indigo-500" /> 3. Regular Auto-DCA Investments
               </span>
-              <span className="text-[10px] text-slate-400 font-bold">
-                Total DCA: {formatCurrency(totalDCA, currency)}/mo
-              </span>
+              <button
+                type="button"
+                onClick={handleAddDCA}
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800"
+              >
+                <Plus className="w-3 h-3" /> Add DCA Plan
+              </button>
             </div>
 
             <div className="space-y-1.5">
@@ -201,11 +316,20 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                 .map((ast) => (
                   <div
                     key={ast.id}
-                    className="flex items-center justify-between p-2 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900 text-xs"
+                    className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900 text-xs"
                   >
-                    <span className="font-semibold text-indigo-900 dark:text-indigo-200 truncate max-w-[140px]">
-                      {ast.description}
-                    </span>
+                    <input
+                      type="text"
+                      value={ast.description}
+                      onChange={(e) =>
+                        updateProfile((p) => ({
+                          ...p,
+                          assets: p.assets.map((a) => (a.id === ast.id ? { ...a, description: e.target.value } : a)),
+                        }))
+                      }
+                      className="flex-1 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold"
+                      placeholder="e.g. Syfe / Endowus"
+                    />
                     <div className="flex items-center gap-1">
                       <span className="text-[10px] text-indigo-500 font-bold">{currency}</span>
                       <input
@@ -222,6 +346,14 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                         className="w-24 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-right"
                       />
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveDCA(ast.id)}
+                      className="text-slate-400 hover:text-rose-500 p-1"
+                      title="Remove this DCA plan"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
             </div>
