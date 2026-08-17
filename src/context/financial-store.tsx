@@ -161,6 +161,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       netWorthAtMonthEnd: summary.netWorth.netWorth,
       keyNotes: notes || `Recorded cashflow snapshot for ${monthLabel}.`,
       expensesSnapshot: JSON.parse(JSON.stringify(profile.expenses)),
+      assetsSnapshot: JSON.parse(JSON.stringify(profile.assets)),
     };
 
     updateProfile((p) => {
@@ -191,6 +192,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       netWorthAtMonthEnd: summary.netWorth.netWorth,
       keyNotes: notes || `Closed ${monthLabel} and archived snapshot.`,
       expensesSnapshot: JSON.parse(JSON.stringify(profile.expenses)),
+      assetsSnapshot: JSON.parse(JSON.stringify(profile.assets)),
     };
 
     // Calculate Next Month Year string

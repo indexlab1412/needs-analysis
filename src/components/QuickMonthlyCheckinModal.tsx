@@ -292,63 +292,97 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
             </div>
           </div>
 
-          {/* Section 3: DCA Auto-Invest Check & Add New DCA */}
+          {/* Section 3: DCA Auto-Invest & Current Market Value Updates */}
           <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
-                <TrendingUp className="w-3.5 h-3.5 text-indigo-500" /> 3. Regular Auto-DCA Investments
-              </span>
+              <div>
+                <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5 text-indigo-500" /> 3. Investments & Current Market Values
+                </span>
+                <p className="text-[10px] text-slate-400">
+                  Update this month's DCA (enter 0 if skipped) & latest portfolio valuation
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={handleAddDCA}
-                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800"
+                className="text-[11px] font-bold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-lg border border-indigo-200 dark:border-indigo-800 shrink-0"
               >
-                <Plus className="w-3 h-3" /> Add DCA Plan
+                <Plus className="w-3 h-3" /> Add Account
               </button>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
               {profile.assets
-                .filter((a) => (a.monthlyContribution || 0) > 0)
+                .filter((a) => a.category !== "cpf_epf_pension")
                 .map((ast) => (
                   <div
                     key={ast.id}
-                    className="flex items-center gap-2 p-2 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900 text-xs"
+                    className="p-2.5 bg-indigo-50/50 dark:bg-indigo-950/30 rounded-xl border border-indigo-100 dark:border-indigo-900/70 text-xs space-y-2"
                   >
-                    <input
-                      type="text"
-                      value={ast.description}
-                      onChange={(e) =>
-                        updateProfile((p) => ({
-                          ...p,
-                          assets: p.assets.map((a) => (a.id === ast.id ? { ...a, description: e.target.value } : a)),
-                        }))
-                      }
-                      className="flex-1 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold"
-                      placeholder="e.g. Syfe / Endowus"
-                    />
-                    <div className="flex items-center gap-1">
-                      <span className="text-[10px] text-indigo-500 font-bold">{currency}</span>
-                      <NumericInput
-                        value={ast.monthlyContribution}
-                        onChange={(val) =>
+                    <div className="flex items-center justify-between gap-2">
+                      <input
+                        type="text"
+                        value={ast.description}
+                        onChange={(e) =>
                           updateProfile((p) => ({
                             ...p,
-                            assets: p.assets.map((a) => (a.id === ast.id ? { ...a, monthlyContribution: val } : a)),
+                            assets: p.assets.map((a) => (a.id === ast.id ? { ...a, description: e.target.value } : a)),
                           }))
                         }
-                        placeholder="0"
-                        className="w-24 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-right"
+                        className="flex-1 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold"
+                        placeholder="e.g. Syfe / Endowus"
                       />
+                      {ast.isAutoCalculatedIRR && (
+                        <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                          +{ast.expectedReturnRate}% IRR
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDCA(ast.id)}
+                        className="text-slate-400 hover:text-rose-500 p-1"
+                        title="Remove this investment item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveDCA(ast.id)}
-                      className="text-slate-400 hover:text-rose-500 p-1"
-                      title="Remove this DCA plan"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[9px] text-slate-400 font-bold uppercase block mb-0.5">
+                          This Month DCA ({currency})
+                        </label>
+                        <NumericInput
+                          value={ast.monthlyContribution}
+                          onChange={(val) =>
+                            updateProfile((p) => ({
+                              ...p,
+                              assets: p.assets.map((a) => (a.id === ast.id ? { ...a, monthlyContribution: val } : a)),
+                            }))
+                          }
+                          placeholder="0"
+                          className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-indigo-600 dark:text-indigo-400"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-[9px] text-slate-400 font-bold uppercase block mb-0.5">
+                          Latest Current Value ({currency})
+                        </label>
+                        <NumericInput
+                          value={ast.currentValue}
+                          onChange={(val) =>
+                            updateProfile((p) => ({
+                              ...p,
+                              assets: p.assets.map((a) => (a.id === ast.id ? { ...a, currentValue: val } : a)),
+                            }))
+                          }
+                          placeholder="0"
+                          className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-black text-emerald-600 dark:text-emerald-400"
+                        />
+                      </div>
+                    </div>
                   </div>
                 ))}
             </div>
@@ -363,7 +397,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
               type="text"
               value={monthlyNotes}
               onChange={(e) => setMonthlyNotes(e.target.value)}
-              placeholder={`e.g. Paid off $300 study loan, kept dining under budget.`}
+              placeholder={`e.g. Skipped $100 DCA for Syfe, updated portfolio balance to $50k.`}
               className="w-full text-xs bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 outline-none"
             />
           </div>

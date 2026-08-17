@@ -34,11 +34,14 @@ import {
 } from "lucide-react";
 import { RiskProfilerModal, RISK_PROFILES_META } from "./RiskProfilerModal";
 import { NumericInput } from "./ui/NumericInput";
+import { InvestmentReturnCalculatorModal } from "./InvestmentReturnCalculatorModal";
 
 export const WizardView: React.FC = () => {
   const { profile, updateProfile, currency, setActiveTab } = useFinancialStore();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isRiskModalOpen, setIsRiskModalOpen] = useState<boolean>(false);
+  const [isInvestCalcOpen, setIsInvestCalcOpen] = useState<boolean>(false);
+  const [selectedAssetCalcId, setSelectedAssetCalcId] = useState<string | undefined>(undefined);
 
   const totalSteps = 5;
 
@@ -744,6 +747,33 @@ export const WizardView: React.FC = () => {
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                       />
                     </div>
+                  </div>
+
+                  {/* IRR Return Calculator Bar */}
+                  <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60 text-[11px]">
+                    <div className="flex items-center gap-1.5">
+                      {ast.isAutoCalculatedIRR ? (
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+                          <Sparkles className="w-3 h-3" /> Exact IRR: +{ast.expectedReturnRate}% p.a.
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-slate-400">
+                          {ast.initialLumpSum ? `Lump: $${ast.initialLumpSum.toLocaleString()} • ` : ""}
+                          Return Rate: {ast.expectedReturnRate || 6.5}% p.a.
+                        </span>
+                      )}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedAssetCalcId(ast.id);
+                        setIsInvestCalcOpen(true);
+                      }}
+                      className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 flex items-center gap-1 hover:underline"
+                    >
+                      <TrendingUp className="w-3 h-3" /> Calculate Actual % p.a. (IRR)
+                    </button>
                   </div>
                 </div>
               ))}
@@ -1504,6 +1534,11 @@ export const WizardView: React.FC = () => {
       </div>
 
       <RiskProfilerModal isOpen={isRiskModalOpen} onClose={() => setIsRiskModalOpen(false)} />
+      <InvestmentReturnCalculatorModal
+        isOpen={isInvestCalcOpen}
+        onClose={() => setIsInvestCalcOpen(false)}
+        targetAssetId={selectedAssetCalcId}
+      />
     </div>
   );
 };

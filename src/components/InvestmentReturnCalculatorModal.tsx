@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { formatCurrency, formatPercent } from "@/lib/utils";
 import { NumericInput } from "./ui/NumericInput";
@@ -15,6 +15,7 @@ import {
   DollarSign,
   Calendar,
   Layers,
+  Briefcase,
 } from "lucide-react";
 
 export function calculateAnnualizedIRR(
@@ -56,7 +57,7 @@ export function calculateAnnualizedIRR(
     };
   }
 
-  // Binary search for internal monthly rate r
+  // Binary search for internal monthly rate r: (1+r)^m * P0 + DCA * ((1+r)^m - 1)/r = FV
   let low = -0.5; // up to -50% per month
   let high = 2.0; // up to 200% per month
   let bestR = 0;
@@ -91,47 +92,99 @@ export function calculateAnnualizedIRR(
 interface InvestmentReturnCalculatorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApplyReturnRate?: (rate: number) => void;
+  targetAssetId?: string;
+  onApplyReturnRate?: (rate: number, assetId?: string) => void;
 }
 
 export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculatorModalProps> = ({
   isOpen,
   onClose,
+  targetAssetId,
   onApplyReturnRate,
 }) => {
   const { profile, updateProfile, currency } = useFinancialStore();
 
-  const [initialLumpSum, setInitialLumpSum] = useState<number>(5000);
-  const [monthlyDCA, setMonthlyDCA] = useState<number>(200);
-  const [monthsInvested, setMonthsInvested] = useState<number>(36);
-  const [currentCashValue, setCurrentCashValue] = useState<number>(14500);
-  const [appliedToast, setAppliedToast] = useState<boolean>(false);
+  const [selectedTargetId, setSelectedTargetId] = useState<string>(targetAssetId || "global");
+  const [initialLumpSum, setInitialLumpSum] = useState<number>(10000);
+  const [monthlyDCA, setMonthlyDCA] = useState<number>(100);
+  const [monthsInvested, setMonthsInvested] = useState<number>(52);
+  const [currentCashValue, setCurrentCashValue] = useState<number>(50000);
+  const [appliedMessage, setAppliedMessage] = useState<string | null>(null);
+
+  // Sync with selected target asset if changed
+  useEffect(() => {
+    if (targetAssetId) {
+      setSelectedTargetId(targetAssetId);
+    }
+  }, [targetAssetId]);
+
+  useEffect(() => {
+    if (selectedTargetId !== "global") {
+      const foundAsset = profile.assets.find((a) => a.id === selectedTargetId);
+      if (foundAsset) {
+        if (foundAsset.initialLumpSum !== undefined) setInitialLumpSum(foundAsset.initialLumpSum);
+        if (foundAsset.monthlyContribution !== undefined) setMonthlyDCA(foundAsset.monthlyContribution);
+        if (foundAsset.monthsInvested !== undefined) setMonthsInvested(foundAsset.monthsInvested);
+        if (foundAsset.currentValue !== undefined && foundAsset.currentValue > 0) {
+          setCurrentCashValue(foundAsset.currentValue);
+        }
+      }
+    }
+  }, [selectedTargetId, profile.assets]);
 
   if (!isOpen) return null;
 
   const result = calculateAnnualizedIRR(initialLumpSum, monthlyDCA, monthsInvested, currentCashValue);
 
   const handleApply = () => {
-    if (result.annualizedReturnRate > 0) {
-      updateProfile((p) => ({
-        ...p,
-        assumptions: {
-          ...p.assumptions,
-          investmentReturnRate: result.annualizedReturnRate,
-        },
-      }));
-      if (onApplyReturnRate) onApplyReturnRate(result.annualizedReturnRate);
-      setAppliedToast(true);
+    if (result.annualizedReturnRate !== undefined) {
+      if (selectedTargetId === "global") {
+        updateProfile((p) => ({
+          ...p,
+          assumptions: {
+            ...p.assumptions,
+            investmentReturnRate: result.annualizedReturnRate,
+          },
+        }));
+        setAppliedMessage(`Applied ${result.annualizedReturnRate}% p.a. to Global Assumptions!`);
+      } else {
+        const assetObj = profile.assets.find((a) => a.id === selectedTargetId);
+        const assetName = assetObj?.description || "Asset";
+        updateProfile((p) => ({
+          ...p,
+          assets: p.assets.map((a) =>
+            a.id === selectedTargetId
+              ? {
+                  ...a,
+                  initialLumpSum,
+                  monthlyContribution: monthlyDCA,
+                  monthsInvested,
+                  currentValue: currentCashValue,
+                  expectedReturnRate: result.annualizedReturnRate,
+                  isAutoCalculatedIRR: true,
+                }
+              : a
+          ),
+          assumptions: {
+            ...p.assumptions,
+            investmentReturnRate: result.annualizedReturnRate,
+          },
+        }));
+        setAppliedMessage(`Updated "${assetName}" with ${result.annualizedReturnRate}% p.a. IRR!`);
+      }
+
+      if (onApplyReturnRate) onApplyReturnRate(result.annualizedReturnRate, selectedTargetId);
+
       setTimeout(() => {
-        setAppliedToast(false);
+        setAppliedMessage(null);
         onClose();
-      }, 1200);
+      }, 1400);
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full max-h-[92vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-emerald-500/10">
           <div className="flex items-center gap-2.5">
@@ -140,10 +193,10 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
             </div>
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center gap-1.5">
-                Actual % p.a. Investment Return Calculator
+                Actual % p.a. (IRR) Calculator
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Calculate your exact annualized CAGR / IRR from DCA deposits & market value
+                Replace guesswork with your actual annualized return from deposit history
               </p>
             </div>
           </div>
@@ -158,13 +211,32 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
 
         {/* Body */}
         <div className="p-4 overflow-y-auto space-y-4 flex-1">
+          {/* Target Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+              <Briefcase className="w-3.5 h-3.5 text-indigo-500" /> Apply Return Rate To:
+            </label>
+            <select
+              value={selectedTargetId}
+              onChange={(e) => setSelectedTargetId(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold outline-none text-slate-800 dark:text-slate-200"
+            >
+              <option value="global">🌐 Global Portfolio Growth Assumption ({profile.assumptions.investmentReturnRate}% p.a.)</option>
+              {profile.assets.map((ast) => (
+                <option key={ast.id} value={ast.id}>
+                  📈 Specific Asset: {ast.description || "Unnamed Asset"} ({currency} {(ast.currentValue || 0).toLocaleString()} • {ast.expectedReturnRate || 6}% p.a.)
+                </option>
+              ))}
+            </select>
+          </div>
+
           {/* Diagnostic Result Highlight */}
           <div className="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-800 dark:to-emerald-950/40 rounded-2xl border border-emerald-200 dark:border-emerald-800 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
-                Your Actual Portfolio Annualized Return:
+                Your Actual Annualized Return (IRR):
               </span>
-              <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-600 text-white">
+              <span className="text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-600 text-white shadow-sm">
                 {result.annualizedReturnRate >= 0 ? `+${result.annualizedReturnRate}% p.a.` : `${result.annualizedReturnRate}% p.a.`}
               </span>
             </div>
@@ -200,7 +272,7 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
           {/* Inputs Form */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
-              Enter Your Deposit History & Current Value:
+              Enter Deposit Parameters:
             </h4>
 
             {/* Input 1: Initial Lump Sum */}
@@ -209,12 +281,12 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
                 <label className="font-bold text-slate-700 dark:text-slate-300">
                   1. Initial Starting Lump Sum ({currency})
                 </label>
-                <span className="text-[10px] text-slate-400">If started from $0, enter 0</span>
+                <span className="text-[10px] text-slate-400">e.g. $10,000 upfront</span>
               </div>
               <NumericInput
                 value={initialLumpSum}
                 onChange={setInitialLumpSum}
-                placeholder="e.g. 5000"
+                placeholder="10000"
                 className="w-full bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold"
               />
             </div>
@@ -225,12 +297,12 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
                 <label className="font-bold text-slate-700 dark:text-slate-300">
                   2. Regular Monthly DCA ({currency}/month)
                 </label>
-                <span className="text-[10px] text-slate-400">e.g. $100 / $200 per mo</span>
+                <span className="text-[10px] text-slate-400">e.g. $100 / month</span>
               </div>
               <NumericInput
                 value={monthlyDCA}
                 onChange={setMonthlyDCA}
-                placeholder="e.g. 200"
+                placeholder="100"
                 className="w-full bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold"
               />
             </div>
@@ -242,13 +314,13 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
                   3. Total Duration Invested (Number of Months)
                 </label>
                 <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">
-                  {(monthsInvested / 12).toFixed(1)} Years
+                  {(monthsInvested / 12).toFixed(1)} Years ({monthsInvested} mos)
                 </span>
               </div>
               <NumericInput
                 value={monthsInvested}
                 onChange={setMonthsInvested}
-                placeholder="e.g. 50"
+                placeholder="52"
                 allowDecimals={false}
                 className="w-full bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold"
               />
@@ -260,12 +332,12 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
                 <label className="font-bold text-slate-700 dark:text-slate-300">
                   4. Current Portfolio Market / Cash Value ({currency})
                 </label>
-                <span className="text-[10px] text-slate-400">Look at your broker app today</span>
+                <span className="text-[10px] text-slate-400">e.g. $50,000 broker balance</span>
               </div>
               <NumericInput
                 value={currentCashValue}
                 onChange={setCurrentCashValue}
-                placeholder="e.g. 14500"
+                placeholder="50000"
                 className="w-full bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-emerald-600 dark:text-emerald-400"
               />
             </div>
@@ -275,7 +347,7 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
           <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-start gap-2">
             <Info className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
             <p className="text-[11px] leading-relaxed">
-              <strong>How this is calculated:</strong> Uses the industry standard Money-Weighted Return (Internal Rate of Return / XIRR) accounting for the exact timing of each monthly DCA tranche rather than naive simple division.
+              <strong>How this is calculated:</strong> Solves for exact internal rate of return (Money-Weighted IRR / XIRR) based on your lump sum and regular monthly tranches. When applied, future projections use this real track record instead of generic estimates.
             </p>
           </div>
         </div>
@@ -294,15 +366,17 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
             disabled={result.annualizedReturnRate <= 0}
             className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 text-white font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center gap-1.5"
           >
-            {appliedToast ? (
+            {appliedMessage ? (
               <>
                 <CheckCircle2 className="w-4 h-4" />
-                <span>Applied {result.annualizedReturnRate}% p.a. to Profile!</span>
+                <span>{appliedMessage}</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                <span>Apply {result.annualizedReturnRate}% p.a. to Profile</span>
+                <span>
+                  Apply {result.annualizedReturnRate}% p.a. to {selectedTargetId === "global" ? "Profile" : "Asset"}
+                </span>
               </>
             )}
           </button>

@@ -67,6 +67,9 @@ export interface AssetItem {
   monthlyContribution?: number; // e.g. $100/mo DCA across robo-advisor / insurance
   platformOrVehicle?: string; // e.g. "Syfe / Stashaway", "Endowus", "Vanguard S&P 500", "Retirement ILP", "Manulife Annuity"
   targetPurpose?: "retirement" | "wealth_growth" | "emergency" | "property_downpayment" | "general";
+  initialLumpSum?: number; // e.g. $10,000 initial lump sum deposit
+  monthsInvested?: number; // e.g. 52 months held / invested so far
+  isAutoCalculatedIRR?: boolean; // whether expectedReturnRate is derived from exact IRR
 }
 
 export interface LiabilityItem {
@@ -161,6 +164,7 @@ export interface MonthlyCashflowLog {
   netWorthAtMonthEnd: number;
   keyNotes?: string;
   expensesSnapshot?: ExpenseItem[];
+  assetsSnapshot?: AssetItem[];
 }
 
 export interface YearlySnapshot {
