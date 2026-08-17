@@ -41,6 +41,7 @@ import {
   History,
   Clock,
   Calculator,
+  ListOrdered,
 } from "lucide-react";
 
 type MainDashboardTab = "overview" | "goals" | "invest" | "debts" | "couple";
@@ -512,6 +513,23 @@ export const DashboardView: React.FC = () => {
               </p>
               <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
                 See Formulas 💡 <ChevronRight className="w-3 h-3" />
+              </div>
+            </div>
+
+            {/* Smart Priority Sequencer Card */}
+            <div
+              onClick={() => setActiveTab("priorities")}
+              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-slate-900 dark:to-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-2xl cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-amber-900 dark:text-amber-200">Priority Roadmap</span>
+                <ListOrdered className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
+                Phased budget action plan
+              </p>
+              <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                Sequence Gaps 🎯 <ChevronRight className="w-3 h-3" />
               </div>
             </div>
           </div>

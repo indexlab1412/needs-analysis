@@ -30,6 +30,7 @@ import {
   Zap,
   Calendar,
   Heart,
+  Info,
 } from "lucide-react";
 import { RiskProfilerModal, RISK_PROFILES_META } from "./RiskProfilerModal";
 
@@ -401,6 +402,14 @@ export const WizardView: React.FC = () => {
               </button>
             </div>
 
+            {/* Why We Ask Callout */}
+            <div className="p-2.5 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+              <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+              <p className="text-[11px] leading-relaxed">
+                <strong>💡 Why we ask:</strong> If you pass away or suffer total permanent disability, your loved ones lose their main allowance. We calculate the exact life insurance lump sum required so parents continue receiving living support and children's university tuition is 100% secured.
+              </p>
+            </div>
+
             {profile.dependents.length === 0 ? (
               <div className="text-center py-6 text-xs text-slate-400 border border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
                 No dependents added. If you support parents or children, click "+ Add Person".
@@ -499,6 +508,14 @@ export const WizardView: React.FC = () => {
               </p>
             </div>
           )}
+
+          {/* Why We Ask Callout */}
+          <div className="p-2.5 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-xl border border-emerald-100 dark:border-emerald-900/60 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+            <Info className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed">
+              <strong>💡 Why we ask:</strong> Your essential living expenses determine the exact size of your <strong>6-Month Liquid Emergency Stash</strong>, while your monthly surplus is used to model your auto-DCA investment growth and retirement nest egg.
+            </p>
+          </div>
 
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
             <div className="flex items-center justify-between">
@@ -621,6 +638,14 @@ export const WizardView: React.FC = () => {
       {/* STEP 3: Assets, Robos (with DCA) & Loans (with % & tenure) */}
       {currentStep === 3 && (
         <div className="space-y-4">
+          {/* Why We Ask Callout */}
+          <div className="p-2.5 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+            <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed">
+              <strong>💡 Why we ask:</strong> We compound your existing assets and monthly auto-DCA contributions over time at your expected return rate to calculate your future retirement nest egg, and clear liabilities to ensure your family doesn't inherit unpaid debt.
+            </p>
+          </div>
+
           {/* Assets & Robos */}
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
             <div className="flex items-center justify-between">
@@ -849,6 +874,14 @@ export const WizardView: React.FC = () => {
       {/* STEP 4: Insurance Policies */}
       {currentStep === 4 && (
         <div className="space-y-4">
+          {/* Why We Ask Callout */}
+          <div className="p-2.5 bg-indigo-50/70 dark:bg-indigo-950/40 rounded-xl border border-indigo-100 dark:border-indigo-900/60 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+            <Info className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed">
+              <strong>💡 Why we ask:</strong> By cataloguing your existing Death, Critical Illness, and Hospital policies, we calculate your net shortfall so you only buy what you lack without wasting money on duplicate or overpriced coverage.
+            </p>
+          </div>
+
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
             <div className="flex items-center justify-between">
               <div>
@@ -1024,6 +1057,14 @@ export const WizardView: React.FC = () => {
       {/* STEP 5: Goals & Retirement in Today's Dollars */}
       {currentStep === 5 && (
         <div className="space-y-4">
+          {/* Why We Ask Callout */}
+          <div className="p-2.5 bg-amber-50/70 dark:bg-amber-950/40 rounded-xl border border-amber-100 dark:border-amber-900/60 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-2">
+            <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-[11px] leading-relaxed">
+              <strong>💡 Why we ask:</strong> Big life milestones (BTO downpayment, wedding, child university tuition, home upgrading) require sinking funds with specific target dates so you achieve them on time without compromising your retirement nest egg.
+            </p>
+          </div>
+
           {/* Retirement in Today's Dollars Card */}
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3.5">
             <div>

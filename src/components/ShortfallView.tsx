@@ -15,6 +15,8 @@ import {
   Sliders,
   CheckCircle2,
   Calculator,
+  AlertTriangle,
+  ListOrdered,
 } from "lucide-react";
 import { FormulaModal, FormulaKey } from "./FormulaModal";
 
@@ -43,6 +45,23 @@ export const ShortfallView: React.FC = () => {
     }
   };
 
+  const getWhyPlanReason = (category: string): string => {
+    switch (category) {
+      case "emergency_fund":
+        return "Without a 6-month liquid cushion, sudden retrenchment or a $5,000 emergency forces you to rack up 24% interest credit card debt or panic-sell your long-term investments at a market loss.";
+      case "life_protection":
+        return "If you pass away or suffer permanent disability, who pays off your remaining mortgages? Your spouse and aged parents could face eviction and lose their baseline monthly living allowance.";
+      case "critical_illness":
+        return "Cancer, stroke, or heart attack requires 3–5 years of treatment. While hospital insurance pays doctor bills, it DOES NOT replace your lost salary to pay rent, groceries, and living costs.";
+      case "retirement":
+        return "Compounding requires time. Every 5 years you delay starting your retirement savings doubles the out-of-pocket monthly dollars you will need to save later in life.";
+      case "education":
+        return "University tuition inflates at 5.0% annually—almost double general inflation. Funding early lets investment returns pay 60% of the tuition instead of taking expensive bank loans.";
+      default:
+        return "Planning early prevents sudden life disruptions and secures your financial freedom.";
+    }
+  };
+
   const getIcon = (category: string) => {
     switch (category) {
       case "emergency_fund":
@@ -61,15 +80,24 @@ export const ShortfallView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4 pb-24 animate-in fade-in duration-200">
       {/* Header Info */}
-      <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-        <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <ShieldAlert className="w-5 h-5 text-indigo-600" />
-          Your Safety Net & Goal Gaps
-        </h2>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-          Here is a simple check of where your money and insurance stand today versus what you need to stay fully protected and reach financial freedom.
+      <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <ShieldAlert className="w-5 h-5 text-indigo-600" />
+            Your Safety Net & Goal Gaps
+          </h2>
+          <button
+            onClick={() => setActiveTab("priorities")}
+            className="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm transition-all flex items-center gap-1"
+          >
+            <ListOrdered className="w-3.5 h-3.5" />
+            <span>Priority Sequencer</span>
+          </button>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+          Here is a simple check of where your money and insurance stand today versus what you need. If budget is limited, use the <strong>Priority Sequencer</strong> to solve one milestone at a time without financial stress.
         </p>
       </div>
 
@@ -190,6 +218,17 @@ export const ShortfallView: React.FC = () => {
                         {formatCurrency(item.existingAmount, currency)}
                       </div>
                     </div>
+                  </div>
+
+                  {/* Danger of Ignoring This Gap & Why You Must Plan */}
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/60 text-xs space-y-1">
+                    <span className="font-extrabold text-amber-900 dark:text-amber-300 block text-[11px] flex items-center gap-1.5">
+                      <AlertTriangle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+                      Why You Must Plan For This Area (The Danger of Ignoring It):
+                    </span>
+                    <p className="text-slate-700 dark:text-slate-300 text-[11px] leading-relaxed">
+                      {getWhyPlanReason(item.category)}
+                    </p>
                   </div>
 
                   {/* Breakdown Items */}

@@ -14,7 +14,7 @@ import { analyzeFinancialNeeds } from "@/lib/fna/engine";
 import { SAMPLE_PROFILES, DEFAULT_BLANK_PROFILE } from "@/lib/fna/sample-data";
 import { generateId } from "@/lib/utils";
 
-type TabType = "dashboard" | "wizard" | "shortfall" | "simulator" | "vault";
+type TabType = "dashboard" | "wizard" | "shortfall" | "priorities" | "simulator" | "vault";
 
 interface MergeResult {
   success: boolean;

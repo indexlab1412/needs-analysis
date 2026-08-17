@@ -6,6 +6,7 @@ import { MobileHeader } from "@/components/MobileHeader";
 import { BottomNav } from "@/components/BottomNav";
 import { DashboardView } from "@/components/DashboardView";
 import { ShortfallView } from "@/components/ShortfallView";
+import { PriorityPlannerView } from "@/components/PriorityPlannerView";
 import { WizardView } from "@/components/WizardView";
 import { SimulatorView } from "@/components/SimulatorView";
 import { VaultView } from "@/components/VaultView";
@@ -39,6 +40,7 @@ export default function Home() {
       <div className="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-5">
         {activeTab === "dashboard" && <DashboardView />}
         {activeTab === "shortfall" && <ShortfallView />}
+        {activeTab === "priorities" && <PriorityPlannerView />}
         {activeTab === "wizard" && <WizardView />}
         {activeTab === "simulator" && <SimulatorView />}
         {activeTab === "vault" && <VaultView />}
