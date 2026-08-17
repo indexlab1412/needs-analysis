@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { IncomeItem, ExpenseItem, AssetItem } from "@/lib/fna/types";
 import { formatCurrency, generateId, parseNumberInput } from "@/lib/utils";
+import { NumericInput } from "./ui/NumericInput";
 import {
   X,
   Zap,
@@ -51,7 +52,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
     const newItem: IncomeItem = {
       id: generateId("inc"),
       category: "employment",
-      description: "Side Gig / Bonus",
+      description: "",
       monthlyAmount: 0,
     };
     updateProfile((p) => ({ ...p, incomes: [...p.incomes, newItem] }));
@@ -65,7 +66,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
     const newItem: ExpenseItem = {
       id: generateId("exp"),
       category: "lifestyle",
-      description: presetName || "New Expense / Bill",
+      description: presetName || "",
       monthlyAmount: 0,
       isEssential: false,
     };
@@ -80,7 +81,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
     const newItem: AssetItem = {
       id: generateId("ast-dca"),
       category: "stocks_funds",
-      description: "New ETF / Robo Plan",
+      description: "",
       currentValue: 0,
       isLiquid: false,
       expectedReturnRate: 6.5,
@@ -191,17 +192,15 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                   />
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-slate-400">{currency}</span>
-                    <input
-                      type="number"
-                      value={inc.monthlyAmount || ""}
-                      onChange={(e) =>
+                    <NumericInput
+                      value={inc.monthlyAmount}
+                      onChange={(val) =>
                         updateProfile((p) => ({
                           ...p,
-                          incomes: p.incomes.map((i) =>
-                            i.id === inc.id ? { ...i, monthlyAmount: parseNumberInput(e.target.value) } : i
-                          ),
+                          incomes: p.incomes.map((i) => (i.id === inc.id ? { ...i, monthlyAmount: val } : i)),
                         }))
                       }
+                      placeholder="0"
                       className="w-24 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                     />
                   </div>
@@ -268,17 +267,15 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                   />
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-slate-400">{currency}</span>
-                    <input
-                      type="number"
-                      value={exp.monthlyAmount || ""}
-                      onChange={(e) =>
+                    <NumericInput
+                      value={exp.monthlyAmount}
+                      onChange={(val) =>
                         updateProfile((p) => ({
                           ...p,
-                          expenses: p.expenses.map((ex) =>
-                            ex.id === exp.id ? { ...ex, monthlyAmount: parseNumberInput(e.target.value) } : ex
-                          ),
+                          expenses: p.expenses.map((ex) => (ex.id === exp.id ? { ...ex, monthlyAmount: val } : ex)),
                         }))
                       }
+                      placeholder="0"
                       className="w-24 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                     />
                   </div>
@@ -332,17 +329,15 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
                     />
                     <div className="flex items-center gap-1">
                       <span className="text-[10px] text-indigo-500 font-bold">{currency}</span>
-                      <input
-                        type="number"
-                        value={ast.monthlyContribution || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={ast.monthlyContribution}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            assets: p.assets.map((a) =>
-                              a.id === ast.id ? { ...a, monthlyContribution: parseNumberInput(e.target.value) } : a
-                            ),
+                            assets: p.assets.map((a) => (a.id === ast.id ? { ...a, monthlyContribution: val } : a)),
                           }))
                         }
+                        placeholder="0"
                         className="w-24 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-right"
                       />
                     </div>

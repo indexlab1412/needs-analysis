@@ -33,6 +33,7 @@ import {
   Info,
 } from "lucide-react";
 import { RiskProfilerModal, RISK_PROFILES_META } from "./RiskProfilerModal";
+import { NumericInput } from "./ui/NumericInput";
 
 export const WizardView: React.FC = () => {
   const { profile, updateProfile, currency, setActiveTab } = useFinancialStore();
@@ -44,11 +45,11 @@ export const WizardView: React.FC = () => {
   const addDependent = () => {
     const newDep: Dependent = {
       id: generateId("dep"),
-      name: "Parent or Child",
-      relationship: "parent",
-      age: 55,
-      yearsOfSupportNeeded: 15,
-      monthlySupportAmount: 400,
+      name: "",
+      relationship: "child",
+      age: 2,
+      yearsOfSupportNeeded: 20,
+      monthlySupportAmount: 0,
     };
     updateProfile((p) => ({ ...p, dependents: [...p.dependents, newDep] }));
   };
@@ -68,8 +69,8 @@ export const WizardView: React.FC = () => {
     const newItem: IncomeItem = {
       id: generateId("inc"),
       category: "employment",
-      description: "Side Gig / Bonus / Freelance",
-      monthlyAmount: 500,
+      description: "",
+      monthlyAmount: 0,
     };
     updateProfile((p) => ({ ...p, incomes: [...p.incomes, newItem] }));
   };
@@ -82,8 +83,8 @@ export const WizardView: React.FC = () => {
     const newItem: ExpenseItem = {
       id: generateId("exp"),
       category: "lifestyle",
-      description: "New Spending Item",
-      monthlyAmount: 150,
+      description: "",
+      monthlyAmount: 0,
       isEssential: false,
     };
     updateProfile((p) => ({ ...p, expenses: [...p.expenses, newItem] }));
@@ -97,12 +98,12 @@ export const WizardView: React.FC = () => {
     const newItem: AssetItem = {
       id: generateId("ast"),
       category: "stocks_funds",
-      description: "Robo-Advisor / ETF Account",
-      platformOrVehicle: "Syfe / Endowus / Broker",
-      currentValue: 3000,
+      description: "",
+      platformOrVehicle: "",
+      currentValue: 0,
       isLiquid: false,
       expectedReturnRate: 6.5,
-      monthlyContribution: 100, // Default DCA $100/mo
+      monthlyContribution: 0,
       targetPurpose: "retirement",
     };
     updateProfile((p) => ({ ...p, assets: [...p.assets, newItem] }));
@@ -116,11 +117,11 @@ export const WizardView: React.FC = () => {
     const newItem: LiabilityItem = {
       id: generateId("lia"),
       category: "study_loan",
-      description: "Student Loan / Personal Loan",
-      outstandingBalance: 12000,
-      monthlyRepayment: 300,
-      interestRate: 2.5,
-      tenureYearsRemaining: 4,
+      description: "",
+      outstandingBalance: 0,
+      monthlyRepayment: 0,
+      interestRate: 3.5,
+      tenureYearsRemaining: 5,
     };
     updateProfile((p) => ({ ...p, liabilities: [...p.liabilities, newItem] }));
   };
@@ -132,15 +133,15 @@ export const WizardView: React.FC = () => {
   const addPolicy = () => {
     const newPol: InsurancePolicy = {
       id: generateId("pol"),
-      policyName: "Hospital Shield / Term Plan",
-      insurer: "Insurance Provider",
+      policyName: "",
+      insurer: "",
       policyType: "term_life",
-      deathBenefit: 200000,
-      tpdBenefit: 200000,
-      earlyCiBenefit: 50000,
-      majorCiBenefit: 100000,
+      deathBenefit: 0,
+      tpdBenefit: 0,
+      earlyCiBenefit: 0,
+      majorCiBenefit: 0,
       disabilityIncomeMonthly: 0,
-      annualPremium: 600,
+      annualPremium: 0,
       expiryAge: 65,
     };
     updateProfile((p) => ({ ...p, insurancePolicies: [...p.insurancePolicies, newPol] }));
@@ -299,20 +300,22 @@ export const WizardView: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Your Current Age</label>
-                <input
-                  type="number"
-                  value={profile.currentAge || ""}
-                  onChange={(e) => updateProfile((p) => ({ ...p, currentAge: parseNumberInput(e.target.value) }))}
+                <NumericInput
+                  value={profile.currentAge}
+                  onChange={(val) => updateProfile((p) => ({ ...p, currentAge: val }))}
+                  allowDecimals={false}
+                  placeholder="e.g. 30"
                   className="mt-1 w-full text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Dream Retirement Age</label>
-                <input
-                  type="number"
-                  value={profile.targetRetirementAge || ""}
-                  onChange={(e) => updateProfile((p) => ({ ...p, targetRetirementAge: parseNumberInput(e.target.value) }))}
+                <NumericInput
+                  value={profile.targetRetirementAge}
+                  onChange={(val) => updateProfile((p) => ({ ...p, targetRetirementAge: val }))}
+                  allowDecimals={false}
+                  placeholder="e.g. 60"
                   className="mt-1 w-full text-xs font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
@@ -450,19 +453,21 @@ export const WizardView: React.FC = () => {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
                         <label className="text-[10px] text-slate-400 font-semibold">Their Age</label>
-                        <input
-                          type="number"
-                          value={dep.age || ""}
-                          onChange={(e) => updateDependent(dep.id, { age: parseNumberInput(e.target.value) })}
+                        <NumericInput
+                          value={dep.age}
+                          onChange={(val) => updateDependent(dep.id, { age: val })}
+                          allowDecimals={false}
+                          placeholder="e.g. 5"
                           className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold"
                         />
                       </div>
                       <div>
                         <label className="text-[10px] text-slate-400 font-semibold">Years of Support Needed</label>
-                        <input
-                          type="number"
-                          value={dep.yearsOfSupportNeeded || ""}
-                          onChange={(e) => updateDependent(dep.id, { yearsOfSupportNeeded: parseNumberInput(e.target.value) })}
+                        <NumericInput
+                          value={dep.yearsOfSupportNeeded}
+                          onChange={(val) => updateDependent(dep.id, { yearsOfSupportNeeded: val })}
+                          allowDecimals={false}
+                          placeholder="e.g. 18"
                           className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold"
                         />
                       </div>
@@ -553,17 +558,15 @@ export const WizardView: React.FC = () => {
                   />
                   <div className="w-28 relative">
                     <span className="absolute left-2 top-1.5 text-[10px] text-slate-400 font-semibold">{currency}</span>
-                    <input
-                      type="number"
-                      value={inc.monthlyAmount || ""}
-                      onChange={(e) =>
+                    <NumericInput
+                      value={inc.monthlyAmount}
+                      onChange={(val) =>
                         updateProfile((p) => ({
                           ...p,
-                          incomes: p.incomes.map((i) =>
-                            i.id === inc.id ? { ...i, monthlyAmount: parseNumberInput(e.target.value) } : i
-                          ),
+                          incomes: p.incomes.map((i) => (i.id === inc.id ? { ...i, monthlyAmount: val } : i)),
                         }))
                       }
+                      placeholder="0"
                       className="w-full bg-white dark:bg-slate-800 pl-8 pr-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                     />
                   </div>
@@ -611,17 +614,15 @@ export const WizardView: React.FC = () => {
                   />
                   <div className="w-28 relative">
                     <span className="absolute left-2 top-1.5 text-[10px] text-slate-400 font-semibold">{currency}</span>
-                    <input
-                      type="number"
-                      value={exp.monthlyAmount || ""}
-                      onChange={(e) =>
+                    <NumericInput
+                      value={exp.monthlyAmount}
+                      onChange={(val) =>
                         updateProfile((p) => ({
                           ...p,
-                          expenses: p.expenses.map((ex) =>
-                            ex.id === exp.id ? { ...ex, monthlyAmount: parseNumberInput(e.target.value) } : ex
-                          ),
+                          expenses: p.expenses.map((ex) => (ex.id === exp.id ? { ...ex, monthlyAmount: val } : ex)),
                         }))
                       }
+                      placeholder="0"
                       className="w-full bg-white dark:bg-slate-800 pl-8 pr-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                     />
                   </div>
@@ -702,51 +703,44 @@ export const WizardView: React.FC = () => {
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold">Current Cash Value</label>
-                      <input
-                        type="number"
-                        value={ast.currentValue || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={ast.currentValue}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            assets: p.assets.map((a) =>
-                              a.id === ast.id ? { ...a, currentValue: parseNumberInput(e.target.value) } : a
-                            ),
+                            assets: p.assets.map((a) => (a.id === ast.id ? { ...a, currentValue: val } : a)),
                           }))
                         }
+                        placeholder="0"
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                       />
                     </div>
                     <div>
                       <label className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold">Monthly DCA ($/mo)</label>
-                      <input
-                        type="number"
-                        value={ast.monthlyContribution || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={ast.monthlyContribution}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            assets: p.assets.map((a) =>
-                              a.id === ast.id ? { ...a, monthlyContribution: parseNumberInput(e.target.value) } : a
-                            ),
+                            assets: p.assets.map((a) => (a.id === ast.id ? { ...a, monthlyContribution: val } : a)),
                           }))
                         }
+                        placeholder="0"
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-indigo-200 dark:border-indigo-800 font-bold text-indigo-600 dark:text-indigo-400"
-                        placeholder="e.g. 100"
                       />
                     </div>
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold">Exp. Return (% p.a.)</label>
-                      <input
-                        type="number"
-                        step="0.5"
-                        value={ast.expectedReturnRate || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={ast.expectedReturnRate}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            assets: p.assets.map((a) =>
-                              a.id === ast.id ? { ...a, expectedReturnRate: parseNumberInput(e.target.value) } : a
-                            ),
+                            assets: p.assets.map((a) => (a.id === ast.id ? { ...a, expectedReturnRate: val } : a)),
                           }))
                         }
+                        allowDecimals={true}
+                        placeholder="6.5"
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                       />
                     </div>
@@ -800,66 +794,59 @@ export const WizardView: React.FC = () => {
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold">Remaining Debt</label>
-                      <input
-                        type="number"
-                        value={lia.outstandingBalance || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={lia.outstandingBalance}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, outstandingBalance: parseNumberInput(e.target.value) } : l
-                            ),
+                            liabilities: p.liabilities.map((l) => (l.id === lia.id ? { ...l, outstandingBalance: val } : l)),
                           }))
                         }
+                        placeholder="0"
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                       />
                     </div>
                     <div>
                       <label className="text-[10px] text-rose-600 dark:text-rose-400 font-bold">Interest (% p.a.)</label>
-                      <input
-                        type="number"
-                        step="0.1"
-                        value={lia.interestRate || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={lia.interestRate}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, interestRate: parseNumberInput(e.target.value) } : l
-                            ),
+                            liabilities: p.liabilities.map((l) => (l.id === lia.id ? { ...l, interestRate: val } : l)),
                           }))
                         }
+                        allowDecimals={true}
+                        placeholder="2.5"
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold text-rose-600 dark:text-rose-400"
                       />
                     </div>
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold">Monthly Payment</label>
-                      <input
-                        type="number"
-                        value={lia.monthlyRepayment || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={lia.monthlyRepayment}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, monthlyRepayment: parseNumberInput(e.target.value) } : l
-                            ),
+                            liabilities: p.liabilities.map((l) => (l.id === lia.id ? { ...l, monthlyRepayment: val } : l)),
                           }))
                         }
+                        placeholder="0"
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                       />
                     </div>
                     <div>
                       <label className="text-[10px] text-slate-400 font-bold">Years Left</label>
-                      <input
-                        type="number"
-                        value={lia.tenureYearsRemaining || ""}
-                        onChange={(e) =>
+                      <NumericInput
+                        value={lia.tenureYearsRemaining}
+                        onChange={(val) =>
                           updateProfile((p) => ({
                             ...p,
-                            liabilities: p.liabilities.map((l) =>
-                              l.id === lia.id ? { ...l, tenureYearsRemaining: parseNumberInput(e.target.value) } : l
-                            ),
+                            liabilities: p.liabilities.map((l) => (l.id === lia.id ? { ...l, tenureYearsRemaining: val } : l)),
                           }))
                         }
+                        allowDecimals={false}
+                        placeholder="5"
                         className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                       />
                     </div>
@@ -958,35 +945,33 @@ export const WizardView: React.FC = () => {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <label className="text-[10px] text-slate-400 font-semibold">Life / Disability Payout</label>
-                          <input
-                            type="number"
-                            value={pol.deathBenefit || ""}
-                            onChange={(e) =>
+                          <NumericInput
+                            value={pol.deathBenefit}
+                            onChange={(val) =>
                               updateProfile((p) => ({
                                 ...p,
                                 insurancePolicies: p.insurancePolicies.map((x) =>
-                                  x.id === pol.id
-                                    ? { ...x, deathBenefit: parseNumberInput(e.target.value), tpdBenefit: parseNumberInput(e.target.value) }
-                                    : x
+                                  x.id === pol.id ? { ...x, deathBenefit: val, tpdBenefit: val } : x
                                 ),
                               }))
                             }
+                            placeholder="0"
                             className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                           />
                         </div>
                         <div>
                           <label className="text-[10px] text-slate-400 font-semibold">Critical Illness Payout</label>
-                          <input
-                            type="number"
-                            value={pol.majorCiBenefit || ""}
-                            onChange={(e) =>
+                          <NumericInput
+                            value={pol.majorCiBenefit}
+                            onChange={(val) =>
                               updateProfile((p) => ({
                                 ...p,
                                 insurancePolicies: p.insurancePolicies.map((x) =>
-                                  x.id === pol.id ? { ...x, majorCiBenefit: parseNumberInput(e.target.value) } : x
+                                  x.id === pol.id ? { ...x, majorCiBenefit: val } : x
                                 ),
                               }))
                             }
+                            placeholder="0"
                             className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                           />
                         </div>
@@ -1003,40 +988,36 @@ export const WizardView: React.FC = () => {
                               <label className="text-[10px] text-slate-500 font-bold">
                                 Current Cash / Surrender Value ({currency})
                               </label>
-                              <input
-                                type="number"
-                                value={pol.currentCashValue || ""}
-                                onChange={(e) =>
+                              <NumericInput
+                                value={pol.currentCashValue}
+                                onChange={(val) =>
                                   updateProfile((p) => ({
                                     ...p,
                                     insurancePolicies: p.insurancePolicies.map((x) =>
-                                      x.id === pol.id ? { ...x, currentCashValue: parseNumberInput(e.target.value) } : x
+                                      x.id === pol.id ? { ...x, currentCashValue: val } : x
                                     ),
                                   }))
                                 }
+                                placeholder="0"
                                 className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-emerald-300 dark:border-emerald-700 font-bold text-emerald-700 dark:text-emerald-300"
-                                placeholder="e.g. 5000"
                               />
                             </div>
                             <div>
                               <label className="text-[10px] text-slate-500 font-bold">
                                 Projected Maturity Payout ({currency})
                               </label>
-                              <input
-                                type="number"
-                                value={pol.projectedRetirementMaturityValue || ""}
-                                onChange={(e) =>
+                              <NumericInput
+                                value={pol.projectedRetirementMaturityValue}
+                                onChange={(val) =>
                                   updateProfile((p) => ({
                                     ...p,
                                     insurancePolicies: p.insurancePolicies.map((x) =>
-                                      x.id === pol.id
-                                        ? { ...x, projectedRetirementMaturityValue: parseNumberInput(e.target.value) }
-                                        : x
+                                      x.id === pol.id ? { ...x, projectedRetirementMaturityValue: val } : x
                                     ),
                                   }))
                                 }
+                                placeholder="0"
                                 className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
-                                placeholder="e.g. 80000"
                               />
                             </div>
                           </div>
@@ -1141,16 +1122,16 @@ export const WizardView: React.FC = () => {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Desired Spend in Today's Dollars ({currency}/month)
                 </label>
-                <input
-                  type="number"
-                  value={profile.desiredMonthlyRetirementSpendToday || ""}
-                  onChange={(e) =>
+                <NumericInput
+                  value={profile.desiredMonthlyRetirementSpendToday}
+                  onChange={(val) =>
                     updateProfile((p) => ({
                       ...p,
-                      desiredMonthlyRetirementSpendToday: parseNumberInput(e.target.value),
+                      desiredMonthlyRetirementSpendToday: val,
                       retirementLifestylePreset: "custom",
                     }))
                   }
+                  placeholder="3000"
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none font-bold"
                 />
               </div>
@@ -1159,15 +1140,16 @@ export const WizardView: React.FC = () => {
                 <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Plan Living Until Age (Longevity Horizon)
                 </label>
-                <input
-                  type="number"
-                  value={profile.lifeExpectancy || ""}
-                  onChange={(e) =>
+                <NumericInput
+                  value={profile.lifeExpectancy}
+                  onChange={(val) =>
                     updateProfile((p) => ({
                       ...p,
-                      lifeExpectancy: parseNumberInput(e.target.value),
+                      lifeExpectancy: val,
                     }))
                   }
+                  allowDecimals={false}
+                  placeholder="88"
                   className="mt-1 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none font-bold"
                 />
               </div>
@@ -1179,216 +1161,192 @@ export const WizardView: React.FC = () => {
             </div>
           </div>
 
-          {/* CPF LIFE / Guaranteed Retirement Annuity Floor Card */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3.5">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Building2 className="w-4 h-4 text-emerald-500" /> CPF LIFE / Guaranteed Lifetime Annuity
-                </h3>
-                <p className="text-[11px] text-slate-500 mt-0.5">
-                  Your government-backed monthly payout foundation starting from Age 65 for life
-                </p>
-              </div>
-              <input
-                type="checkbox"
-                checked={profile.cpfLife?.isEnabled !== false}
-                onChange={(e) =>
-                  updateProfile((p) => ({
-                    ...p,
-                    cpfLife: {
-                      ...(p.cpfLife || {
-                        planTier: "full_frs",
-                        estimatedMonthlyPayoutToday: 1650,
-                        payoutStartAge: 65,
-                      }),
-                      isEnabled: e.target.checked,
-                    },
-                  }))
-                }
-                className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-              />
-            </div>
-
-            {profile.cpfLife?.isEnabled !== false && (
-              <div className="space-y-3 pt-1">
-                {/* CPF LIFE Tiers */}
-                <div className="grid grid-cols-3 gap-2">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateProfile((p) => ({
-                        ...p,
-                        cpfLife: {
-                          ...(p.cpfLife || { payoutStartAge: 65 }),
-                          isEnabled: true,
-                          planTier: "basic_brs",
-                          estimatedMonthlyPayoutToday: 900,
-                        },
-                      }))
-                    }
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      profile.cpfLife?.planTier === "basic_brs"
-                        ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-200"
-                        : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                    }`}
-                  >
-                    <span className="text-xs font-bold block">Basic (BRS)</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">~{currency} 900/mo</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateProfile((p) => ({
-                        ...p,
-                        cpfLife: {
-                          ...(p.cpfLife || { payoutStartAge: 65 }),
-                          isEnabled: true,
-                          planTier: "full_frs",
-                          estimatedMonthlyPayoutToday: 1650,
-                        },
-                      }))
-                    }
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      profile.cpfLife?.planTier === "full_frs" || !profile.cpfLife?.planTier
-                        ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-200"
-                        : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                    }`}
-                  >
-                    <span className="text-xs font-bold block">Full (FRS)</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">~{currency} 1,650/mo</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      updateProfile((p) => ({
-                        ...p,
-                        cpfLife: {
-                          ...(p.cpfLife || { payoutStartAge: 65 }),
-                          isEnabled: true,
-                          planTier: "enhanced_ers",
-                          estimatedMonthlyPayoutToday: 2600,
-                        },
-                      }))
-                    }
-                    className={`p-2.5 rounded-xl border text-left transition-all ${
-                      profile.cpfLife?.planTier === "enhanced_ers"
-                        ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-900 dark:text-emerald-200"
-                        : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                    }`}
-                  >
-                    <span className="text-xs font-bold block">Enhanced (ERS)</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">~{currency} 2,600/mo</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase">
-                      Estimated Monthly Payout ({currency}/mo)
-                    </label>
-                    <input
-                      type="number"
-                      value={profile.cpfLife?.estimatedMonthlyPayoutToday ?? ""}
-                      onChange={(e) =>
-                        updateProfile((p) => ({
-                          ...p,
-                          cpfLife: {
-                            ...(p.cpfLife || { planTier: "custom", payoutStartAge: 65 }),
-                            isEnabled: true,
-                            estimatedMonthlyPayoutToday: parseNumberInput(e.target.value),
-                            planTier: "custom",
-                          },
-                        }))
-                      }
-                      className="mt-1 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] text-slate-500 font-bold uppercase">
-                      Payout Start Age (Govt Std: 65)
-                    </label>
-                    <input
-                      type="number"
-                      value={profile.cpfLife?.payoutStartAge || ""}
-                      onChange={(e) =>
-                        updateProfile((p) => ({
-                          ...p,
-                          cpfLife: {
-                            ...(p.cpfLife || { planTier: "full_frs", estimatedMonthlyPayoutToday: 1650 }),
-                            isEnabled: true,
-                            payoutStartAge: parseNumberInput(e.target.value),
-                          },
-                        }))
-                      }
-                      className="mt-1 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none font-bold"
-                    />
-                  </div>
-                </div>
-
-                {/* Retirement Split Callout */}
-                <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-900 text-xs text-emerald-900 dark:text-emerald-200 space-y-1">
-                  <div className="font-bold flex items-center justify-between">
-                    <span>🛡️ Total Desired Spend:</span>
-                    <span>{currency} {(profile.desiredMonthlyRetirementSpendToday || 3000).toLocaleString()}/mo</span>
-                  </div>
-                  <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300">
-                    <span>- CPF LIFE Guaranteed Floor (Age 65+):</span>
-                    <span>{currency} {(profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650).toLocaleString()}/mo</span>
-                  </div>
-                  <div className="pt-1 border-t border-emerald-200 dark:border-emerald-800 font-extrabold flex items-center justify-between text-indigo-700 dark:text-indigo-300">
-                    <span>= Remaining Private Gap to Invest For:</span>
-                    <span>
-                      {currency}{" "}
-                      {Math.max(
-                        0,
-                        (profile.desiredMonthlyRetirementSpendToday || 3000) -
-                          (profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650)
-                      ).toLocaleString()}
-                      /mo
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* 3-Bucket Milestone Goals Card */}
+          {/* CPF LIFE Lifelong Income Floor */}
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-500" /> Short & Mid-Term Life Goals
+                  <ShieldCheck className="w-4 h-4 text-emerald-500" /> CPF LIFE Lifelong Income Floor
                 </h3>
-                <p className="text-[11px] text-slate-500">Wedding, BTO house downpayment, renovation, or car</p>
+                <p className="text-[11px] text-slate-500">Government guaranteed lifelong monthly payout starting at age 65</p>
               </div>
             </div>
 
-            {/* Pre-set Templates */}
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="space-y-3">
+              <div className="grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateProfile((p) => ({
+                      ...p,
+                      cpfLife: {
+                        isEnabled: true,
+                        planTier: "basic_brs",
+                        estimatedMonthlyPayoutToday: 850,
+                        payoutStartAge: 65,
+                      },
+                    }))
+                  }
+                  className={`p-2.5 rounded-xl border text-center transition-all ${
+                    profile.cpfLife?.planTier === "basic_brs"
+                      ? "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 font-bold text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20"
+                      : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  <span className="text-xs font-bold block">Basic (BRS)</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">~{currency} 850/mo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateProfile((p) => ({
+                      ...p,
+                      cpfLife: {
+                        isEnabled: true,
+                        planTier: "full_frs",
+                        estimatedMonthlyPayoutToday: 1650,
+                        payoutStartAge: 65,
+                      },
+                    }))
+                  }
+                  className={`p-2.5 rounded-xl border text-center transition-all ${
+                    profile.cpfLife?.planTier === "full_frs" || !profile.cpfLife
+                      ? "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 font-bold text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20"
+                      : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  <span className="text-xs font-bold block">Full (FRS)</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">~{currency} 1,650/mo</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    updateProfile((p) => ({
+                      ...p,
+                      cpfLife: {
+                        isEnabled: true,
+                        planTier: "enhanced_ers",
+                        estimatedMonthlyPayoutToday: 2600,
+                        payoutStartAge: 65,
+                      },
+                    }))
+                  }
+                  className={`p-2.5 rounded-xl border text-center transition-all ${
+                    profile.cpfLife?.planTier === "enhanced_ers"
+                      ? "bg-emerald-50 dark:bg-emerald-950/50 border-emerald-500 font-bold text-emerald-900 dark:text-emerald-200 ring-2 ring-emerald-500/20"
+                      : "bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                  }`}
+                >
+                  <span className="text-xs font-bold block">Enhanced (ERS)</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">~{currency} 2,600/mo</span>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase">
+                    Estimated Monthly Payout ({currency}/mo)
+                  </label>
+                  <NumericInput
+                    value={profile.cpfLife?.estimatedMonthlyPayoutToday}
+                    onChange={(val) =>
+                      updateProfile((p) => ({
+                        ...p,
+                        cpfLife: {
+                          ...(p.cpfLife || { planTier: "custom", payoutStartAge: 65 }),
+                          isEnabled: true,
+                          estimatedMonthlyPayoutToday: val,
+                          planTier: "custom",
+                        },
+                      }))
+                    }
+                    placeholder="1650"
+                    className="mt-1 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none font-bold"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-500 font-bold uppercase">
+                    Payout Start Age (Govt Std: 65)
+                  </label>
+                  <NumericInput
+                    value={profile.cpfLife?.payoutStartAge}
+                    onChange={(val) =>
+                      updateProfile((p) => ({
+                        ...p,
+                        cpfLife: {
+                          ...(p.cpfLife || { planTier: "full_frs", estimatedMonthlyPayoutToday: 1650 }),
+                          isEnabled: true,
+                          payoutStartAge: val,
+                        },
+                      }))
+                    }
+                    allowDecimals={false}
+                    placeholder="65"
+                    className="mt-1 w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 outline-none font-bold"
+                  />
+                </div>
+              </div>
+
+              {/* Retirement Split Callout */}
+              <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/40 rounded-xl border border-emerald-200 dark:border-emerald-900 text-xs text-emerald-900 dark:text-emerald-200 space-y-1">
+                <div className="font-bold flex items-center justify-between">
+                  <span>🛡️ Total Desired Spend:</span>
+                  <span>{currency} {(profile.desiredMonthlyRetirementSpendToday || 3000).toLocaleString()}/mo</span>
+                </div>
+                <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300">
+                  <span>- CPF LIFE Guaranteed Floor (Age 65+):</span>
+                  <span>- {currency} {(profile.cpfLife?.estimatedMonthlyPayoutToday || 1650).toLocaleString()}/mo</span>
+                </div>
+                <div className="pt-1 border-t border-emerald-200 dark:border-emerald-800 font-extrabold flex items-center justify-between text-indigo-600 dark:text-indigo-400">
+                  <span>= Net Gap to Fund from Private Investments:</span>
+                  <span>
+                    {currency}{" "}
+                    {Math.max(
+                      0,
+                      (profile.desiredMonthlyRetirementSpendToday || 3000) -
+                        (profile.cpfLife?.estimatedMonthlyPayoutToday || 1650)
+                    ).toLocaleString()}
+                    /mo
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Goal Milestones Section */}
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <Target className="w-4 h-4 text-amber-500" /> Milestone Goals (Sinking Funds)
+                </h3>
+                <p className="text-[11px] text-slate-500">BTO flat deposit, wedding, child university, or sabbatical</p>
+              </div>
               <button
                 type="button"
                 onClick={() => {
                   const newG: FinancialGoal = {
                     id: generateId("goal"),
-                    name: "Wedding & Honeymoon",
-                    category: "wedding",
-                    horizonBucket: "short_term",
-                    targetYearsFromNow: 2,
-                    targetAmount: 25000,
-                    currentSavingsAssigned: 5000,
-                    recommendedVehicle: "High-Yield Bank Cash (3.2%)",
+                    name: "",
+                    category: "custom",
+                    horizonBucket: "mid_term",
+                    targetAmount: 0,
+                    targetYearsFromNow: 5,
+                    currentSavingsAssigned: 0,
                   };
                   updateProfile((p) => ({ ...p, goals: [...p.goals, newG] }));
                 }}
-                className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 text-left font-bold text-slate-800 dark:text-slate-200 transition-colors"
+                className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800"
               >
-                💍 + Add Wedding ($25k in 2y)
+                <Plus className="w-3.5 h-3.5" /> Add Milestone
               </button>
+            </div>
 
+            {/* Pre-set Templates */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => {
@@ -1428,26 +1386,6 @@ export const WizardView: React.FC = () => {
               >
                 🛋️ + Add Reno ($30k in 3y)
               </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  const newG: FinancialGoal = {
-                    id: generateId("goal"),
-                    name: "Dream Holiday",
-                    category: "travel",
-                    horizonBucket: "short_term",
-                    targetYearsFromNow: 1.5,
-                    targetAmount: 8000,
-                    currentSavingsAssigned: 2000,
-                    recommendedVehicle: "High-Yield Bank Cash (3.2%)",
-                  };
-                  updateProfile((p) => ({ ...p, goals: [...p.goals, newG] }));
-                }}
-                className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 text-left font-bold text-slate-800 dark:text-slate-200 transition-colors"
-              >
-                ✈️ + Add Holiday ($8k in 1.5y)
-              </button>
             </div>
 
             {/* Current Goals List */}
@@ -1471,6 +1409,7 @@ export const WizardView: React.FC = () => {
                             }))
                           }
                           className="text-xs font-bold bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 flex-1"
+                          placeholder="e.g. BTO Downpayment / Child University"
                         />
                         <button
                           type="button"
@@ -1484,50 +1423,44 @@ export const WizardView: React.FC = () => {
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
                           <label className="text-[10px] text-slate-400 font-bold">Target Cost ({currency})</label>
-                          <input
-                            type="number"
-                            value={goal.targetAmount || ""}
-                            onChange={(e) =>
+                          <NumericInput
+                            value={goal.targetAmount}
+                            onChange={(val) =>
                               updateProfile((p) => ({
                                 ...p,
-                                goals: p.goals.map((x) =>
-                                  x.id === goal.id ? { ...x, targetAmount: parseNumberInput(e.target.value) } : x
-                                ),
+                                goals: p.goals.map((x) => (x.id === goal.id ? { ...x, targetAmount: val } : x)),
                               }))
                             }
+                            placeholder="0"
                             className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                           />
                         </div>
                         <div>
                           <label className="text-[10px] text-slate-400 font-bold">Years to Goal</label>
-                          <input
-                            type="number"
-                            step="0.5"
-                            value={goal.targetYearsFromNow || ""}
-                            onChange={(e) =>
+                          <NumericInput
+                            value={goal.targetYearsFromNow}
+                            onChange={(val) =>
                               updateProfile((p) => ({
                                 ...p,
-                                goals: p.goals.map((x) =>
-                                  x.id === goal.id ? { ...x, targetYearsFromNow: parseNumberInput(e.target.value) } : x
-                                ),
+                                goals: p.goals.map((x) => (x.id === goal.id ? { ...x, targetYearsFromNow: val } : x)),
                               }))
                             }
+                            allowDecimals={true}
+                            placeholder="5"
                             className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                           />
                         </div>
                         <div>
                           <label className="text-[10px] text-slate-400 font-bold">Saved in Bank</label>
-                          <input
-                            type="number"
-                            value={goal.currentSavingsAssigned || ""}
-                            onChange={(e) =>
+                          <NumericInput
+                            value={goal.currentSavingsAssigned}
+                            onChange={(val) =>
                               updateProfile((p) => ({
                                 ...p,
-                                goals: p.goals.map((x) =>
-                                  x.id === goal.id ? { ...x, currentSavingsAssigned: parseNumberInput(e.target.value) } : x
-                                ),
+                                goals: p.goals.map((x) => (x.id === goal.id ? { ...x, currentSavingsAssigned: val } : x)),
                               }))
                             }
+                            placeholder="0"
                             className="w-full bg-white dark:bg-slate-800 px-2 py-1 rounded border border-slate-200 dark:border-slate-700 font-bold"
                           />
                         </div>

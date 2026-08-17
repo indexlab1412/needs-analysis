@@ -43,6 +43,7 @@ import {
   Calculator,
   ListOrdered,
 } from "lucide-react";
+import { InvestmentReturnCalculatorModal } from "./InvestmentReturnCalculatorModal";
 
 type MainDashboardTab = "overview" | "goals" | "invest" | "debts" | "couple";
 
@@ -62,6 +63,7 @@ export const DashboardView: React.FC = () => {
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isQuickCheckinOpen, setIsQuickCheckinOpen] = useState(false);
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
+  const [isInvestCalcOpen, setIsInvestCalcOpen] = useState(false);
   const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("retirement_nest_egg");
   const {
     netWorth,
@@ -532,6 +534,23 @@ export const DashboardView: React.FC = () => {
                 Sequence Gaps 🎯 <ChevronRight className="w-3 h-3" />
               </div>
             </div>
+
+            {/* Actual % Return Calculator Card */}
+            <div
+              onClick={() => setIsInvestCalcOpen(true)}
+              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-900 dark:to-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-2xl cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">Actual % Return</span>
+                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
+                Calculate CAGR from DCA
+              </p>
+              <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
+                Calculate IRR 🧮 <ChevronRight className="w-3 h-3" />
+              </div>
+            </div>
           </div>
 
           {/* Monthly Paycheck Flow Card */}
@@ -811,6 +830,12 @@ export const DashboardView: React.FC = () => {
         isOpen={isFormulaModalOpen}
         onClose={() => setIsFormulaModalOpen(false)}
         initialKey={selectedFormulaKey}
+      />
+
+      {/* Actual % Investment Return (CAGR / IRR) Modal */}
+      <InvestmentReturnCalculatorModal
+        isOpen={isInvestCalcOpen}
+        onClose={() => setIsInvestCalcOpen(false)}
       />
     </div>
   );
