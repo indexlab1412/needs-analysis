@@ -30,9 +30,35 @@ export const GettingStartedBanner: React.FC = () => {
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
 
-  // If permanently dismissed by user, don't show the large card
+  // If permanently dismissed by user, don't show any banner
   if (isWelcomeGuideDismissed) {
     return null;
+  }
+
+  // Slim nudge bar for existing (non-sample) users
+  if (!isSamplePreset) {
+    return (
+      <div className="flex items-center justify-between gap-2 p-2.5 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl animate-in fade-in slide-in-from-top-2 duration-300">
+        <p className="text-xs font-medium text-indigo-700 dark:text-indigo-300">
+          💡 Use the Setup Wizard to update your baseline anytime
+        </p>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => goToWizardStep(1)}
+            className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white transition-colors"
+          >
+            Open Setup ▸
+          </button>
+          <button
+            onClick={() => setWelcomeGuideDismissed(true)}
+            className="p-1 rounded-lg text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors"
+            title="Dismiss"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

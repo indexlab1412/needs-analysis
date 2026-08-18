@@ -30,7 +30,7 @@ export const BottomNav: React.FC = () => {
     },
     {
       id: "wizard" as const,
-      label: "Setup / Plan",
+      label: "Setup",
       icon: Compass,
       highlight: true,
     },

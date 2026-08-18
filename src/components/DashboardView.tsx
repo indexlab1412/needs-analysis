@@ -17,6 +17,7 @@ import { MonthlyHistoryModal } from "./MonthlyHistoryModal";
 import { QuickMonthlyCheckinModal } from "./QuickMonthlyCheckinModal";
 import { FormulaModal, FormulaKey } from "./FormulaModal";
 import { GettingStartedBanner } from "./GettingStartedBanner";
+import { CollapsibleSection } from "./ui/CollapsibleSection";
 import {
   Sparkles,
   ArrowRight,
@@ -65,11 +66,13 @@ export const DashboardView: React.FC = () => {
     captureYearlySnapshot,
     setPlanningCadence,
   } = useFinancialStore();
+  
   const [loggedToast, setLoggedToast] = useState<string | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [isInvestCalcOpen, setIsInvestCalcOpen] = useState(false);
   const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("retirement_nest_egg");
+
   const {
     netWorth,
     cashFlow,
@@ -109,63 +112,57 @@ export const DashboardView: React.FC = () => {
   return (
     <div className="space-y-4 pb-20">
       {/* 1. Net Worth Hero Card */}
-      <div className="fin-card p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+      <div className="p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-xl relative overflow-hidden border border-indigo-500/30">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none" />
 
-        <div className="relative z-10">
+        <div className="relative z-10 space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-extrabold tracking-wider text-indigo-300 flex items-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5 text-emerald-400" /> Your Net Worth
-            </span>
-
-            {/* Quick Couple / Solo Indicator Badge + Edit Assets Button */}
-            <div className="flex items-center gap-1.5">
-              {isCoupleEnabled ? (
-                <button
-                  onClick={() => setActiveMainTab("couple")}
-                  className="flex items-center gap-1 text-[11px] font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 px-2.5 py-1 rounded-full border border-rose-500/30 transition-all cursor-pointer"
-                >
-                  <Heart className="w-3 h-3 fill-rose-400 text-rose-400" />
-                  <span>Couple Active ({profile.partner?.name || "Partner"})</span>
-                </button>
-              ) : (
-                <span className="text-[11px] bg-white/10 px-2.5 py-0.5 rounded-full text-indigo-200 backdrop-blur-sm">
-                  Assets Minus Debts
+            <div className="flex items-center gap-2">
+              <span className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                <Wallet className="w-4 h-4" />
+              </span>
+              <span className="text-xs uppercase font-black tracking-wider text-indigo-200">
+                Your Net Worth
+              </span>
+              {isCoupleEnabled && (
+                <span className="flex items-center gap-1 text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2.5 py-0.5 rounded-full border border-rose-500/30">
+                  <Heart className="w-2.5 h-2.5 fill-rose-400 text-rose-400" /> Couple ({profile.partner?.name || "Partner"})
                 </span>
               )}
-
-              <button
-                onClick={() => goToWizardStep(3)}
-                className="flex items-center gap-1 text-[10px] font-bold bg-white/15 hover:bg-white/25 text-white px-2 py-0.5 rounded-full border border-white/20 transition-all cursor-pointer"
-                title="Edit your bank savings, investments & debts in Step 3"
-              >
-                <Edit3 className="w-3 h-3" />
-                <span>Edit</span>
-              </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => goToWizardStep(3)}
+              className="flex items-center gap-1 text-[11px] font-bold bg-white/15 hover:bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/20 transition-all cursor-pointer shadow-sm"
+              title="Edit your bank savings, investments & debts in Step 3"
+            >
+              <Edit3 className="w-3 h-3" />
+              <span>Edit</span>
+            </button>
           </div>
 
-          <div className="mt-2 text-2xl sm:text-3xl font-black tracking-tight text-white">
+          <div className="text-2xl sm:text-3xl font-black tracking-tight text-white">
             {formatCurrency(netWorth.netWorth, currency)}
           </div>
 
           {/* Asset vs Liability Split */}
-          <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-white/10">
+          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/15">
             <div>
-              <div className="text-[11px] text-slate-400 font-medium">What You Own (Assets)</div>
-              <div className="text-sm font-bold text-emerald-400 mt-0.5">
+              <div className="text-[11px] text-slate-300 font-medium">What You Own (Assets)</div>
+              <div className="text-sm sm:text-base font-extrabold text-emerald-400 mt-0.5">
                 {formatCurrency(netWorth.totalAssets, currency)}
               </div>
-              <div className="text-[10px] text-slate-400">
+              <div className="text-[10px] text-indigo-200 mt-0.5">
                 Auto-Invest: {formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency)}/mo
               </div>
             </div>
             <div>
-              <div className="text-[11px] text-slate-400 font-medium">What You Owe (Debts)</div>
-              <div className="text-sm font-bold text-rose-400 mt-0.5">
+              <div className="text-[11px] text-slate-300 font-medium">What You Owe (Debts)</div>
+              <div className="text-sm sm:text-base font-extrabold text-rose-400 mt-0.5">
                 {formatCurrency(netWorth.totalLiabilities, currency)}
               </div>
-              <div className="text-[10px] text-slate-400">
+              <div className="text-[10px] text-indigo-200 mt-0.5">
                 Monthly Debt: {cashFlow.debtToIncomeRatio}% of pay
               </div>
             </div>
@@ -266,7 +263,7 @@ export const DashboardView: React.FC = () => {
             <div className="fin-card p-4 bg-white dark:bg-slate-900 border-2 border-amber-500/30 dark:border-amber-500/40 rounded-3xl shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
                     <Zap className="w-3 h-3 text-amber-500 fill-amber-500" /> Monthly Pulse
                   </span>
                   <span className="text-xs font-black text-slate-900 dark:text-white">
@@ -275,8 +272,9 @@ export const DashboardView: React.FC = () => {
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsHistoryModalOpen(true)}
-                  className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl transition-colors"
+                  className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
                 >
                   <History className="w-3.5 h-3.5 text-slate-500" />
                   <span>Past Snapshots ({profile.monthlyLogs?.length || 0})</span>
@@ -306,34 +304,37 @@ export const DashboardView: React.FC = () => {
               {/* Monthly Transition Action Buttons */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
                 <button
+                  type="button"
                   onClick={() => setIsQuickCheckinOpen(true)}
-                  className="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 col-span-1 sm:col-span-1"
+                  className="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <Zap className="w-4 h-4 fill-current" />
+                  <Zap className="w-4 h-4 fill-current text-slate-950" />
                   <span>1-Click Monthly Check-In</span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     logMonthlyCashflow();
                     setLoggedToast(`Updated snapshot for ${activeMonthLabel}!`);
                     setTimeout(() => setLoggedToast(null), 3000);
                   }}
-                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Quick Save</span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => {
                     closeMonthAndRollNext();
                     setLoggedToast(`Archived ${activeMonthLabel} snapshot & advanced to ${nextMonthLabel}!`);
                     setTimeout(() => setLoggedToast(null), 4000);
                   }}
-                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Close & Start {nextMonthLabel.split(" ")[0]}</span>
+                  <span>Close &amp; Start {nextMonthLabel.split(" ")[0]}</span>
                 </button>
               </div>
             </div>
@@ -341,7 +342,7 @@ export const DashboardView: React.FC = () => {
             <div className="fin-card p-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 rounded-3xl shadow-sm space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
+                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
                     <Calendar className="w-3 h-3 text-indigo-500" /> Annual Review
                   </span>
                   <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
@@ -375,20 +376,22 @@ export const DashboardView: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-2">
                 <button
+                  type="button"
                   onClick={() => {
                     captureYearlySnapshot();
                     setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
                     setTimeout(() => setLoggedToast(null), 3000);
                   }}
-                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Calendar className="w-3.5 h-3.5" />
                   <span>Capture {new Date().getFullYear()} Snapshot</span>
                 </button>
 
                 <button
+                  type="button"
                   onClick={() => setActiveTab("wizard")}
-                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <span>Full Annual Check-In</span>
                 </button>
@@ -396,343 +399,321 @@ export const DashboardView: React.FC = () => {
             </div>
           )}
 
-          {/* Interactive Strategy & Analysis Tools Hub */}
-          <div className="space-y-2 pt-1">
-            <div className="flex items-center justify-between px-0.5">
-              <div className="flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                <div>
-                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
-                    Financial Planning &amp; Strategy Tools
-                  </h3>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Deep-dive modules to analyze gaps, milestones, spending leaks &amp; growth
-                  </p>
+          {/* Your Financial Health */}
+          <CollapsibleSection
+            title="Your Financial Health"
+            icon={<PieChart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+            badge={
+              <button
+                type="button"
+                onClick={() => goToWizardStep(1)}
+                className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <Wand2 className="w-3 h-3" />
+                <span>Edit in Setup</span>
+              </button>
+            }
+            defaultOpen={true}
+          >
+            <div className="space-y-3.5">
+              {/* Card 1: Monthly Paycheck Split */}
+              <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Monthly Paycheck Split</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Income vs Living Bills vs Savings</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => goToWizardStep(2)}
+                      className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors"
+                      title="Edit income and living expenses in Step 2"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Edit Bills</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveMainTab("invest");
+                        setInvestSubTab("expense_audit");
+                      }}
+                      className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold flex items-center gap-0.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Audit <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
+                <CashflowBreakdown
+                  income={cashFlow.totalMonthlyIncome}
+                  expenses={cashFlow.totalMonthlyExpenses}
+                  savings={cashFlow.monthlyNetSavings}
+                  savingsRate={cashFlow.savingsRatePercentage}
+                  currency={currency}
+                />
               </div>
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shrink-0 hidden sm:inline">
-                Interactive Modules
-              </span>
-            </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-            <div
-              onClick={() => setActiveTab("shortfall")}
-              className="fin-card fin-card-interactive p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Safety Gaps</span>
-                <span
-                  className={`w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center ${
-                    criticalCount > 0
-                      ? "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-400"
-                      : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
-                  }`}
+              {/* Card 2: Asset Breakdown */}
+              <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Where Your Money Lives</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Cash, robo-advisors &amp; retirement funds</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => goToWizardStep(3)}
+                      className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors"
+                      title="Update investment accounts, cash & monthly DCA in Step 3"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Edit Assets</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveMainTab("invest");
+                        setInvestSubTab("dca_growth");
+                      }}
+                      className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Growth
+                    </button>
+                  </div>
+                </div>
+                <NetWorthDonut
+                  assets={profile.assets}
+                  insurancePolicies={profile.insurancePolicies}
+                  currency={currency}
+                />
+              </div>
+
+              {/* Card 3: Shortfall Radar & Progress */}
+              <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Safety Net &amp; Goal Health</h3>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Emergency stash, illness cover &amp; retirement progress</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => goToWizardStep(4)}
+                      className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors"
+                      title="Update insurance policies and protection in Step 4"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      <span>Edit Policies</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("shortfall")}
+                      className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      Details
+                    </button>
+                  </div>
+                </div>
+                <ShortfallRadar
+                  shortfalls={shortfalls}
+                  currency={currency}
+                  onSelectCategory={() => setActiveTab("shortfall")}
+                />
+              </div>
+            </div>
+          </CollapsibleSection>
+
+          {/* Recommended Next Steps */}
+          <CollapsibleSection
+            title="Recommended Next Steps"
+            icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
+            defaultOpen={true}
+          >
+            <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
+              <div className="space-y-2">
+                {keyActionItems.map((action, i) => (
+                  <div
+                    key={i}
+                    className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
+                  >
+                    <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                      {i + 1}
+                    </span>
+                    <span className="leading-relaxed">{action}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2">
+                <button
+                  type="button"
+                  onClick={() => goToWizardStep(1)}
+                  className="py-2 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
+                  title="Open the 5-step guided financial setup"
                 >
-                  {criticalCount}
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
-                {criticalCount > 0 ? `${criticalCount} gap(s) to patch` : "100% Protected"}
-              </p>
-              <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                View safety gaps <ChevronRight className="w-3 h-3" />
-              </div>
-            </div>
-
-            <div
-              onClick={() => {
-                setActiveMainTab("goals");
-                setGoalsSubTab("milestones");
-              }}
-              className="fin-card fin-card-interactive p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Milestone Goals</span>
-                <Target className="w-4 h-4 text-indigo-500" />
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
-                {computedGoals.length} milestones active
-              </p>
-              <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                3-Bucket Plan <ChevronRight className="w-3 h-3" />
+                  <Wand2 className="w-3.5 h-3.5" /> Setup
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("simulator")}
+                  className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                >
+                  <Sliders className="w-3.5 h-3.5" /> What-If
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors cursor-pointer"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" /> Proposal
+                </button>
               </div>
             </div>
+          </CollapsibleSection>
 
-            <div
-              onClick={() => {
-                setActiveMainTab("invest");
-                setInvestSubTab("expense_audit");
-              }}
-              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-slate-900 dark:to-amber-950/30 border border-amber-100 dark:border-amber-900 rounded-2xl cursor-pointer group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-900 dark:text-amber-200">Spending Audit</span>
-                <Receipt className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+          {/* Planning Tools */}
+          <CollapsibleSection
+            title="Planning Tools"
+            icon={<Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+            defaultOpen={false}
+          >
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div
+                onClick={() => setActiveTab("shortfall")}
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Safety Gaps</span>
+                  <ShieldCheck className="w-4 h-4 text-slate-400" />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  {criticalCount > 0 ? `${criticalCount} gap(s) to patch` : "100% Protected"}
+                </p>
               </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
-                Find leaky buckets
-              </p>
-              <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                50/30/20 Split <ChevronRight className="w-3 h-3" />
-              </div>
-            </div>
 
-            {/* Couple Card (if not active, invites to connect) */}
-            <div
-              onClick={() => setActiveMainTab("couple")}
-              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-slate-900 dark:to-rose-950/30 border border-rose-100 dark:border-rose-900 rounded-2xl cursor-pointer group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-rose-900 dark:text-rose-200">Couple & Joint</span>
-                <Heart className="w-4 h-4 text-rose-500 fill-rose-500/30" />
-              </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
-                {isCoupleEnabled ? `Active: ${profile.partner?.name}` : "Retire together"}
-              </p>
-              <div className="text-[10px] font-bold text-rose-600 dark:text-rose-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                {isCoupleEnabled ? "Joint balance" : "Set up couple"} <ChevronRight className="w-3 h-3" />
-              </div>
-            </div>
-
-            {childCount > 0 && (
               <div
                 onClick={() => {
                   setActiveMainTab("goals");
-                  setGoalsSubTab("education");
+                  setGoalsSubTab("milestones");
                 }}
-                className="fin-card fin-card-interactive p-3.5 bg-indigo-50/60 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900 rounded-2xl cursor-pointer group"
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200">Kids Education</span>
-                  <GraduationCap className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Milestone Goals</span>
+                  <Target className="w-4 h-4 text-slate-400" />
                 </div>
-                <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
-                  {childCount} child university funds
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  {computedGoals.length} milestones active
                 </p>
-                <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                  Tuition Planner <ChevronRight className="w-3 h-3" />
+              </div>
+
+              <div
+                onClick={() => {
+                  setActiveMainTab("invest");
+                  setInvestSubTab("expense_audit");
+                }}
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Spending Audit</span>
+                  <Receipt className="w-4 h-4 text-slate-400" />
                 </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  Find leaky buckets
+                </p>
               </div>
-            )}
 
-            <div
-              onClick={() => {
-                setActiveMainTab("debts");
-                setDebtSubTab("refinance");
-              }}
-              className="fin-card fin-card-interactive p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Interest Killer</span>
-                <Percent className="w-4 h-4 text-emerald-500" />
+              <div
+                onClick={() => setActiveMainTab("couple")}
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Couple & Joint</span>
+                  <Heart className="w-4 h-4 text-slate-400" />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  {isCoupleEnabled ? `Active: ${profile.partner?.name}` : "Retire together"}
+                </p>
               </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-snug">
-                Refinance & early payoff
-              </p>
-              <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                Save on loans <ChevronRight className="w-3 h-3" />
-              </div>
-            </div>
 
-            {/* Formula & Derivations Hub Card */}
-            <div
-              onClick={() => {
-                setSelectedFormulaKey("retirement_nest_egg");
-                setIsFormulaModalOpen(true);
-              }}
-              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950/40 border border-indigo-100 dark:border-indigo-900 rounded-2xl cursor-pointer group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-indigo-900 dark:text-indigo-200">Formula Guide</span>
-                <Calculator className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
-                Transparent math & derivations
-              </p>
-              <div className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                See Formulas 💡 <ChevronRight className="w-3 h-3" />
-              </div>
-            </div>
-
-            {/* Smart Priority Sequencer Card */}
-            <div
-              onClick={() => setActiveTab("priorities")}
-              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-slate-900 dark:to-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-2xl cursor-pointer group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-amber-900 dark:text-amber-200">Priority Roadmap</span>
-                <ListOrdered className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-              </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
-                Phased budget action plan
-              </p>
-              <div className="text-[10px] font-bold text-amber-600 dark:text-amber-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                Sequence Gaps 🎯 <ChevronRight className="w-3 h-3" />
-              </div>
-            </div>
-
-            {/* Actual % Return Calculator Card */}
-            <div
-              onClick={() => setIsInvestCalcOpen(true)}
-              className="fin-card fin-card-interactive p-3.5 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-slate-900 dark:to-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-2xl cursor-pointer group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">Actual % Return</span>
-                <TrendingUp className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
-                Calculate CAGR from DCA
-              </p>
-              <div className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-0.5 group-hover:translate-x-0.5 transition-transform">
-                Calculate IRR 🧮 <ChevronRight className="w-3 h-3" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-          {/* Monthly Paycheck Flow Card */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Monthly Paycheck Split</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Income vs Living Bills vs Savings</p>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => goToWizardStep(2)}
-                  className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors"
-                  title="Edit income and living expenses in Step 2"
-                >
-                  <Edit3 className="w-3 h-3" />
-                  <span>Edit Bills</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveMainTab("invest");
-                    setInvestSubTab("expense_audit");
-                  }}
-                  className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold flex items-center gap-0.5 px-2 py-1"
-                >
-                  Audit <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-            <CashflowBreakdown
-              income={cashFlow.totalMonthlyIncome}
-              expenses={cashFlow.totalMonthlyExpenses}
-              savings={cashFlow.monthlyNetSavings}
-              savingsRate={cashFlow.savingsRatePercentage}
-              currency={currency}
-            />
-          </div>
-
-          {/* Asset Breakdown */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-            <div className="flex items-center justify-between mb-2">
-              <div>
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Where Your Money Lives</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Cash, robo-advisors & retirement funds</p>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => goToWizardStep(3)}
-                  className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors"
-                  title="Update investment accounts, cash & monthly DCA in Step 3"
-                >
-                  <Edit3 className="w-3 h-3" />
-                  <span>Edit Assets</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveMainTab("invest");
-                    setInvestSubTab("dca_growth");
-                  }}
-                  className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold px-2 py-1"
-                >
-                  Growth
-                </button>
-              </div>
-            </div>
-            <NetWorthDonut
-              assets={profile.assets}
-              insurancePolicies={profile.insurancePolicies}
-              currency={currency}
-            />
-          </div>
-
-          {/* Shortfall Radar & Progress Cards */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Safety Net & Goal Health</h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Emergency stash, illness cover & retirement progress</p>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => goToWizardStep(4)}
-                  className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors"
-                  title="Update insurance policies and protection in Step 4"
-                >
-                  <Edit3 className="w-3 h-3" />
-                  <span>Edit Policies</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab("shortfall")}
-                  className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold px-2 py-1"
-                >
-                  Details
-                </button>
-              </div>
-            </div>
-            <ShortfallRadar
-              shortfalls={shortfalls}
-              currency={currency}
-              onSelectCategory={() => setActiveTab("shortfall")}
-            />
-          </div>
-
-          {/* Action Steps */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-            <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-1.5">
-              <Lightbulb className="w-4 h-4 text-amber-500" /> Action Steps for Your 20s & 30s
-            </h3>
-            <div className="space-y-2">
-              {keyActionItems.map((action, i) => (
+              {childCount > 0 && (
                 <div
-                  key={i}
-                  className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
+                  onClick={() => {
+                    setActiveMainTab("goals");
+                    setGoalsSubTab("education");
+                  }}
+                  className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
                 >
-                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                    {i + 1}
-                  </span>
-                  <span className="leading-relaxed">{action}</span>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Kids Education</span>
+                    <GraduationCap className="w-4 h-4 text-slate-400" />
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                    {childCount} child university funds
+                  </p>
                 </div>
-              ))}
-            </div>
+              )}
 
-            <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2">
-              <button
-                onClick={() => goToWizardStep(1)}
-                className="py-2 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 transition-colors"
-                title="Open the 5-step guided financial setup"
+              <div
+                onClick={() => {
+                  setActiveMainTab("debts");
+                  setDebtSubTab("refinance");
+                }}
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
               >
-                <Wand2 className="w-3.5 h-3.5" /> Setup
-              </button>
-              <button
-                onClick={() => setActiveTab("simulator")}
-                className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors"
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Interest Killer</span>
+                  <Percent className="w-4 h-4 text-slate-400" />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  Refinance & early payoff
+                </p>
+              </div>
+
+              <div
+                onClick={() => {
+                  setSelectedFormulaKey("retirement_nest_egg");
+                  setIsFormulaModalOpen(true);
+                }}
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
               >
-                <Sliders className="w-3.5 h-3.5" /> What-If
-              </button>
-              <button
-                onClick={() => setIsReportModalOpen(true)}
-                className="py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors"
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Formula Guide</span>
+                  <Calculator className="w-4 h-4 text-slate-400" />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  Transparent math & derivations
+                </p>
+              </div>
+
+              <div
+                onClick={() => setActiveTab("priorities")}
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
               >
-                <ShieldCheck className="w-3.5 h-3.5" /> Proposal
-              </button>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Priority Roadmap</span>
+                  <ListOrdered className="w-4 h-4 text-slate-400" />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  Phased budget action plan
+                </p>
+              </div>
+
+              <div
+                onClick={() => setIsInvestCalcOpen(true)}
+                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
+              >
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Actual % Return</span>
+                  <TrendingUp className="w-4 h-4 text-slate-400" />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  Calculate CAGR from DCA
+                </p>
+              </div>
             </div>
-          </div>
+          </CollapsibleSection>
         </div>
       )}
 

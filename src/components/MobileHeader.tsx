@@ -14,7 +14,6 @@ import {
   User,
   Users,
   Heart,
-  Wand2,
   X,
 } from "lucide-react";
 
@@ -30,8 +29,6 @@ export const MobileHeader: React.FC = () => {
     setPlanningCadence,
     setPlanningScope,
     isSamplePreset,
-    goToWizardStep,
-    setIsQuickCheckinOpen,
     isWelcomeGuideDismissed,
     setWelcomeGuideDismissed,
   } = useFinancialStore();
@@ -239,45 +236,7 @@ export const MobileHeader: React.FC = () => {
               </button>
             </div>
 
-            {/* Quick Setup Actions */}
-            <div className="space-y-1.5">
-              <div className="text-[10px] font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider px-1">
-                Start / Update Your Numbers
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => {
-                    goToWizardStep(1);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="p-3 rounded-2xl bg-indigo-50/90 hover:bg-indigo-100 dark:bg-indigo-950/80 dark:hover:bg-indigo-900/80 border-2 border-indigo-200 dark:border-indigo-800/80 text-left transition-colors group"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-indigo-700 dark:text-indigo-300">
-                    <Wand2 className="w-3.5 h-3.5" /> 5-Step Setup
-                  </div>
-                  <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 leading-tight">
-                    Full baseline wizard
-                  </div>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsQuickCheckinOpen(true);
-                    setIsDropdownOpen(false);
-                  }}
-                  className="p-3 rounded-2xl bg-amber-50/90 hover:bg-amber-100 dark:bg-amber-950/70 dark:hover:bg-amber-900/70 border-2 border-amber-200 dark:border-amber-700/80 text-left transition-colors group"
-                >
-                  <div className="flex items-center gap-1.5 text-xs font-black text-amber-800 dark:text-amber-300">
-                    <Zap className="w-3.5 h-3.5 fill-current text-amber-500" /> 1-Click Check-In
-                  </div>
-                  <div className="text-[10px] text-slate-600 dark:text-slate-300 mt-1 leading-tight">
-                    Quick monthly pulse
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Sample Life Stages */}
+            {/* Life Stage Templates */}
             <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
               <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1">
                 Or Load a Life Stage Template
