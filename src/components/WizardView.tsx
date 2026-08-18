@@ -37,8 +37,17 @@ import { NumericInput } from "./ui/NumericInput";
 import { InvestmentReturnCalculatorModal } from "./InvestmentReturnCalculatorModal";
 
 export const WizardView: React.FC = () => {
-  const { profile, updateProfile, currency, setActiveTab } = useFinancialStore();
-  const [currentStep, setCurrentStep] = useState<number>(1);
+  const {
+    profile,
+    updateProfile,
+    currency,
+    setActiveTab,
+    wizardStep,
+    setWizardStep,
+    setIsQuickCheckinOpen,
+  } = useFinancialStore();
+  const currentStep = wizardStep;
+  const setCurrentStep = setWizardStep;
   const [isRiskModalOpen, setIsRiskModalOpen] = useState<boolean>(false);
   const [isInvestCalcOpen, setIsInvestCalcOpen] = useState<boolean>(false);
   const [selectedAssetCalcId, setSelectedAssetCalcId] = useState<string | undefined>(undefined);
@@ -155,7 +164,33 @@ export const WizardView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 pb-24">
+    <div className="space-y-4 pb-24 animate-in fade-in duration-200">
+      {/* Wizard Guidance Top Banner */}
+      <div className="fin-card p-4 bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white border border-indigo-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-6 h-6 rounded-lg bg-indigo-500 text-white flex items-center justify-center font-black text-xs">
+              🪄
+            </span>
+            <h2 className="text-xs sm:text-sm font-black text-white">
+              5-Step Guided Financial Setup
+            </h2>
+          </div>
+          <p className="text-[11px] text-indigo-200 mt-1">
+            Build your baseline holistic profile across family, income, investments, protection &amp; goals.
+          </p>
+        </div>
+
+        <button
+          onClick={() => setIsQuickCheckinOpen(true)}
+          className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0"
+          title="Looking for a quick 30-sec monthly update instead?"
+        >
+          <Zap className="w-3.5 h-3.5 fill-current text-amber-400" />
+          <span>Quick 1-Click Check-In</span>
+        </button>
+      </div>
+
       {/* Wizard Progress Top Card */}
       <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
         <div className="flex items-center justify-between mb-2">
@@ -1507,7 +1542,7 @@ export const WizardView: React.FC = () => {
       <div className="flex items-center justify-between gap-3 pt-2">
         {currentStep > 1 ? (
           <button
-            onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
+            onClick={() => setCurrentStep(Math.max(1, currentStep - 1))}
             className="flex items-center gap-1 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs hover:bg-slate-50 dark:hover:bg-slate-800"
           >
             <ChevronLeft className="w-4 h-4" /> Back
@@ -1518,7 +1553,7 @@ export const WizardView: React.FC = () => {
 
         {currentStep < totalSteps ? (
           <button
-            onClick={() => setCurrentStep((prev) => Math.min(totalSteps, prev + 1))}
+            onClick={() => setCurrentStep(Math.min(totalSteps, currentStep + 1))}
             className="flex items-center gap-1 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-colors"
           >
             Continue <ChevronRight className="w-4 h-4" />

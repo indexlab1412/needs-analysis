@@ -30,6 +30,14 @@ interface FinancialStoreContextType {
   summary: FNAReportSummary;
   activeTab: TabType;
   setActiveTab: (tab: TabType) => void;
+  wizardStep: number;
+  setWizardStep: (step: number) => void;
+  goToWizardStep: (step: number) => void;
+  isQuickCheckinOpen: boolean;
+  setIsQuickCheckinOpen: (open: boolean) => void;
+  isSamplePreset: boolean;
+  isWelcomeGuideDismissed: boolean;
+  setWelcomeGuideDismissed: (dismissed: boolean) => void;
   updateProfile: (updater: (prev: UserFinancialProfile) => UserFinancialProfile) => void;
   setProfile: (newProfile: UserFinancialProfile) => void;
   setPlanningCadence: (cadence: PlanningCadence) => void;
@@ -50,6 +58,8 @@ interface FinancialStoreContextType {
 }
 
 const STORAGE_KEY = "fna_user_profile_v1";
+const GUIDE_STORAGE_KEY = "fna_guide_dismissed_v1";
+const SAMPLE_FLAG_STORAGE_KEY = "fna_is_sample_preset_v1";
 
 const FinancialStoreContext = createContext<FinancialStoreContextType | undefined>(undefined);
 
@@ -60,13 +70,31 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     planningScope: "individual",
   });
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
+  const [wizardStep, setWizardStep] = useState<number>(1);
+  const [isQuickCheckinOpen, setIsQuickCheckinOpen] = useState<boolean>(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
+  const [isSamplePreset, setIsSamplePreset] = useState<boolean>(true);
+  const [isWelcomeGuideDismissed, setIsWelcomeGuideDismissed] = useState<boolean>(false);
 
   // Load from local storage on first client mount
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
+      const savedGuide = localStorage.getItem(GUIDE_STORAGE_KEY);
+      const savedSampleFlag = localStorage.getItem(SAMPLE_FLAG_STORAGE_KEY);
+
+      if (savedGuide !== null) {
+        setIsWelcomeGuideDismissed(savedGuide === "true");
+      }
+
+      if (savedSampleFlag !== null) {
+        setIsSamplePreset(savedSampleFlag === "true");
+      } else {
+        // If there's no saved profile in localStorage, this is a fresh user on sample preset
+        setIsSamplePreset(!saved);
+      }
+
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed && parsed.id) {
@@ -89,16 +117,33 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     if (isInitialized) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+        localStorage.setItem(SAMPLE_FLAG_STORAGE_KEY, String(isSamplePreset));
+        localStorage.setItem(GUIDE_STORAGE_KEY, String(isWelcomeGuideDismissed));
       } catch (e) {
         console.error("Failed to save to localStorage", e);
       }
     }
-  }, [profile, isInitialized]);
+  }, [profile, isInitialized, isSamplePreset, isWelcomeGuideDismissed]);
 
   // Compute live FNA summary
   const summary: FNAReportSummary = analyzeFinancialNeeds(profile);
 
+  const goToWizardStep = (step: number) => {
+    setWizardStep(step);
+    setActiveTab("wizard");
+  };
+
+  const handleSetWelcomeGuideDismissed = (dismissed: boolean) => {
+    setIsWelcomeGuideDismissed(dismissed);
+    try {
+      localStorage.setItem(GUIDE_STORAGE_KEY, String(dismissed));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const updateProfile = (updater: (prev: UserFinancialProfile) => UserFinancialProfile) => {
+    setIsSamplePreset(false);
     setProfileState((prev) => updater(prev));
   };
 
@@ -243,11 +288,13 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
 
   const loadPreset = (key: string) => {
     if (SAMPLE_PROFILES[key]) {
+      setIsSamplePreset(true);
       setProfileState(JSON.parse(JSON.stringify(SAMPLE_PROFILES[key].data)));
     }
   };
 
   const resetProfile = () => {
+    setIsSamplePreset(false);
     setProfileState(JSON.parse(JSON.stringify(DEFAULT_BLANK_PROFILE)));
   };
 
@@ -412,6 +459,14 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         summary,
         activeTab,
         setActiveTab,
+        wizardStep,
+        setWizardStep,
+        goToWizardStep,
+        isQuickCheckinOpen,
+        setIsQuickCheckinOpen,
+        isSamplePreset,
+        isWelcomeGuideDismissed,
+        setWelcomeGuideDismissed: handleSetWelcomeGuideDismissed,
         updateProfile,
         setProfile,
         setPlanningCadence,

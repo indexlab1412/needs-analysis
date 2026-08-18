@@ -17,6 +17,7 @@ import {
   Plus,
   Trash2,
   Tag,
+  Wand2,
 } from "lucide-react";
 
 interface QuickMonthlyCheckinModalProps {
@@ -30,7 +31,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
   onClose,
   onSuccessToast,
 }) => {
-  const { profile, updateProfile, currency, summary, logMonthlyCashflow } = useFinancialStore();
+  const { profile, updateProfile, currency, summary, logMonthlyCashflow, goToWizardStep } = useFinancialStore();
 
   const activeMonthYear = profile.activePlanningMonthYear || "2026-08";
   const [yStr, mStr] = activeMonthYear.split("-");
@@ -400,6 +401,24 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
               placeholder={`e.g. Skipped $100 DCA for Syfe, updated portfolio balance to $50k.`}
               className="w-full text-xs bg-slate-50 dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 outline-none"
             />
+          </div>
+
+          {/* Deep Setup Switcher Helper */}
+          <div className="p-2.5 rounded-xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 flex items-center justify-between text-xs">
+            <div className="flex items-center gap-1.5 text-slate-600 dark:text-slate-300 text-[11px]">
+              <Wand2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+              <span>Need to edit insurance policies, loans or goals?</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                goToWizardStep(1);
+              }}
+              className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline shrink-0 ml-2"
+            >
+              Full Setup &rarr;
+            </button>
           </div>
         </div>
 
