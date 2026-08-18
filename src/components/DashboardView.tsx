@@ -396,8 +396,26 @@ export const DashboardView: React.FC = () => {
             </div>
           )}
 
-          {/* Interactive Feature Hub Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {/* Interactive Strategy & Analysis Tools Hub */}
+          <div className="space-y-2 pt-1">
+            <div className="flex items-center justify-between px-0.5">
+              <div className="flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <div>
+                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
+                    Financial Planning &amp; Strategy Tools
+                  </h3>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Deep-dive modules to analyze gaps, milestones, spending leaks &amp; growth
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 shrink-0 hidden sm:inline">
+                Interactive Modules
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
             <div
               onClick={() => setActiveTab("shortfall")}
               className="fin-card fin-card-interactive p-3.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 group"
@@ -571,6 +589,7 @@ export const DashboardView: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
 
           {/* Monthly Paycheck Flow Card */}
           <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">

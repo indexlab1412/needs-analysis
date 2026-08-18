@@ -84,25 +84,37 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       const savedGuide = localStorage.getItem(GUIDE_STORAGE_KEY);
       const savedSampleFlag = localStorage.getItem(SAMPLE_FLAG_STORAGE_KEY);
 
-      if (savedGuide !== null) {
-        setIsWelcomeGuideDismissed(savedGuide === "true");
-      }
-
-      if (savedSampleFlag !== null) {
-        setIsSamplePreset(savedSampleFlag === "true");
-      } else {
-        // If there's no saved profile in localStorage, this is a fresh user on sample preset
-        setIsSamplePreset(!saved);
-      }
-
       if (saved) {
         const parsed = JSON.parse(saved);
+        const isPreset = parsed && (parsed.id === "profile-fresh-grad" || parsed.id === "profile-young-family") && parsed.name === "Alex Lee";
+
+        if (savedGuide !== null) {
+          setIsWelcomeGuideDismissed(savedGuide === "true");
+        } else {
+          // If existing user already customized their plan, don't show the welcome guide on every load
+          setIsWelcomeGuideDismissed(!isPreset);
+        }
+
+        if (savedSampleFlag !== null) {
+          setIsSamplePreset(savedSampleFlag === "true");
+        } else {
+          setIsSamplePreset(Boolean(isPreset));
+        }
+
         if (parsed && parsed.id) {
           setProfileState((prev) => ({
             ...parsed,
             planningCadence: parsed.planningCadence || "monthly",
             planningScope: parsed.planningScope || (parsed.partner?.isEnabled ? "joint" : "individual"),
           }));
+        }
+      } else {
+        // Fresh user with no saved data
+        setIsSamplePreset(true);
+        if (savedGuide !== null) {
+          setIsWelcomeGuideDismissed(savedGuide === "true");
+        } else {
+          setIsWelcomeGuideDismissed(false);
         }
       }
     } catch (e) {
