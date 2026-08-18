@@ -90,13 +90,30 @@ export const NetWorthDonut: React.FC<NetWorthDonutProps> = ({ assets, insuranceP
               ))}
             </Pie>
             <Tooltip
-              formatter={(value: any) => [formatCurrency(Number(value) || 0, currency), "Amount"]}
-              contentStyle={{
-                backgroundColor: "rgba(15, 23, 42, 0.9)",
-                borderRadius: "8px",
-                border: "none",
-                fontSize: "12px",
-                color: "#ffffff",
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0];
+                  const val = Number(data.value) || 0;
+                  const pct = Math.round((val / (total || 1)) * 100);
+                  return (
+                    <div className="bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl shadow-2xl text-xs space-y-1 pointer-events-none">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-100">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: data.payload?.color || "#64748b" }}
+                        />
+                        <span className="truncate max-w-[200px]">{data.name}</span>
+                      </div>
+                      <div className="text-emerald-400 font-extrabold text-sm pl-4">
+                        {formatCurrency(val, currency)}
+                        <span className="text-[11px] text-slate-300 font-medium ml-1.5">
+                          ({pct}%)
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
               }}
             />
           </PieChart>
