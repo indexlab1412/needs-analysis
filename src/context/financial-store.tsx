@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from "react";
 import {
   UserFinancialProfile,
   FNAReportSummary,
@@ -13,8 +13,19 @@ import {
 import { analyzeFinancialNeeds } from "@/lib/fna/engine";
 import { SAMPLE_PROFILES, DEFAULT_BLANK_PROFILE } from "@/lib/fna/sample-data";
 import { generateId } from "@/lib/utils";
+import { encryptPayload, decryptPayload, EncryptedSyncPayload } from "@/lib/sync/crypto";
 
 type TabType = "dashboard" | "wizard" | "shortfall" | "priorities" | "simulator" | "vault";
+
+export interface SyncConfig {
+  syncId: string;
+  pin: string;
+  isSyncActive: boolean;
+  lastSyncedAt?: string;
+  version: number;
+}
+
+export type SyncStatus = "synced" | "syncing" | "offline" | "error" | "unpaired";
 
 interface MergeResult {
   success: boolean;
@@ -55,11 +66,25 @@ interface FinancialStoreContextType {
   isReportModalOpen: boolean;
   setIsReportModalOpen: (open: boolean) => void;
   isInitialized: boolean;
+
+  // Cloud Sync & QR Pairing
+  syncConfig: SyncConfig | null;
+  isOnline: boolean;
+  syncStatus: SyncStatus;
+  isSyncModalOpen: boolean;
+  setIsSyncModalOpen: (open: boolean) => void;
+  initialSyncIdParam: string | null;
+  setInitialSyncIdParam: (id: string | null) => void;
+  enableSync: (pin: string) => Promise<void>;
+  joinSync: (syncId: string, pin: string) => Promise<void>;
+  disconnectSync: () => Promise<void>;
+  triggerManualSync: () => Promise<void>;
 }
 
 const STORAGE_KEY = "fna_user_profile_v1";
 const GUIDE_STORAGE_KEY = "fna_guide_dismissed_v1";
 const SAMPLE_FLAG_STORAGE_KEY = "fna_is_sample_preset_v1";
+const SYNC_CONFIG_KEY = "fna_sync_config_v1";
 
 const FinancialStoreContext = createContext<FinancialStoreContextType | undefined>(undefined);
 
@@ -77,21 +102,53 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const [isSamplePreset, setIsSamplePreset] = useState<boolean>(true);
   const [isWelcomeGuideDismissed, setIsWelcomeGuideDismissed] = useState<boolean>(false);
 
-  // Load from local storage on first client mount
+  // Sync state
+  const [syncConfig, setSyncConfig] = useState<SyncConfig | null>(null);
+  const [isOnline, setIsOnline] = useState<boolean>(true);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>("unpaired");
+  const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
+  const [initialSyncIdParam, setInitialSyncIdParam] = useState<string | null>(null);
+
+  // Ref to track whether local edit should trigger auto-push
+  const isSyncingFromRemoteRef = useRef<boolean>(false);
+  const syncDebounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const latestProfileRef = useRef<UserFinancialProfile>(profile);
+  latestProfileRef.current = profile;
+
+  // 1. Initial Local Storage Load & URL Search Param check
   useEffect(() => {
     try {
+      if (typeof window !== "undefined") {
+        setIsOnline(navigator.onLine);
+      }
+
       const saved = localStorage.getItem(STORAGE_KEY);
       const savedGuide = localStorage.getItem(GUIDE_STORAGE_KEY);
       const savedSampleFlag = localStorage.getItem(SAMPLE_FLAG_STORAGE_KEY);
+      const savedSync = localStorage.getItem(SYNC_CONFIG_KEY);
+
+      if (savedSync) {
+        try {
+          const parsedSync: SyncConfig = JSON.parse(savedSync);
+          if (parsedSync && parsedSync.isSyncActive) {
+            setSyncConfig(parsedSync);
+            setSyncStatus("synced");
+          }
+        } catch (e) {
+          console.warn("Could not parse sync config:", e);
+        }
+      }
 
       if (saved) {
         const parsed = JSON.parse(saved);
-        const isPreset = parsed && (parsed.id === "profile-fresh-grad" || parsed.id === "profile-young-family") && parsed.name === "Alex Lee";
+        const isPreset =
+          parsed &&
+          (parsed.id === "profile-fresh-grad" || parsed.id === "profile-young-family") &&
+          parsed.name === "Alex Lee";
 
         if (savedGuide !== null) {
           setIsWelcomeGuideDismissed(savedGuide === "true");
         } else {
-          // If existing user already customized their plan, don't show the welcome guide on every load
           setIsWelcomeGuideDismissed(!isPreset);
         }
 
@@ -109,12 +166,21 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
           }));
         }
       } else {
-        // Fresh user with no saved data
         setIsSamplePreset(true);
         if (savedGuide !== null) {
           setIsWelcomeGuideDismissed(savedGuide === "true");
         } else {
           setIsWelcomeGuideDismissed(false);
+        }
+      }
+
+      // Check URL query parameters for auto-pairing (?syncId=...&action=pair)
+      if (typeof window !== "undefined") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlSyncId = urlParams.get("syncId");
+        if (urlSyncId) {
+          setInitialSyncIdParam(urlSyncId);
+          setIsSyncModalOpen(true);
         }
       }
     } catch (e) {
@@ -124,7 +190,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Sync to local storage on changes
+  // 2. Sync to local storage on state updates
   useEffect(() => {
     if (isInitialized) {
       try {
@@ -136,6 +202,250 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [profile, isInitialized, isSamplePreset, isWelcomeGuideDismissed]);
+
+  // 3. Online/Offline Network Listeners
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      if (syncConfig?.isSyncActive) {
+        setSyncStatus("synced");
+        // trigger check
+        triggerPull();
+      }
+    };
+    const handleOffline = () => {
+      setIsOnline(false);
+      setSyncStatus("offline");
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, [syncConfig]);
+
+  // Push local changes to cloud (Encrypted with PIN)
+  const pushEncryptedUpdate = useCallback(async (currentProfile: UserFinancialProfile, config: SyncConfig) => {
+    if (!navigator.onLine || !config.isSyncActive) return;
+
+    try {
+      setSyncStatus("syncing");
+      const nextVersion = (config.version || 1) + 1;
+      const encrypted = await encryptPayload(currentProfile, config.pin, nextVersion);
+
+      const res = await fetch(`/api/sync/${encodeURIComponent(config.syncId)}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload: encrypted }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to push update to sync room");
+      }
+
+      const updatedConfig: SyncConfig = {
+        ...config,
+        version: nextVersion,
+        lastSyncedAt: new Date().toISOString(),
+      };
+      setSyncConfig(updatedConfig);
+      localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(updatedConfig));
+      setSyncStatus("synced");
+    } catch (err) {
+      console.error("Sync push error:", err);
+      setSyncStatus("error");
+    }
+  }, []);
+
+  // Pull latest changes from cloud (Decrypt with PIN)
+  const triggerPull = useCallback(async () => {
+    if (!syncConfig || !syncConfig.isSyncActive || !navigator.onLine) return;
+
+    try {
+      setSyncStatus("syncing");
+      const res = await fetch(`/api/sync/${encodeURIComponent(syncConfig.syncId)}`);
+      if (res.status === 404) {
+        // Room expired or deleted
+        return;
+      }
+      if (!res.ok) {
+        throw new Error("Failed to fetch sync room");
+      }
+
+      const data = await res.json();
+      if (data.success && data.payload) {
+        const remotePayload = data.payload as EncryptedSyncPayload;
+        if (remotePayload.version > (syncConfig.version || 0)) {
+          // Decrypt and update local state
+          const decryptedProfile = await decryptPayload<UserFinancialProfile>(remotePayload, syncConfig.pin);
+          if (decryptedProfile && decryptedProfile.id) {
+            isSyncingFromRemoteRef.current = true;
+            setProfileState(decryptedProfile);
+            const updatedConfig: SyncConfig = {
+              ...syncConfig,
+              version: remotePayload.version,
+              lastSyncedAt: new Date().toISOString(),
+            };
+            setSyncConfig(updatedConfig);
+            localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(updatedConfig));
+            setTimeout(() => {
+              isSyncingFromRemoteRef.current = false;
+            }, 500);
+          }
+        }
+      }
+      setSyncStatus("synced");
+    } catch (err) {
+      console.warn("Sync pull check error:", err);
+      setSyncStatus("error");
+    }
+  }, [syncConfig]);
+
+  // 4. Debounced Auto-Push on Local Profile Edits
+  useEffect(() => {
+    if (!isInitialized || !syncConfig?.isSyncActive || isSyncingFromRemoteRef.current) {
+      return;
+    }
+
+    if (syncDebounceTimerRef.current) {
+      clearTimeout(syncDebounceTimerRef.current);
+    }
+
+    syncDebounceTimerRef.current = setTimeout(() => {
+      pushEncryptedUpdate(profile, syncConfig);
+    }, 1500);
+
+    return () => {
+      if (syncDebounceTimerRef.current) {
+        clearTimeout(syncDebounceTimerRef.current);
+      }
+    };
+  }, [profile, syncConfig, isInitialized, pushEncryptedUpdate]);
+
+  // 5. Periodic Pull & Window Focus Sync Check
+  useEffect(() => {
+    if (!syncConfig?.isSyncActive) return;
+
+    const interval = setInterval(() => {
+      triggerPull();
+    }, 20000); // Check every 20s
+
+    const handleFocus = () => {
+      triggerPull();
+    };
+
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [syncConfig, triggerPull]);
+
+  // Enable Sync / Create new sync room
+  const enableSync = async (pin: string) => {
+    if (!navigator.onLine) {
+      throw new Error("Internet connection is required to create a sync room.");
+    }
+
+    const syncId = `sync_${generateId("v")}`;
+    const encrypted = await encryptPayload(profile, pin, 1);
+
+    const res = await fetch(`/api/sync/${encodeURIComponent(syncId)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ payload: encrypted }),
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to initialize sync room on server.");
+    }
+
+    const newConfig: SyncConfig = {
+      syncId,
+      pin,
+      isSyncActive: true,
+      version: 1,
+      lastSyncedAt: new Date().toISOString(),
+    };
+
+    setSyncConfig(newConfig);
+    localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(newConfig));
+    setSyncStatus("synced");
+  };
+
+  // Join existing sync room with PIN
+  const joinSync = async (syncId: string, pin: string) => {
+    if (!navigator.onLine) {
+      throw new Error("Internet connection is required to join a sync room.");
+    }
+
+    const res = await fetch(`/api/sync/${encodeURIComponent(syncId)}`);
+    if (!res.ok) {
+      if (res.status === 404) {
+        throw new Error("Sync room not found. Check the Room ID or generate a new QR code.");
+      }
+      throw new Error("Failed to connect to sync room.");
+    }
+
+    const data = await res.json();
+    if (!data.payload) {
+      throw new Error("Invalid sync room response.");
+    }
+
+    const remotePayload = data.payload as EncryptedSyncPayload;
+    // Decrypt payload
+    const decryptedProfile = await decryptPayload<UserFinancialProfile>(remotePayload, pin);
+    if (!decryptedProfile || !decryptedProfile.id) {
+      throw new Error("Decrypted profile is invalid.");
+    }
+
+    isSyncingFromRemoteRef.current = true;
+    setProfileState(decryptedProfile);
+    setIsSamplePreset(false);
+
+    const newConfig: SyncConfig = {
+      syncId,
+      pin,
+      isSyncActive: true,
+      version: remotePayload.version || 1,
+      lastSyncedAt: new Date().toISOString(),
+    };
+
+    setSyncConfig(newConfig);
+    localStorage.setItem(SYNC_CONFIG_KEY, JSON.stringify(newConfig));
+    setSyncStatus("synced");
+
+    setTimeout(() => {
+      isSyncingFromRemoteRef.current = false;
+    }, 500);
+  };
+
+  // Disconnect sync
+  const disconnectSync = async () => {
+    if (syncConfig?.syncId) {
+      try {
+        await fetch(`/api/sync/${encodeURIComponent(syncConfig.syncId)}`, { method: "DELETE" });
+      } catch {
+        // ignore delete failure
+      }
+    }
+    setSyncConfig(null);
+    localStorage.removeItem(SYNC_CONFIG_KEY);
+    setSyncStatus("unpaired");
+  };
+
+  // Manual Push/Pull
+  const triggerManualSync = async () => {
+    if (!syncConfig?.isSyncActive) return;
+    if (!navigator.onLine) {
+      throw new Error("Cannot sync while offline. Please connect to the internet.");
+    }
+    await triggerPull();
+    await pushEncryptedUpdate(latestProfileRef.current, syncConfig);
+  };
 
   // Compute live FNA summary
   const summary: FNAReportSummary = analyzeFinancialNeeds(profile);
@@ -252,7 +562,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       assetsSnapshot: JSON.parse(JSON.stringify(profile.assets)),
     };
 
-    // Calculate Next Month Year string
     let nextYear = year;
     let nextMonth = month + 1;
     if (nextMonth > 12) {
@@ -346,7 +655,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
 
       const partnerName = partnerData.name || "Partner";
 
-      // Tag and merge incomes
       const mergedIncomes = [
         ...profile.incomes,
         ...partnerData.incomes.map((inc) => ({
@@ -356,7 +664,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         })),
       ];
 
-      // Tag and merge expenses
       const mergedExpenses = [
         ...profile.expenses,
         ...partnerData.expenses.map((exp) => ({
@@ -366,7 +673,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         })),
       ];
 
-      // Tag and merge assets
       const mergedAssets = [
         ...profile.assets,
         ...partnerData.assets.map((ast) => ({
@@ -376,7 +682,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         })),
       ];
 
-      // Tag and merge liabilities
       const mergedLiabilities = [
         ...profile.liabilities,
         ...partnerData.liabilities.map((lia) => ({
@@ -386,7 +691,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         })),
       ];
 
-      // Tag and merge insurance policies
       const mergedPolicies = [
         ...profile.insurancePolicies,
         ...partnerData.insurancePolicies.map((pol) => ({
@@ -396,7 +700,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         })),
       ];
 
-      // Merge goals
       const mergedGoals = [
         ...profile.goals,
         ...partnerData.goals.map((g) => ({
@@ -406,7 +709,6 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         })),
       ];
 
-      // Construct PartnerProfile
       const partnerMonthlyIncome = partnerData.incomes.reduce((sum, i) => sum + (Number(i.monthlyAmount) || 0), 0);
       const partnerMonthlyExpenses = partnerData.expenses.reduce((sum, e) => sum + (Number(e.monthlyAmount) || 0), 0);
       const partnerDebts = partnerData.liabilities.reduce((sum, l) => sum + (Number(l.outstandingBalance) || 0), 0);
@@ -496,6 +798,19 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         isReportModalOpen,
         setIsReportModalOpen,
         isInitialized,
+
+        // Sync exports
+        syncConfig,
+        isOnline,
+        syncStatus,
+        isSyncModalOpen,
+        setIsSyncModalOpen,
+        initialSyncIdParam,
+        setInitialSyncIdParam,
+        enableSync,
+        joinSync,
+        disconnectSync,
+        triggerManualSync,
       }}
     >
       {children}

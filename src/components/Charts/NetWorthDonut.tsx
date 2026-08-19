@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import React, { useState } from "react";
+import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/lib/utils";
 
 interface NetWorthDonutProps {
@@ -37,6 +37,8 @@ const CATEGORY_LABELS: { [key: string]: string } = {
 };
 
 export const NetWorthDonut: React.FC<NetWorthDonutProps> = ({ assets, insurancePolicies, currency }) => {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
   // Aggregate by category
   const aggregatedData = React.useMemo(() => {
     const map: { [key: string]: number } = {};
@@ -73,69 +75,125 @@ export const NetWorthDonut: React.FC<NetWorthDonutProps> = ({ assets, insuranceP
     );
   }
 
+  const activeItem = activeIndex !== null && aggregatedData[activeIndex] ? aggregatedData[activeIndex] : null;
+
   return (
-    <div className="flex flex-col items-center">
-      <div className="w-full h-48 relative">
+    <div className="space-y-3">
+      {/* Donut Chart Container */}
+      <div className="w-full h-52 relative flex items-center justify-center">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={aggregatedData}
-              innerRadius={50}
-              outerRadius={75}
+              innerRadius={60}
+              outerRadius={82}
               paddingAngle={3}
               dataKey="value"
+              onMouseEnter={(_, index) => setActiveIndex(index)}
+              onMouseLeave={() => setActiveIndex(null)}
+              onClick={(_, index) => setActiveIndex(activeIndex === index ? null : index)}
+              cursor="pointer"
             >
               {aggregatedData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.color}
+                  stroke={activeIndex === index ? "#ffffff" : "transparent"}
+                  strokeWidth={activeIndex === index ? 3 : 0}
+                  className="transition-all duration-200"
+                />
               ))}
             </Pie>
-            <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const data = payload[0];
-                  const val = Number(data.value) || 0;
-                  const pct = Math.round((val / (total || 1)) * 100);
-                  return (
-                    <div className="bg-slate-900 border border-slate-700 text-white px-3 py-2 rounded-xl shadow-2xl text-xs space-y-1 pointer-events-none">
-                      <div className="flex items-center gap-1.5 font-bold text-slate-100">
-                        <span
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: data.payload?.color || "#64748b" }}
-                        />
-                        <span className="truncate max-w-[200px]">{data.name}</span>
-                      </div>
-                      <div className="text-emerald-400 font-extrabold text-sm pl-4">
-                        {formatCurrency(val, currency)}
-                        <span className="text-[11px] text-slate-300 font-medium ml-1.5">
-                          ({pct}%)
-                        </span>
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
           </PieChart>
         </ResponsiveContainer>
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Total Assets</span>
-          <span className="text-sm font-bold text-slate-900 dark:text-white">
+
+        {/* Stable Center Total Readout (Never blocked by words) */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none text-center">
+          <span className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold block">
+            Total Assets
+          </span>
+          <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
             {formatCurrency(total, currency)}
+          </span>
+          <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
+            100% Portfolio
           </span>
         </div>
       </div>
 
-      {/* Legend */}
-      <div className="w-full grid grid-cols-2 gap-2 mt-2">
-        {aggregatedData.slice(0, 4).map((item) => (
-          <div key={item.name} className="flex items-center gap-1.5 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-            <div className="truncate text-[11px] text-slate-600 dark:text-slate-300">
-              {item.name} ({Math.round((item.value / (total || 1)) * 100)}%)
+      {/* Active Slice Inspector Banner */}
+      {activeItem ? (
+        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 animate-in fade-in slide-in-from-top-1 duration-150 flex items-center justify-between">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: activeItem.color }} />
+            <div className="min-w-0">
+              <span className="text-xs font-bold text-slate-900 dark:text-white truncate block">
+                {activeItem.name}
+              </span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                {Math.round((activeItem.value / (total || 1)) * 100)}% of total assets
+              </span>
             </div>
           </div>
-        ))}
+          <div className="text-xs font-black text-slate-900 dark:text-white shrink-0 pl-2">
+            {formatCurrency(activeItem.value, currency)}
+          </div>
+        </div>
+      ) : (
+        <div className="p-2.5 rounded-2xl bg-slate-50/60 dark:bg-slate-800/40 border border-dashed border-slate-200 dark:border-slate-800 text-center text-[11px] text-slate-400">
+          Tap or hover any slice to view breakdown details
+        </div>
+      )}
+
+      {/* Interactive Category List with Proportional Progress Bars */}
+      <div className="space-y-1.5 pt-1">
+        {aggregatedData.map((item, idx) => {
+          const pct = Math.round((item.value / (total || 1)) * 100);
+          const isSelected = activeIndex === idx;
+
+          return (
+            <button
+              key={item.name}
+              type="button"
+              onClick={() => setActiveIndex(isSelected ? null : idx)}
+              onMouseEnter={() => setActiveIndex(idx)}
+              onMouseLeave={() => setActiveIndex(null)}
+              className={`w-full p-2 rounded-xl text-left transition-all flex flex-col gap-1 cursor-pointer ${
+                isSelected
+                  ? "bg-slate-100 dark:bg-slate-800 shadow-sm ring-1 ring-slate-300 dark:ring-slate-600"
+                  : "hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              }`}
+            >
+              <div className="flex items-center justify-between text-xs min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                  <span className="font-semibold text-slate-800 dark:text-slate-200 truncate text-[11px]">
+                    {item.name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0 pl-2">
+                  <span className="font-bold text-slate-900 dark:text-white text-[11px]">
+                    {formatCurrency(item.value, currency)}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-400 min-w-[28px] text-right">
+                    {pct}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress bar */}
+              <div className="w-full bg-slate-100 dark:bg-slate-700/60 h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{
+                    width: `${pct}%`,
+                    backgroundColor: item.color,
+                  }}
+                />
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

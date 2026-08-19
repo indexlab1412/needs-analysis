@@ -9,6 +9,7 @@ import {
   ShieldCheck,
   CheckCircle2,
   Sparkles,
+  Info,
 } from "lucide-react";
 
 export const ReportModal: React.FC = () => {
@@ -203,6 +204,13 @@ export const ReportModal: React.FC = () => {
                   <span className="leading-relaxed">{action}</span>
                 </div>
               ))}
+            </div>
+
+            <div className="mt-3 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-start gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+              <Info className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+              <p className="leading-snug">
+                <strong>Notice:</strong> These recommendations are automated planning suggestions generated from user inputs and standard financial rules of thumb. They are for informational and educational guidance, not mandatory directives.
+              </p>
             </div>
           </div>
         </div>

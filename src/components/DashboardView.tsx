@@ -46,6 +46,8 @@ import {
   ListOrdered,
   Wand2,
   Edit3,
+  Info,
+  ChevronsUpDown,
 } from "lucide-react";
 import { InvestmentReturnCalculatorModal } from "./InvestmentReturnCalculatorModal";
 
@@ -72,6 +74,23 @@ export const DashboardView: React.FC = () => {
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [isInvestCalcOpen, setIsInvestCalcOpen] = useState(false);
   const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("retirement_nest_egg");
+
+  // Inner collapsible card states
+  const [isPaycheckOpen, setIsPaycheckOpen] = useState<boolean>(true);
+  const [isAssetsOpen, setIsAssetsOpen] = useState<boolean>(true);
+  const [isRadarOpen, setIsRadarOpen] = useState<boolean>(false);
+  const [isActionsOpen, setIsActionsOpen] = useState<boolean>(true);
+  const [isToolsOpen, setIsToolsOpen] = useState<boolean>(false);
+
+  const areAllExpanded = isPaycheckOpen && isAssetsOpen && isRadarOpen && isActionsOpen && isToolsOpen;
+  const toggleExpandAll = () => {
+    const nextState = !areAllExpanded;
+    setIsPaycheckOpen(nextState);
+    setIsAssetsOpen(nextState);
+    setIsRadarOpen(nextState);
+    setIsActionsOpen(nextState);
+    setIsToolsOpen(nextState);
+  };
 
   const {
     netWorth,
@@ -316,12 +335,14 @@ export const DashboardView: React.FC = () => {
                   type="button"
                   onClick={() => {
                     logMonthlyCashflow();
-                    setLoggedToast(`Updated snapshot for ${activeMonthLabel}!`);
+                    setLoggedToast(`Recorded ${activeMonthLabel} milestone snapshot!`);
                     setTimeout(() => setLoggedToast(null), 3000);
                   }}
                   className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  title="Archive current month numbers into Vault history without rolling the calendar"
                 >
-                  <span>Quick Save</span>
+                  <History className="w-3.5 h-3.5 text-indigo-500" />
+                  <span>Log Snapshot</span>
                 </button>
 
                 <button
@@ -399,186 +420,205 @@ export const DashboardView: React.FC = () => {
             </div>
           )}
 
-          {/* Your Financial Health */}
+          {/* Overview Section Controls / Compact Toggle */}
+          <div className="flex items-center justify-between px-1 text-xs">
+            <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Financial Breakdown ({[isPaycheckOpen, isAssetsOpen, isRadarOpen, isActionsOpen, isToolsOpen].filter(Boolean).length}/5 Open)
+            </span>
+            <button
+              type="button"
+              onClick={toggleExpandAll}
+              className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-2.5 py-1 rounded-xl border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer shadow-xs"
+            >
+              <ChevronsUpDown className="w-3 h-3" />
+              <span>{areAllExpanded ? "Collapse All (Compact)" : "Expand All"}</span>
+            </button>
+          </div>
+
+          {/* Card 1: Monthly Paycheck Split */}
           <CollapsibleSection
-            title="Your Financial Health"
-            icon={<PieChart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+            variant="card"
+            title="Monthly Paycheck Split"
+            subtitle="Income vs Living Bills vs Savings"
+            icon={<Receipt className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+            isOpenControlled={isPaycheckOpen}
+            onToggleControlled={setIsPaycheckOpen}
+            collapsedSummary={
+              <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">
+                +{formatCurrency(cashFlow.monthlyNetSavings, currency)}/mo ({cashFlow.savingsRatePercentage}% saved)
+              </span>
+            }
             badge={
               <button
                 type="button"
-                onClick={() => goToWizardStep(1)}
-                className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer flex items-center gap-1"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToWizardStep(2);
+                }}
+                className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-0.5 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800"
               >
-                <Wand2 className="w-3 h-3" />
-                <span>Edit in Setup</span>
+                <Edit3 className="w-2.5 h-2.5" /> Edit
               </button>
             }
-            defaultOpen={true}
           >
-            <div className="space-y-3.5">
-              {/* Card 1: Monthly Paycheck Split */}
-              <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Monthly Paycheck Split</h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Income vs Living Bills vs Savings</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => goToWizardStep(2)}
-                      className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors"
-                      title="Edit income and living expenses in Step 2"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      <span>Edit Bills</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveMainTab("invest");
-                        setInvestSubTab("expense_audit");
-                      }}
-                      className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold flex items-center gap-0.5 px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      Audit <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-                <CashflowBreakdown
-                  income={cashFlow.totalMonthlyIncome}
-                  expenses={cashFlow.totalMonthlyExpenses}
-                  savings={cashFlow.monthlyNetSavings}
-                  savingsRate={cashFlow.savingsRatePercentage}
-                  currency={currency}
-                />
-              </div>
-
-              {/* Card 2: Asset Breakdown */}
-              <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Where Your Money Lives</h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Cash, robo-advisors &amp; retirement funds</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => goToWizardStep(3)}
-                      className="text-xs text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors"
-                      title="Update investment accounts, cash & monthly DCA in Step 3"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      <span>Edit Assets</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveMainTab("invest");
-                        setInvestSubTab("dca_growth");
-                      }}
-                      className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      Growth
-                    </button>
-                  </div>
-                </div>
-                <NetWorthDonut
-                  assets={profile.assets}
-                  insurancePolicies={profile.insurancePolicies}
-                  currency={currency}
-                />
-              </div>
-
-              {/* Card 3: Shortfall Radar & Progress */}
-              <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <div>
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">Safety Net &amp; Goal Health</h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">Emergency stash, illness cover &amp; retirement progress</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => goToWizardStep(4)}
-                      className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 transition-colors"
-                      title="Update insurance policies and protection in Step 4"
-                    >
-                      <Edit3 className="w-3 h-3" />
-                      <span>Edit Policies</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("shortfall")}
-                      className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 font-bold px-2 py-1 bg-slate-100 dark:bg-slate-800 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      Details
-                    </button>
-                  </div>
-                </div>
-                <ShortfallRadar
-                  shortfalls={shortfalls}
-                  currency={currency}
-                  onSelectCategory={() => setActiveTab("shortfall")}
-                />
-              </div>
+            <div className="pt-2">
+              <CashflowBreakdown
+                income={cashFlow.totalMonthlyIncome}
+                expenses={cashFlow.totalMonthlyExpenses}
+                savings={cashFlow.monthlyNetSavings}
+                savingsRate={cashFlow.savingsRatePercentage}
+                currency={currency}
+              />
             </div>
           </CollapsibleSection>
 
-          {/* Recommended Next Steps */}
+          {/* Card 2: Where Your Money Lives */}
           <CollapsibleSection
-            title="Recommended Next Steps"
-            icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
-            defaultOpen={true}
+            variant="card"
+            title="Where Your Money Lives"
+            subtitle="Cash, stocks, property & retirement"
+            icon={<Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+            isOpenControlled={isAssetsOpen}
+            onToggleControlled={setIsAssetsOpen}
+            collapsedSummary={
+              <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">
+                Assets: {formatCurrency(netWorth.totalAssets, currency)}
+              </span>
+            }
+            badge={
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToWizardStep(3);
+                }}
+                className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-0.5 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800"
+              >
+                <Edit3 className="w-2.5 h-2.5" /> Edit
+              </button>
+            }
           >
-            <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm">
-              <div className="space-y-2">
-                {keyActionItems.map((action, i) => (
-                  <div
-                    key={i}
-                    className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
-                  >
-                    <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                      {i + 1}
-                    </span>
-                    <span className="leading-relaxed">{action}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => goToWizardStep(1)}
-                  className="py-2 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
-                  title="Open the 5-step guided financial setup"
+            <div className="pt-2">
+              <NetWorthDonut
+                assets={profile.assets}
+                insurancePolicies={profile.insurancePolicies}
+                currency={currency}
+              />
+            </div>
+          </CollapsibleSection>
+
+          {/* Card 3: Safety Net & Goal Health */}
+          <CollapsibleSection
+            variant="card"
+            title="Safety Net & Goal Health"
+            subtitle="Emergency fund, critical illness & retirement"
+            icon={<ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+            isOpenControlled={isRadarOpen}
+            onToggleControlled={setIsRadarOpen}
+            collapsedSummary={
+              <span className="font-extrabold text-indigo-600 dark:text-indigo-400 text-xs">
+                Health Score: {summary.overallFinancialHealthScore}/100
+              </span>
+            }
+            badge={
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToWizardStep(4);
+                }}
+                className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-0.5 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800"
+              >
+                <Edit3 className="w-2.5 h-2.5" /> Edit
+              </button>
+            }
+          >
+            <div className="pt-2">
+              <ShortfallRadar
+                shortfalls={shortfalls}
+                currency={currency}
+                onSelectCategory={() => setActiveTab("shortfall")}
+              />
+            </div>
+          </CollapsibleSection>
+
+          {/* Card 4: Recommended Next Steps */}
+          <CollapsibleSection
+            variant="card"
+            title="Recommended Next Steps"
+            subtitle="Automated guidance for your plan"
+            icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
+            isOpenControlled={isActionsOpen}
+            onToggleControlled={setIsActionsOpen}
+            collapsedSummary={
+              <span className="font-extrabold text-amber-600 dark:text-amber-400 text-xs">
+                {keyActionItems.length} Action Steps
+              </span>
+            }
+          >
+            <div className="space-y-2 pt-2">
+              {keyActionItems.map((action, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
                 >
-                  <Wand2 className="w-3.5 h-3.5" /> Setup
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("simulator")}
-                  className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                >
-                  <Sliders className="w-3.5 h-3.5" /> What-If
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsReportModalOpen(true)}
-                  className="py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors cursor-pointer"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5" /> Proposal
-                </button>
-              </div>
+                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                    {i + 1}
+                  </span>
+                  <span className="leading-relaxed">{action}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Advisory Suggestion Disclaimer */}
+            <div className="mt-3 p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 flex items-start gap-2 text-[11px] text-amber-800 dark:text-amber-300">
+              <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+              <p className="leading-snug">
+                <strong>Suggestion Disclaimer:</strong> These recommended next steps are automated guidance ideas based on your inputs and assumptions. They are helpful suggestions to consider, not mandatory requirements to follow.
+              </p>
+            </div>
+
+            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => goToWizardStep(1)}
+                className="py-2 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
+                title="Open the 5-step guided financial setup"
+              >
+                <Wand2 className="w-3.5 h-3.5" /> Setup
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("simulator")}
+                className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+              >
+                <Sliders className="w-3.5 h-3.5" /> What-If
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsReportModalOpen(true)}
+                className="py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors cursor-pointer"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" /> Proposal
+              </button>
             </div>
           </CollapsibleSection>
 
           {/* Planning Tools */}
           <CollapsibleSection
-            title="Planning Tools"
+            variant="card"
+            title="Interactive Planning Tools"
+            subtitle="What-if simulations, loan refinance & calculators"
             icon={<Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-            defaultOpen={false}
+            isOpenControlled={isToolsOpen}
+            onToggleControlled={setIsToolsOpen}
+            collapsedSummary={
+              <span className="font-bold text-slate-500 dark:text-slate-400 text-xs">
+                6 Calculators
+              </span>
+            }
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
               <div
                 onClick={() => setActiveTab("shortfall")}
                 className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"

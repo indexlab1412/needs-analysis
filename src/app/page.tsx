@@ -11,9 +11,10 @@ import { WizardView } from "@/components/WizardView";
 import { SimulatorView } from "@/components/SimulatorView";
 import { VaultView } from "@/components/VaultView";
 import { ReportModal } from "@/components/ReportModal";
+import { SyncModal } from "@/components/SyncModal";
 
 export default function Home() {
-  const { activeTab, isInitialized } = useFinancialStore();
+  const { activeTab, isInitialized, isSyncModalOpen, setIsSyncModalOpen, initialSyncIdParam } = useFinancialStore();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -51,6 +52,13 @@ export default function Home() {
 
       {/* Printable / Downloadable FNA Report Modal */}
       <ReportModal />
+
+      {/* Multi-Device QR Pairing & Sync Modal */}
+      <SyncModal
+        isOpen={isSyncModalOpen}
+        onClose={() => setIsSyncModalOpen(false)}
+        initialSyncId={initialSyncIdParam || undefined}
+      />
     </main>
   );
 }

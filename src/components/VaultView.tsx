@@ -12,6 +12,7 @@ import {
   RotateCcw,
   ShieldCheck,
   CheckCircle,
+  CheckCircle2,
   AlertTriangle,
   HardDrive,
   Trophy,
@@ -22,10 +23,23 @@ import {
   Calendar,
   Wallet,
   Clock,
+  QrCode,
+  Wifi,
 } from "lucide-react";
 
 export const VaultView: React.FC = () => {
-  const { profile, currency, summary, exportData, importData, resetProfile, closeMonthAndRollNext } = useFinancialStore();
+  const {
+    profile,
+    currency,
+    summary,
+    exportData,
+    importData,
+    resetProfile,
+    closeMonthAndRollNext,
+    syncConfig,
+    isOnline,
+    setIsSyncModalOpen,
+  } = useFinancialStore();
   const [activeTab, setActiveTab] = useState<"monthly_archive" | "yearly_review" | "backup_restore">("monthly_archive");
   const [importStatus, setImportStatus] = useState<string | null>(null);
   const [isMergeModalOpen, setIsMergeModalOpen] = useState<boolean>(false);
@@ -223,6 +237,42 @@ export const VaultView: React.FC = () => {
               <span>{importStatus}</span>
             </div>
           )}
+
+          {/* Multi-Device QR Cloud Sync Card */}
+          <div className="fin-card p-4 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950/40 border border-indigo-200 dark:border-indigo-900 rounded-2xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-2xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-sm">
+                  <QrCode className="w-4.5 h-4.5" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white">Multi-Device Cloud Sync</h3>
+                    {syncConfig?.isSyncActive ? (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                        <CheckCircle2 className="w-2.5 h-2.5" /> Active
+                      </span>
+                    ) : (
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                        Not Paired
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    PIN-protected QR pairing with zero-knowledge end-to-end encryption.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsSyncModalOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm transition-colors flex items-center gap-1.5 shrink-0"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span>{syncConfig?.isSyncActive ? "Manage Sync" : "Pair via QR"}</span>
+              </button>
+            </div>
+          </div>
 
           {/* Merge Partner Profile Card */}
           <div className="fin-card p-4 bg-gradient-to-r from-rose-50 to-pink-50 dark:from-slate-900 dark:to-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-2xl space-y-3">
