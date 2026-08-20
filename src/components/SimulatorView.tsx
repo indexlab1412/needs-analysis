@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useFinancialStore } from "@/context/financial-store";
 import { formatCurrency, parseNumberInput } from "@/lib/utils";
 import { LifeTransitionView } from "./LifeTransitionView";
+import { RetirementWeatherView } from "./RetirementWeatherView";
 import {
   Sliders,
   Sparkles,
@@ -20,6 +21,7 @@ import {
   DollarSign,
   Scissors,
   HeartHandshake,
+  Sun,
 } from "lucide-react";
 import {
   LineChart,
@@ -32,14 +34,14 @@ import {
   ReferenceLine,
 } from "recharts";
 
-type SimulatorMode = "market_levers" | "retrenchment_stress_test" | "life_transitions";
+type SimulatorMode = "retirement_weather" | "retrenchment_stress_test" | "life_transitions" | "market_levers";
 
 export const SimulatorView: React.FC = () => {
   const { profile, updateProfile, summary, currency } = useFinancialStore();
   const { assumptions } = profile;
   const { netWorth, cashFlow } = summary;
 
-  const [activeMode, setActiveMode] = useState<SimulatorMode>("retrenchment_stress_test");
+  const [activeMode, setActiveMode] = useState<SimulatorMode>("retirement_weather");
 
   // Stress Test Local States
   const [unemploymentMonths, setUnemploymentMonths] = useState<number>(6);
@@ -97,7 +99,7 @@ export const SimulatorView: React.FC = () => {
   return (
     <div className="space-y-4 pb-24">
       {/* Header */}
-      <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+      <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-600 rounded-2xl shadow-sm">
         <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <Sliders className="w-5 h-5 text-indigo-600" />
           Interactive "What-If?" Simulator
@@ -108,10 +110,22 @@ export const SimulatorView: React.FC = () => {
       </div>
 
       {/* Simulator Mode Selector */}
-      <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
+      <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl grid grid-cols-2 sm:grid-cols-4 gap-1 border border-slate-200 dark:border-slate-700">
+        <button
+          onClick={() => setActiveMode("retirement_weather")}
+          className={`py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+            activeMode === "retirement_weather"
+              ? "bg-amber-500 text-slate-950 shadow-sm"
+              : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+          }`}
+        >
+          <Sun className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Weather Forecast</span>
+        </button>
+
         <button
           onClick={() => setActiveMode("retrenchment_stress_test")}
-          className={`flex-1 py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
+          className={`py-2 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all flex items-center justify-center gap-1 ${
             activeMode === "retrenchment_stress_test"
               ? "bg-rose-500 text-white shadow-sm"
               : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
@@ -142,9 +156,14 @@ export const SimulatorView: React.FC = () => {
           }`}
         >
           <Zap className="w-3.5 h-3.5 shrink-0" />
-          <span className="truncate">Retirement Levers</span>
+          <span className="truncate">Market Levers</span>
         </button>
       </div>
+
+      {/* ========================================================================= */}
+      {/* MODE 0: RETIREMENT WEATHER FORECAST (MONTE CARLO) */}
+      {/* ========================================================================= */}
+      {activeMode === "retirement_weather" && <RetirementWeatherView />}
 
       {/* ========================================================================= */}
       {/* MODE 1: RETRENCHMENT & CAREER BREAK STRESS TEST */}
@@ -153,10 +172,10 @@ export const SimulatorView: React.FC = () => {
         <div className="space-y-4 animate-in fade-in duration-200">
           {/* Top Stress Test Verdict Card */}
           <div
-            className={`fin-card p-4 rounded-2xl border ${
+            className={`fin-card p-4 rounded-2xl border shadow-sm ${
               isRunwayDeficit
-                ? "bg-rose-50/80 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900"
-                : "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900"
+                ? "bg-rose-50/80 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 border-l-4 border-l-rose-500"
+                : "bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 border-l-4 border-l-emerald-500"
             }`}
           >
             <div className="flex items-center justify-between">
@@ -204,7 +223,7 @@ export const SimulatorView: React.FC = () => {
           </div>
 
           {/* Interactive Stress Test Levers */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-rose-500 rounded-2xl shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Flame className="w-3.5 h-3.5 text-rose-500" /> Stress-Test Parameters
             </h3>
@@ -430,7 +449,7 @@ export const SimulatorView: React.FC = () => {
           </div>
 
           {/* Interactive Slider Controls */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-emerald-500 rounded-2xl shadow-sm space-y-4">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
               <Zap className="w-3.5 h-3.5 text-amber-500" /> Long-Term Wealth Levers
             </h3>

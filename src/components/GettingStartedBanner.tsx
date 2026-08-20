@@ -25,6 +25,7 @@ export const GettingStartedBanner: React.FC = () => {
     resetProfile,
     isWelcomeGuideDismissed,
     setWelcomeGuideDismissed,
+    setIsGuideModalOpen,
   } = useFinancialStore();
 
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
@@ -234,9 +235,24 @@ export const GettingStartedBanner: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Platform Guide Link */}
+            <div className="flex items-center justify-between pt-0.5 px-1">
+              <span className="text-[10px] text-indigo-300">
+                Need a full tour of all calculators and formulas?
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsGuideModalOpen(true)}
+                className="text-[11px] font-bold text-amber-300 hover:text-amber-200 underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Open Visual & Written Guide 📖</span>
+              </button>
+            </div>
           </>
         )}
       </div>
+
 
       {/* High z-index Modal for Template Selection */}
       {isTemplateModalOpen && (

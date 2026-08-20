@@ -169,29 +169,29 @@ export const YearlyReviewView: React.FC = () => {
 
       {/* Annual Verdict Banner */}
       {latestSnapshot && (
-        <div className="fin-card p-4 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-lg space-y-3">
+        <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 text-slate-900 dark:text-white rounded-3xl shadow-md space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs uppercase font-extrabold tracking-wider text-indigo-300 flex items-center gap-1.5">
-              <Award className="w-4 h-4 text-amber-400" /> {latestSnapshot.year} Annual Outcome
+            <span className="text-xs uppercase font-extrabold tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+              <Award className="w-4 h-4 text-amber-500" /> {latestSnapshot.year} Annual Outcome
             </span>
-            <span className="text-[10px] bg-white/10 px-2.5 py-0.5 rounded-full text-indigo-200">
+            <span className="text-[10px] bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 px-2.5 py-0.5 rounded-full text-indigo-700 dark:text-indigo-300 font-bold">
               Score: {latestSnapshot.financialHealthScore}/100
             </span>
           </div>
 
           <div>
-            <h3 className="text-base sm:text-lg font-black text-white">{verdict.title}</h3>
-            <p className="text-xs text-indigo-100/90 mt-1 leading-relaxed">{verdict.desc}</p>
+            <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">{verdict.title}</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">{verdict.desc}</p>
           </div>
 
           {/* YoY Delta Highlight Chips */}
           {previousSnapshot && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-white/10">
-              <div className="p-2 bg-white/5 rounded-xl">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <div className="p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 rounded-xl">
                 <span className="text-[9px] uppercase font-bold text-slate-400 block">Net Worth YoY</span>
                 <span
                   className={`text-xs font-black flex items-center gap-0.5 mt-0.5 ${
-                    netWorthDelta >= 0 ? "text-emerald-400" : "text-rose-400"
+                    netWorthDelta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                   }`}
                 >
                   {netWorthDelta >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -199,11 +199,11 @@ export const YearlyReviewView: React.FC = () => {
                 </span>
               </div>
 
-              <div className="p-2 bg-white/5 rounded-xl">
+              <div className="p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 rounded-xl">
                 <span className="text-[9px] uppercase font-bold text-slate-400 block">Investments</span>
                 <span
                   className={`text-xs font-black flex items-center gap-0.5 mt-0.5 ${
-                    investmentDelta >= 0 ? "text-emerald-400" : "text-rose-400"
+                    investmentDelta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                   }`}
                 >
                   {investmentDelta >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -211,11 +211,11 @@ export const YearlyReviewView: React.FC = () => {
                 </span>
               </div>
 
-              <div className="p-2 bg-white/5 rounded-xl">
+              <div className="p-2 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 rounded-xl">
                 <span className="text-[9px] uppercase font-bold text-slate-400 block">Cash Savings</span>
                 <span
                   className={`text-xs font-black flex items-center gap-0.5 mt-0.5 ${
-                    savingsDelta >= 0 ? "text-emerald-400" : "text-rose-400"
+                    savingsDelta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                   }`}
                 >
                   {savingsDelta >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -300,7 +300,7 @@ export const YearlyReviewView: React.FC = () => {
           snapshots.slice().reverse().map((snap) => (
             <div
               key={snap.id}
-              className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3"
+              className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 border-l-4 border-l-amber-500 rounded-2xl space-y-3 hover:shadow-md hover:border-amber-500/40 transition-all"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

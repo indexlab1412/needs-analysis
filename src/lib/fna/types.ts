@@ -285,6 +285,76 @@ export interface ShortfallResult {
   breakdown?: { label: string; value: number | string }[];
 }
 
+export interface IllnessShieldAnalysis {
+  earlyStageRecovery: {
+    needed: number;
+    existing: number;
+    gap: number;
+    coverageRatio: number;
+    monthsSupported: number;
+    supportTargetMonths: number;
+    status: "critical" | "warning" | "on_track" | "surplus";
+  };
+  majorStageReset: {
+    needed: number;
+    existing: number;
+    gap: number;
+    coverageRatio: number;
+    yearsSupported: number;
+    supportTargetYears: number;
+    status: "critical" | "warning" | "on_track" | "surplus";
+  };
+  monthlyPaycheckShield: {
+    neededMonthly: number;
+    existingMonthly: number;
+    gapMonthly: number;
+    coverageRatio: number;
+    replacementPercent: number;
+    status: "critical" | "warning" | "on_track" | "surplus";
+  };
+  medicalInflationProjection: {
+    baseBillToday: number;
+    billIn10Years: number;
+    billIn20Years: number;
+    annualMedicalInflationRate: number;
+    estimatedMultiplierIn20Years: number;
+  };
+  plainSummaryTakeaway: string;
+}
+
+export type WeatherGrade = "sunny" | "mild" | "cloudy" | "stormy";
+
+export interface MonteCarloTrajectoryPoint {
+  age: number;
+  year: number;
+  percentile90: number; // Boom / Bull Market
+  percentile50: number; // Median Market
+  percentile10: number; // Severe Recession / Crash
+  zeroLine: number;
+}
+
+export interface MonteCarloSimulationResult {
+  successRate: number; // 0 - 100 (%)
+  weatherGrade: WeatherGrade;
+  weatherTitle: string;
+  weatherDescription: string;
+  medianFinalNestEgg: number;
+  worstCaseDepletionAge: number | null; // Age funds hit $0 in 10th percentile, or null if funds never deplete
+  totalSimulationsRun: number;
+  parameters: {
+    startingPortfolio: number;
+    monthlyContribution: number;
+    currentAge: number;
+    retirementAge: number;
+    lifeExpectancy: number;
+    monthlySpendInRetirement: number;
+    guaranteedMonthlyPension: number;
+    meanAnnualReturn: number;
+    annualVolatility: number;
+  };
+  trajectories: MonteCarloTrajectoryPoint[];
+}
+
 export interface FNAReportSummary {
   profile: UserFinancialProfile;
   netWorth: {
@@ -304,6 +374,8 @@ export interface FNAReportSummary {
     debtToIncomeRatio: number;
   };
   shortfalls: ShortfallResult[];
+  illnessShield: IllnessShieldAnalysis;
+  monteCarloRetirement: MonteCarloSimulationResult;
   overallFinancialHealthScore: number;
   keyActionItems: string[];
   investmentGrowthTrajectory: InvestmentTrajectoryPoint[];
@@ -324,3 +396,4 @@ export interface FNAReportSummary {
     hasCpfLifeFloor: boolean;
   };
 }
+

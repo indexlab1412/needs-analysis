@@ -438,6 +438,7 @@ export const DashboardView: React.FC = () => {
           {/* Card 1: Monthly Paycheck Split */}
           <CollapsibleSection
             variant="card"
+            accentColor="indigo"
             title="Monthly Paycheck Split"
             subtitle="Income vs Living Bills vs Savings"
             icon={<Receipt className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
@@ -475,6 +476,7 @@ export const DashboardView: React.FC = () => {
           {/* Card 2: Where Your Money Lives */}
           <CollapsibleSection
             variant="card"
+            accentColor="emerald"
             title="Where Your Money Lives"
             subtitle="Cash, stocks, property & retirement"
             icon={<Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
@@ -510,6 +512,7 @@ export const DashboardView: React.FC = () => {
           {/* Card 3: Safety Net & Goal Health */}
           <CollapsibleSection
             variant="card"
+            accentColor="blue"
             title="Safety Net & Goal Health"
             subtitle="Emergency fund, critical illness & retirement"
             icon={<ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
@@ -545,6 +548,7 @@ export const DashboardView: React.FC = () => {
           {/* Card 4: Recommended Next Steps */}
           <CollapsibleSection
             variant="card"
+            accentColor="amber"
             title="Recommended Next Steps"
             subtitle="Automated guidance for your plan"
             icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
@@ -607,6 +611,7 @@ export const DashboardView: React.FC = () => {
           {/* Planning Tools */}
           <CollapsibleSection
             variant="card"
+            accentColor="purple"
             title="Interactive Planning Tools"
             subtitle="What-if simulations, loan refinance & calculators"
             icon={<Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}

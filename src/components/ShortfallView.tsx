@@ -19,6 +19,7 @@ import {
   ListOrdered,
 } from "lucide-react";
 import { FormulaModal, FormulaKey } from "./FormulaModal";
+import { IllnessShieldCard } from "./IllnessShieldCard";
 
 export const ShortfallView: React.FC = () => {
   const { summary, currency, setActiveTab } = useFinancialStore();
@@ -101,6 +102,9 @@ export const ShortfallView: React.FC = () => {
         </p>
       </div>
 
+      {/* Feature #1: The Illness & Income Shield Card */}
+      <IllnessShieldCard />
+
       {/* Shortfall Detail Accordion / Cards */}
       <div className="space-y-3">
         {shortfalls.map((item, idx) => {
@@ -134,23 +138,46 @@ export const ShortfallView: React.FC = () => {
             };
           };
 
+          const getCategoryAccent = (cat: string) => {
+            switch (cat) {
+              case "emergency_fund":
+                return "border-l-4 border-l-emerald-500";
+              case "life_protection":
+                return "border-l-4 border-l-rose-500";
+              case "critical_illness":
+                return "border-l-4 border-l-pink-500";
+              case "retirement":
+                return "border-l-4 border-l-amber-500";
+              case "education":
+                return "border-l-4 border-l-purple-500";
+              default:
+                return "border-l-4 border-l-indigo-500";
+            }
+          };
+
           const theme = getThemeClasses();
 
           return (
             <div
               key={item.category}
-              className={`fin-card transition-all duration-200 bg-white dark:bg-slate-900 border rounded-2xl overflow-hidden ${
-                isExpanded ? "ring-2 ring-indigo-500/20 " + theme.border : "border-slate-200 dark:border-slate-800"
+              className={`fin-card transition-all duration-200 rounded-2xl overflow-hidden ${getCategoryAccent(item.category)} ${
+                isExpanded
+                  ? "bg-white dark:bg-slate-900 border-2 border-indigo-500/40 dark:border-indigo-500/50 shadow-lg shadow-indigo-500/5 ring-4 ring-indigo-500/10"
+                  : "bg-slate-100/90 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/70 hover:bg-white dark:hover:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600 shadow-none"
               }`}
             >
               {/* Card Header (Clickable) */}
               <div
                 onClick={() => setExpandedIndex(isExpanded ? null : idx)}
-                className="p-4 cursor-pointer flex items-center justify-between gap-3"
+                className={`p-4 cursor-pointer flex items-center justify-between gap-3 select-none transition-colors ${
+                  isExpanded
+                    ? "bg-indigo-50/40 dark:bg-indigo-950/20"
+                    : "hover:bg-slate-200/50 dark:hover:bg-slate-750/50"
+                }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div
-                    className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 ${
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs ${
                       item.status === "critical"
                         ? "bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400"
                         : item.status === "warning"
@@ -161,29 +188,38 @@ export const ShortfallView: React.FC = () => {
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
+                    <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white truncate">
                       {item.title}
                     </h3>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{item.subtitle}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0">
                   <div className="text-right">
                     <div
-                      className={`text-xs sm:text-sm font-extrabold ${
+                      className={`text-xs sm:text-sm font-black ${
                         isDeficit ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
                       }`}
                     >
                       {isDeficit ? `-${formatCurrency(item.shortfallAmount, currency)}` : "Fully Covered"}
                     </div>
-                    <div className="text-[10px] text-slate-400 font-semibold">{item.coverageRatio}% Ready</div>
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{item.coverageRatio}% Ready</div>
                   </div>
-                  {isExpanded ? (
-                    <ChevronUp className="w-4 h-4 text-slate-400" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-slate-400" />
-                  )}
+
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all ${
+                      isExpanded
+                        ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/60 dark:text-indigo-300"
+                        : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700/80 shadow-2xs"
+                    }`}
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isExpanded ? "rotate-180" : "rotate-0"
+                      }`}
+                    />
+                  </div>
                 </div>
               </div>
 

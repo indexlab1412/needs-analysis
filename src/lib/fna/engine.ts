@@ -8,7 +8,10 @@ import {
   LiabilityItem,
   FinancialGoal,
   ComputedGoalSummary,
+  IllnessShieldAnalysis,
+  MonteCarloSimulationResult,
 } from "./types";
+import { runRetirementMonteCarlo } from "./monte-carlo";
 
 /**
  * Calculates Future Value with compounding: FV = PV * (1 + r)^n
@@ -637,6 +640,101 @@ export function analyzeFinancialNeeds(profile: UserFinancialProfile): FNAReportS
   // 6. 3-BUCKET GOAL PLANNING CALCULATIONS
   const computedGoals = computeGoalSummaries(profile.goals, assumptions.generalInflationRate);
 
+  // --- FEATURE #1: ILLNESS & INCOME SHIELD (MULTI-TIER PROTECTION) ---
+  const existingEarlyCiBenefit = profile.insurancePolicies.reduce((sum, p) => sum + (Number(p.earlyCiBenefit) || 0), 0);
+  const existingMajorCiBenefit = profile.insurancePolicies.reduce((sum, p) => sum + (Number(p.majorCiBenefit) || 0), 0);
+  const existingDisabilityIncome = profile.insurancePolicies.reduce((sum, p) => sum + (Number(p.disabilityIncomeMonthly) || 0), 0);
+
+  // 1. Early-Stage Recovery Buffer (18 Months of Gross Income)
+  const earlyNeeded = Math.round(totalMonthlyIncome * 18);
+  const earlyGap = Math.max(0, earlyNeeded - existingEarlyCiBenefit);
+  const earlyCoverageRatio = earlyNeeded > 0 ? Math.min(200, Math.round((existingEarlyCiBenefit / earlyNeeded) * 100)) : 100;
+  const earlyMonthsSupported = totalMonthlyIncome > 0 ? Math.round((existingEarlyCiBenefit / totalMonthlyIncome) * 10) / 10 : 0;
+  const earlyStatus: "critical" | "warning" | "on_track" | "surplus" =
+    earlyCoverageRatio >= 100 ? "on_track" : earlyCoverageRatio >= 50 ? "warning" : "critical";
+
+  // 2. Major-Stage Family Reset Fund (5 Years Expenses + $50k treatment buffer)
+  const majorNeeded = Math.round(totalMonthlyExpenses * 12 * 5 + 50000);
+  const majorGap = Math.max(0, majorNeeded - existingMajorCiBenefit);
+  const majorCoverageRatio = majorNeeded > 0 ? Math.min(200, Math.round((existingMajorCiBenefit / majorNeeded) * 100)) : 100;
+  const majorYearsSupported = (totalMonthlyExpenses * 12) > 0 ? Math.round((existingMajorCiBenefit / (totalMonthlyExpenses * 12)) * 10) / 10 : 0;
+  const majorStatus: "critical" | "warning" | "on_track" | "surplus" =
+    majorCoverageRatio >= 100 ? "on_track" : majorCoverageRatio >= 60 ? "warning" : "critical";
+
+  // 3. Monthly Paycheck Shield (75% of pre-disability income)
+  const paycheckNeededMonthly = Math.round(totalMonthlyIncome * 0.75);
+  const paycheckGapMonthly = Math.max(0, paycheckNeededMonthly - existingDisabilityIncome);
+  const paycheckCoverageRatio = paycheckNeededMonthly > 0 ? Math.min(200, Math.round((existingDisabilityIncome / paycheckNeededMonthly) * 100)) : 100;
+  const paycheckStatus: "critical" | "warning" | "on_track" | "surplus" =
+    paycheckCoverageRatio >= 100 ? "on_track" : paycheckCoverageRatio >= 50 ? "warning" : "critical";
+
+  // 4. Medical Inflation Future Projections
+  const medInflation = (assumptions.medicalInflationRate || 10.0) / 100;
+  const baseBillToday = 30000;
+  const billIn10Years = Math.round(calculateFutureValue(baseBillToday, medInflation, 10));
+  const billIn20Years = Math.round(calculateFutureValue(baseBillToday, medInflation, 20));
+  const estimatedMultiplierIn20Years = Math.round((billIn20Years / baseBillToday) * 10) / 10;
+
+  let plainSummaryTakeaway = "";
+  if (earlyMonthsSupported >= 18 && majorYearsSupported >= 5) {
+    plainSummaryTakeaway = "Your illness safety net is rock solid. You have over 18 months of recovery time and 5+ years of family expenses covered.";
+  } else if (earlyMonthsSupported < 6) {
+    plainSummaryTakeaway = `If an unexpected illness requires 1 year off work, current insurance would only cover ${earlyMonthsSupported} months before you dip into personal savings.`;
+  } else {
+    plainSummaryTakeaway = `You have ${earlyMonthsSupported} months of early recovery cushion and ${majorYearsSupported} years of family reset funds covered.`;
+  }
+
+  const illnessShield: IllnessShieldAnalysis = {
+    earlyStageRecovery: {
+      needed: earlyNeeded,
+      existing: existingEarlyCiBenefit,
+      gap: earlyGap,
+      coverageRatio: earlyCoverageRatio,
+      monthsSupported: earlyMonthsSupported,
+      supportTargetMonths: 18,
+      status: earlyStatus,
+    },
+    majorStageReset: {
+      needed: majorNeeded,
+      existing: existingMajorCiBenefit,
+      gap: majorGap,
+      coverageRatio: majorCoverageRatio,
+      yearsSupported: majorYearsSupported,
+      supportTargetYears: 5,
+      status: majorStatus,
+    },
+    monthlyPaycheckShield: {
+      neededMonthly: paycheckNeededMonthly,
+      existingMonthly: existingDisabilityIncome,
+      gapMonthly: paycheckGapMonthly,
+      coverageRatio: paycheckCoverageRatio,
+      replacementPercent: 75,
+      status: paycheckStatus,
+    },
+    medicalInflationProjection: {
+      baseBillToday,
+      billIn10Years,
+      billIn20Years,
+      annualMedicalInflationRate: assumptions.medicalInflationRate || 10.0,
+      estimatedMultiplierIn20Years,
+    },
+    plainSummaryTakeaway,
+  };
+
+  // --- FEATURE #2: MONTE CARLO RETIREMENT SIMULATION ---
+  const monteCarloRetirement = runRetirementMonteCarlo({
+    startingPortfolio: totalAssets,
+    monthlyContribution: totalMonthlyDCAInvestments,
+    currentAge,
+    retirementAge,
+    lifeExpectancy,
+    monthlySpendInRetirement: Math.round(futureMonthlyExpensesAtRetirement),
+    guaranteedMonthlyPension: Math.round(cpfMonthlyPayoutFuture),
+    meanAnnualReturn: (assumptions.investmentReturnRate || 6.5) / 100,
+    annualVolatility: 0.12,
+    iterations: 1000,
+  });
+
   // 7. OVERALL FINANCIAL FITNESS SCORE
   let score = 0;
   score += Math.min(20, (emergencyRatio / 100) * 20);
@@ -690,6 +788,8 @@ export function analyzeFinancialNeeds(profile: UserFinancialProfile): FNAReportS
       debtToIncomeRatio,
     },
     shortfalls,
+    illnessShield,
+    monteCarloRetirement,
     overallFinancialHealthScore,
     keyActionItems,
     investmentGrowthTrajectory,

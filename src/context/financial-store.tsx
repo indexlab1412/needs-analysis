@@ -65,6 +65,8 @@ interface FinancialStoreContextType {
   setCurrency: (c: string) => void;
   isReportModalOpen: boolean;
   setIsReportModalOpen: (open: boolean) => void;
+  isGuideModalOpen: boolean;
+  setIsGuideModalOpen: (open: boolean) => void;
   isInitialized: boolean;
 
   // Cloud Sync & QR Pairing
@@ -98,6 +100,7 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [isQuickCheckinOpen, setIsQuickCheckinOpen] = useState<boolean>(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
+  const [isGuideModalOpen, setIsGuideModalOpen] = useState<boolean>(false);
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [isSamplePreset, setIsSamplePreset] = useState<boolean>(true);
   const [isWelcomeGuideDismissed, setIsWelcomeGuideDismissed] = useState<boolean>(false);
@@ -797,6 +800,8 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         setCurrency,
         isReportModalOpen,
         setIsReportModalOpen,
+        isGuideModalOpen,
+        setIsGuideModalOpen,
         isInitialized,
 
         // Sync exports

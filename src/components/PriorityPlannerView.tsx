@@ -266,15 +266,32 @@ export const PriorityPlannerView: React.FC = () => {
 
         <div className="space-y-2">
           {priorities.map((item, idx) => {
+            const getCategoryBorder = (cat: string) => {
+              switch (cat) {
+                case "emergency":
+                  return "border-l-4 border-l-emerald-500";
+                case "insurance":
+                  return "border-l-4 border-l-rose-500";
+                case "debt":
+                  return "border-l-4 border-l-amber-500";
+                case "education":
+                  return "border-l-4 border-l-purple-500";
+                case "retirement":
+                  return "border-l-4 border-l-indigo-500";
+                default:
+                  return "border-l-4 border-l-slate-400";
+              }
+            };
+
             return (
               <div
                 key={item.id}
-                className={`fin-card p-3.5 rounded-2xl border transition-all space-y-2.5 ${
+                className={`fin-card p-3.5 rounded-2xl border transition-all space-y-2.5 ${getCategoryBorder(item.category)} ${
                   item.isCompleted
-                    ? "bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-75"
+                    ? "bg-slate-50/70 dark:bg-slate-900/30 border-slate-200/60 dark:border-slate-800/60 opacity-75 shadow-none"
                     : item.isActiveFocus
-                    ? "bg-white dark:bg-slate-900 border-indigo-200 dark:border-indigo-900/80 shadow-sm"
-                    : "bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-800 opacity-50"
+                    ? "bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 shadow-md shadow-indigo-500/5 ring-4 ring-indigo-500/10"
+                    : "bg-slate-50/70 dark:bg-slate-900/20 border-slate-200/60 dark:border-slate-800/60 opacity-60 shadow-none"
                 }`}
               >
                 <div className="flex items-center justify-between gap-2">

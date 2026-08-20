@@ -12,9 +12,18 @@ import { SimulatorView } from "@/components/SimulatorView";
 import { VaultView } from "@/components/VaultView";
 import { ReportModal } from "@/components/ReportModal";
 import { SyncModal } from "@/components/SyncModal";
+import { PlatformGuideModal } from "@/components/PlatformGuideModal";
 
 export default function Home() {
-  const { activeTab, isInitialized, isSyncModalOpen, setIsSyncModalOpen, initialSyncIdParam } = useFinancialStore();
+  const {
+    activeTab,
+    isInitialized,
+    isSyncModalOpen,
+    setIsSyncModalOpen,
+    isGuideModalOpen,
+    setIsGuideModalOpen,
+    initialSyncIdParam,
+  } = useFinancialStore();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -53,6 +62,12 @@ export default function Home() {
       {/* Printable / Downloadable FNA Report Modal */}
       <ReportModal />
 
+      {/* Interactive Visual & Written Platform Guide Modal */}
+      <PlatformGuideModal
+        isOpen={isGuideModalOpen}
+        onClose={() => setIsGuideModalOpen(false)}
+      />
+
       {/* Multi-Device QR Pairing & Sync Modal */}
       <SyncModal
         isOpen={isSyncModalOpen}
@@ -62,3 +77,4 @@ export default function Home() {
     </main>
   );
 }
+

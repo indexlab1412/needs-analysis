@@ -144,7 +144,7 @@ export const VaultView: React.FC = () => {
               {logs.map((log) => (
                 <div
                   key={log.id}
-                  className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3 hover:border-amber-400/50 transition-colors"
+                  className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 border-l-4 border-l-amber-500 rounded-2xl space-y-3 hover:shadow-md hover:border-amber-500/40 transition-all"
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

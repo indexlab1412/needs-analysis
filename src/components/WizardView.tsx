@@ -224,7 +224,7 @@ export const WizardView: React.FC = () => {
       {currentStep === 1 && (
         <div className="space-y-4">
           {/* 1. Planning Cadence & Scope Selector */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-600 rounded-2xl shadow-sm space-y-3">
             <div>
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
                 Planning Rhythm & Scope
@@ -239,10 +239,10 @@ export const WizardView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => updateProfile((p) => ({ ...p, planningCadence: "monthly" }))}
-                className={`p-3 rounded-2xl border text-left transition-all space-y-1 ${
+                className={`p-3 rounded-2xl border text-left transition-all space-y-1 cursor-pointer ${
                   (profile.planningCadence || "monthly") === "monthly"
-                    ? "bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-500 ring-2 ring-indigo-500/20"
-                    : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700"
+                    ? "bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-500 ring-2 ring-indigo-500/20 shadow-xs"
+                    : "bg-slate-100/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -261,10 +261,10 @@ export const WizardView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => updateProfile((p) => ({ ...p, planningCadence: "yearly" }))}
-                className={`p-3 rounded-2xl border text-left transition-all space-y-1 ${
+                className={`p-3 rounded-2xl border text-left transition-all space-y-1 cursor-pointer ${
                   profile.planningCadence === "yearly"
-                    ? "bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-500 ring-2 ring-indigo-500/20"
-                    : "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700"
+                    ? "bg-indigo-50/80 dark:bg-indigo-950/60 border-indigo-500 ring-2 ring-indigo-500/20 shadow-xs"
+                    : "bg-slate-100/80 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700"
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -286,10 +286,10 @@ export const WizardView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => updateProfile((p) => ({ ...p, planningScope: "individual" }))}
-                className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
                   profile.planningScope !== "joint"
-                    ? "bg-indigo-50 dark:bg-indigo-950/50 border-indigo-500 font-bold text-indigo-900 dark:text-indigo-200"
-                    : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                    ? "bg-indigo-50 dark:bg-indigo-950/50 border-indigo-500 font-bold text-indigo-900 dark:text-indigo-200 shadow-xs"
+                    : "bg-slate-100/80 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
                 }`}
               >
                 <span className="flex items-center gap-1.5 text-xs">
@@ -301,10 +301,10 @@ export const WizardView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => updateProfile((p) => ({ ...p, planningScope: "joint" }))}
-                className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between ${
+                className={`p-2.5 rounded-xl border text-left transition-all flex items-center justify-between cursor-pointer ${
                   profile.planningScope === "joint"
-                    ? "bg-rose-50 dark:bg-rose-950/50 border-rose-500 font-bold text-rose-900 dark:text-rose-200"
-                    : "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
+                    ? "bg-rose-50 dark:bg-rose-950/50 border-rose-500 font-bold text-rose-900 dark:text-rose-200 shadow-xs"
+                    : "bg-slate-100/80 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400"
                 }`}
               >
                 <span className="flex items-center gap-1.5 text-xs">
@@ -316,7 +316,7 @@ export const WizardView: React.FC = () => {
           </div>
 
           {/* 2. Basic Personal Details */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3.5">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-600 rounded-2xl shadow-sm space-y-3.5">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <User className="w-4 h-4 text-indigo-500" /> Basic Details
@@ -348,7 +348,7 @@ export const WizardView: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Dream Retirement Age</label>
+                <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Target Retirement Age</label>
                 <NumericInput
                   value={profile.targetRetirementAge}
                   onChange={(val) => updateProfile((p) => ({ ...p, targetRetirementAge: val }))}
@@ -426,8 +426,8 @@ export const WizardView: React.FC = () => {
             </div>
           </div>
 
-          {/* Dependents */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          {/* 3. Family & Dependents */}
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-indigo-600 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -560,7 +560,7 @@ export const WizardView: React.FC = () => {
             </p>
           </div>
 
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-emerald-500 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -570,7 +570,7 @@ export const WizardView: React.FC = () => {
               </div>
               <button
                 onClick={addIncome}
-                className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800"
+                className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Income
               </button>
@@ -608,7 +608,7 @@ export const WizardView: React.FC = () => {
                       className="w-full bg-white dark:bg-slate-800 pl-8 pr-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-xs font-bold text-right"
                     />
                   </div>
-                  <button onClick={() => removeIncome(inc.id)} className="text-rose-500 p-1">
+                  <button onClick={() => removeIncome(inc.id)} className="text-rose-500 p-1 cursor-pointer">
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -616,7 +616,7 @@ export const WizardView: React.FC = () => {
             </div>
           </div>
 
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-rose-500 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -626,7 +626,7 @@ export const WizardView: React.FC = () => {
               </div>
               <button
                 onClick={addExpense}
-                className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800"
+                className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Bill
               </button>
@@ -686,17 +686,17 @@ export const WizardView: React.FC = () => {
           </div>
 
           {/* Assets & Robos */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500" /> Savings, Robos & Investments
+                  <TrendingUp className="w-4 h-4 text-amber-500" /> Savings, Robos & Investments
                 </h3>
                 <p className="text-[11px] text-slate-500">Track current cash value + monthly DCA contributions (e.g. $100/mo)</p>
               </div>
               <button
                 onClick={addAsset}
-                className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1.5 rounded-lg border border-emerald-200 dark:border-emerald-800"
+                className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Account
               </button>
@@ -816,7 +816,7 @@ export const WizardView: React.FC = () => {
           </div>
 
           {/* Loans & Mortgages */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-rose-500 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -826,7 +826,7 @@ export const WizardView: React.FC = () => {
               </div>
               <button
                 onClick={addLiability}
-                className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800"
+                className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Loan
               </button>
@@ -934,17 +934,17 @@ export const WizardView: React.FC = () => {
             </p>
           </div>
 
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-rose-500 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-indigo-500" /> Your Current Insurance Cover & Savings Plans
+                  <ShieldCheck className="w-4 h-4 text-rose-500" /> Your Current Insurance Cover & Savings Plans
                 </h3>
                 <p className="text-[11px] text-slate-500">Term life, Whole Life, Endowments (with cash values), or Hospital plans</p>
               </div>
               <button
                 onClick={addPolicy}
-                className="flex items-center gap-1 text-xs font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1.5 rounded-lg border border-indigo-200 dark:border-indigo-800"
+                className="flex items-center gap-1 text-xs font-bold text-rose-600 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1.5 rounded-lg border border-rose-200 dark:border-rose-800 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> Add Policy
               </button>
@@ -1112,10 +1112,10 @@ export const WizardView: React.FC = () => {
           </div>
 
           {/* Retirement in Today's Dollars Card */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3.5">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-purple-500 rounded-2xl shadow-sm space-y-3.5">
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Target className="w-4 h-4 text-indigo-500" /> Desired Retirement Lifestyle (In Today's Value)
+                <Target className="w-4 h-4 text-purple-500" /> Desired Retirement Lifestyle (In Today's Value)
               </h3>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 How much monthly spending power would you like to have when you retire?
@@ -1227,7 +1227,7 @@ export const WizardView: React.FC = () => {
           </div>
 
           {/* CPF LIFE Lifelong Income Floor */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-emerald-500 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -1382,11 +1382,11 @@ export const WizardView: React.FC = () => {
           </div>
 
           {/* Goal Milestones Section */}
-          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+          <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 border-l-4 border-l-purple-500 rounded-2xl shadow-sm space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Target className="w-4 h-4 text-amber-500" /> Milestone Goals (Sinking Funds)
+                  <Target className="w-4 h-4 text-purple-500" /> Milestone Goals (Sinking Funds)
                 </h3>
                 <p className="text-[11px] text-slate-500">BTO flat deposit, wedding, child university, or sabbatical</p>
               </div>

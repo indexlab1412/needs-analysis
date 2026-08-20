@@ -21,6 +21,7 @@ import {
   HelpCircle,
   FolderLock,
   ArrowRight,
+  BookOpen,
 } from "lucide-react";
 
 export const MobileHeader: React.FC = () => {
@@ -38,6 +39,7 @@ export const MobileHeader: React.FC = () => {
     isWelcomeGuideDismissed,
     setWelcomeGuideDismissed,
     setIsSyncModalOpen,
+    setIsGuideModalOpen,
     setActiveTab,
   } = useFinancialStore();
 
@@ -103,6 +105,16 @@ export const MobileHeader: React.FC = () => {
 
         {/* Clean, Streamlined Action Controls */}
         <div className="flex items-center gap-1.5 shrink-0">
+          {/* Visual User Guide Button */}
+          <button
+            onClick={() => setIsGuideModalOpen(true)}
+            className="flex items-center gap-1 px-2 py-1 rounded-xl text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer"
+            title="Open Platform Guide & Tutorial"
+          >
+            <BookOpen className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Guide</span>
+          </button>
+
           {/* Multi-Device Encrypted Sync Status Badge */}
           <SyncStatusBadge onOpenModal={() => setIsSyncModalOpen(true)} />
 
@@ -127,6 +139,7 @@ export const MobileHeader: React.FC = () => {
           </button>
         </div>
       </div>
+
 
       {/* Cadence & Planning Scope Control Bar */}
       <div className="max-w-2xl mx-auto flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs">
@@ -290,6 +303,28 @@ export const MobileHeader: React.FC = () => {
                 <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
               </button>
 
+              {/* Visual Platform Guide & Tutorial */}
+              <button
+                onClick={() => {
+                  setIsOptionsOpen(false);
+                  setIsGuideModalOpen(true);
+                }}
+                className="w-full p-2.5 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100/70 dark:hover:bg-indigo-900/60 border border-indigo-200 dark:border-indigo-800 flex items-center justify-between text-left transition-all group"
+              >
+                <div className="flex items-center gap-2">
+                  <BookOpen className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <div>
+                    <div className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                      How to Use This Platform (Visual Guide)
+                    </div>
+                    <div className="text-[10px] text-indigo-700/80 dark:text-indigo-400">
+                      Step-by-step walkthrough with visual examples
+                    </div>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-indigo-500 group-hover:text-indigo-700 transition-colors" />
+              </button>
+
               {/* Getting Started Guide */}
               <button
                 onClick={() => {
@@ -311,6 +346,7 @@ export const MobileHeader: React.FC = () => {
                 </div>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-500 transition-colors" />
               </button>
+
             </div>
 
             {/* Life Stage Templates */}
