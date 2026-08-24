@@ -69,6 +69,13 @@ interface FinancialStoreContextType {
   setIsGuideModalOpen: (open: boolean) => void;
   isInitialized: boolean;
 
+  // Local Backup Tracking & Reminder
+  lastBackupExportedAt: string | null;
+  backupReminderSnoozedUntil: string | null;
+  shouldShowBackupReminder: boolean;
+  snoozeBackupReminder: (days?: number) => void;
+  dismissBackupReminder: () => void;
+
   // Cloud Sync & QR Pairing
   syncConfig: SyncConfig | null;
   isOnline: boolean;
@@ -87,6 +94,8 @@ const STORAGE_KEY = "fna_user_profile_v1";
 const GUIDE_STORAGE_KEY = "fna_guide_dismissed_v1";
 const SAMPLE_FLAG_STORAGE_KEY = "fna_is_sample_preset_v1";
 const SYNC_CONFIG_KEY = "fna_sync_config_v1";
+const LAST_BACKUP_KEY = "fna_last_backup_exported_at_v1";
+const BACKUP_SNOOZED_KEY = "fna_backup_reminder_snoozed_v1";
 
 const FinancialStoreContext = createContext<FinancialStoreContextType | undefined>(undefined);
 
@@ -104,6 +113,11 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [isSamplePreset, setIsSamplePreset] = useState<boolean>(true);
   const [isWelcomeGuideDismissed, setIsWelcomeGuideDismissed] = useState<boolean>(false);
+
+  // Local Backup State
+  const [lastBackupExportedAt, setLastBackupExportedAt] = useState<string | null>(null);
+  const [backupReminderSnoozedUntil, setBackupReminderSnoozedUntil] = useState<string | null>(null);
+  const [isBackupDismissedSession, setIsBackupDismissedSession] = useState<boolean>(false);
 
   // Sync state
   const [syncConfig, setSyncConfig] = useState<SyncConfig | null>(null);
@@ -129,6 +143,15 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       const savedGuide = localStorage.getItem(GUIDE_STORAGE_KEY);
       const savedSampleFlag = localStorage.getItem(SAMPLE_FLAG_STORAGE_KEY);
       const savedSync = localStorage.getItem(SYNC_CONFIG_KEY);
+      const savedLastBackup = localStorage.getItem(LAST_BACKUP_KEY);
+      const savedSnooze = localStorage.getItem(BACKUP_SNOOZED_KEY);
+
+      if (savedLastBackup) {
+        setLastBackupExportedAt(savedLastBackup);
+      }
+      if (savedSnooze) {
+        setBackupReminderSnoozedUntil(savedSnooze);
+      }
 
       if (savedSync) {
         try {
@@ -626,11 +649,53 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     updateProfile((p) => ({ ...p, currency: c }));
   };
 
+  const snoozeBackupReminder = (days: number = 7) => {
+    const snoozeDate = new Date();
+    snoozeDate.setDate(snoozeDate.getDate() + days);
+    const iso = snoozeDate.toISOString();
+    setBackupReminderSnoozedUntil(iso);
+    try {
+      localStorage.setItem(BACKUP_SNOOZED_KEY, iso);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const dismissBackupReminder = () => {
+    setIsBackupDismissedSession(true);
+  };
+
+  const shouldShowBackupReminder = (() => {
+    if (!isInitialized || isBackupDismissedSession || isSamplePreset) {
+      return false;
+    }
+    if (backupReminderSnoozedUntil) {
+      const snoozeTime = new Date(backupReminderSnoozedUntil).getTime();
+      if (Date.now() < snoozeTime) {
+        return false;
+      }
+    }
+    if (!lastBackupExportedAt) {
+      // User has customized plan and hasn't exported a backup yet
+      return true;
+    }
+    const daysSince = (Date.now() - new Date(lastBackupExportedAt).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSince >= 14;
+  })();
+
   const exportData = () => {
+    const nowIso = new Date().toISOString();
+    setLastBackupExportedAt(nowIso);
+    try {
+      localStorage.setItem(LAST_BACKUP_KEY, nowIso);
+    } catch (e) {
+      console.error(e);
+    }
+
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profile, null, 2));
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `financial-plan-${profile.name.toLowerCase().replace(/\s+/g, "-")}.json`);
+    downloadAnchor.setAttribute("download", `financial-plan-${(profile.name || "profile").toLowerCase().replace(/\s+/g, "-")}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -803,6 +868,13 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         isGuideModalOpen,
         setIsGuideModalOpen,
         isInitialized,
+
+        // Local Backup
+        lastBackupExportedAt,
+        backupReminderSnoozedUntil,
+        shouldShowBackupReminder,
+        snoozeBackupReminder,
+        dismissBackupReminder,
 
         // Sync exports
         syncConfig,

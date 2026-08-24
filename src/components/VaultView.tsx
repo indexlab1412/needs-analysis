@@ -39,6 +39,7 @@ export const VaultView: React.FC = () => {
     syncConfig,
     isOnline,
     setIsSyncModalOpen,
+    lastBackupExportedAt,
   } = useFinancialStore();
   const [activeTab, setActiveTab] = useState<"monthly_archive" | "yearly_review" | "backup_restore">("monthly_archive");
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -299,14 +300,26 @@ export const VaultView: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {/* Export Card */}
             <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                  <Download className="w-4 h-4" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <Download className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white">Export Local Backup</h3>
+                    <p className="text-[11px] text-slate-400">Save complete plan as a JSON file</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white">Export Local Backup</h3>
-                  <p className="text-[11px] text-slate-400">Save complete plan as a JSON file</p>
-                </div>
+
+                {lastBackupExportedAt ? (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                    Saved {new Date(lastBackupExportedAt).toLocaleDateString()}
+                  </span>
+                ) : (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                    Not backed up yet
+                  </span>
+                )}
               </div>
 
               <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -315,7 +328,7 @@ export const VaultView: React.FC = () => {
 
               <button
                 onClick={exportData}
-                className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
+                className="w-full py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-white text-white dark:text-slate-900 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Export JSON Backup</span>

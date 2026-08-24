@@ -13,6 +13,7 @@ import { VaultView } from "@/components/VaultView";
 import { ReportModal } from "@/components/ReportModal";
 import { SyncModal } from "@/components/SyncModal";
 import { PlatformGuideModal } from "@/components/PlatformGuideModal";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 
 export default function Home() {
   const {
@@ -74,6 +75,9 @@ export default function Home() {
         onClose={() => setIsSyncModalOpen(false)}
         initialSyncId={initialSyncIdParam || undefined}
       />
+
+      {/* PWA Offline Installation Banner & Service Worker Registrar */}
+      <PWAInstallPrompt />
     </main>
   );
 }

@@ -17,6 +17,7 @@ import { MonthlyHistoryModal } from "./MonthlyHistoryModal";
 import { QuickMonthlyCheckinModal } from "./QuickMonthlyCheckinModal";
 import { FormulaModal, FormulaKey } from "./FormulaModal";
 import { GettingStartedBanner } from "./GettingStartedBanner";
+import { BackupReminderBanner } from "./BackupReminderBanner";
 import { CollapsibleSection } from "./ui/CollapsibleSection";
 import {
   Sparkles,
@@ -264,6 +265,9 @@ export const DashboardView: React.FC = () => {
         <div className="space-y-4 animate-in fade-in duration-200">
           {/* Welcome & Getting Started Onboarding Banner for New Users */}
           <GettingStartedBanner />
+
+          {/* Smart Local Backup Reminder */}
+          <BackupReminderBanner />
 
           {/* Toast Notification */}
           {loggedToast && (
