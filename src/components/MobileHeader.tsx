@@ -22,6 +22,9 @@ import {
   FolderLock,
   ArrowRight,
   BookOpen,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 
 export const MobileHeader: React.FC = () => {
@@ -41,6 +44,9 @@ export const MobileHeader: React.FC = () => {
     setIsSyncModalOpen,
     setIsGuideModalOpen,
     setActiveTab,
+    themeMode,
+    setThemeMode,
+    toggleTheme,
   } = useFinancialStore();
 
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -117,6 +123,22 @@ export const MobileHeader: React.FC = () => {
 
           {/* Multi-Device Encrypted Sync Status Badge */}
           <SyncStatusBadge onOpenModal={() => setIsSyncModalOpen(true)} />
+
+          {/* Quick 1-Tap Theme Switcher */}
+          <button
+            onClick={toggleTheme}
+            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-sm"
+            title={`Current theme: ${themeMode}. Click to toggle Light / Dark.`}
+            aria-label="Toggle Light / Dark mode"
+          >
+            {themeMode === "dark" ? (
+              <Moon className="w-3.5 h-3.5 fill-current text-amber-400" />
+            ) : themeMode === "light" ? (
+              <Sun className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20" />
+            ) : (
+              <Sun className="w-3.5 h-3.5 text-indigo-500" />
+            )}
+          </button>
 
           {/* Financial Fitness Score Chip */}
           <button
@@ -257,6 +279,54 @@ export const MobileHeader: React.FC = () => {
                   <option value="EUR">€ (EUR)</option>
                   <option value="GBP">£ (GBP)</option>
                 </select>
+              </div>
+
+              {/* Appearance / Theme Selector Row */}
+              <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 shrink-0">
+                  <Sun className="w-4 h-4 text-amber-500" />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Appearance</span>
+                </div>
+                <div className="flex items-center gap-1 bg-slate-200/80 dark:bg-slate-900 p-0.5 rounded-xl border border-slate-300/60 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setThemeMode("light")}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                      themeMode === "light"
+                        ? "bg-white dark:bg-slate-800 text-amber-600 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    <Sun className="w-3 h-3" />
+                    <span>Light</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setThemeMode("dark")}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                      themeMode === "dark"
+                        ? "bg-white dark:bg-slate-800 text-indigo-400 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    <Moon className="w-3 h-3" />
+                    <span>Dark</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setThemeMode("system")}
+                    className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                      themeMode === "system"
+                        ? "bg-white dark:bg-slate-800 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                    }`}
+                  >
+                    <Monitor className="w-3 h-3" />
+                    <span>Auto</span>
+                  </button>
+                </div>
               </div>
 
               {/* Export Full Proposal Button */}

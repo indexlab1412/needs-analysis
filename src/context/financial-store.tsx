@@ -17,6 +17,8 @@ import { encryptPayload, decryptPayload, EncryptedSyncPayload } from "@/lib/sync
 
 type TabType = "dashboard" | "wizard" | "shortfall" | "priorities" | "simulator" | "vault";
 
+export type ThemeMode = "system" | "light" | "dark";
+
 export interface SyncConfig {
   syncId: string;
   pin: string;
@@ -69,6 +71,11 @@ interface FinancialStoreContextType {
   setIsGuideModalOpen: (open: boolean) => void;
   isInitialized: boolean;
 
+  // Theme Mode
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
+  toggleTheme: () => void;
+
   // Local Backup Tracking & Reminder
   lastBackupExportedAt: string | null;
   backupReminderSnoozedUntil: string | null;
@@ -96,6 +103,7 @@ const SAMPLE_FLAG_STORAGE_KEY = "fna_is_sample_preset_v1";
 const SYNC_CONFIG_KEY = "fna_sync_config_v1";
 const LAST_BACKUP_KEY = "fna_last_backup_exported_at_v1";
 const BACKUP_SNOOZED_KEY = "fna_backup_reminder_snoozed_v1";
+const THEME_KEY = "fna_theme_mode_v1";
 
 const FinancialStoreContext = createContext<FinancialStoreContextType | undefined>(undefined);
 
@@ -113,6 +121,9 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [isSamplePreset, setIsSamplePreset] = useState<boolean>(true);
   const [isWelcomeGuideDismissed, setIsWelcomeGuideDismissed] = useState<boolean>(false);
+
+  // Theme Mode State
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
 
   // Local Backup State
   const [lastBackupExportedAt, setLastBackupExportedAt] = useState<string | null>(null);
@@ -145,6 +156,11 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       const savedSync = localStorage.getItem(SYNC_CONFIG_KEY);
       const savedLastBackup = localStorage.getItem(LAST_BACKUP_KEY);
       const savedSnooze = localStorage.getItem(BACKUP_SNOOZED_KEY);
+      const savedTheme = localStorage.getItem(THEME_KEY) as ThemeMode | null;
+
+      if (savedTheme && (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system")) {
+        setThemeModeState(savedTheme);
+      }
 
       if (savedLastBackup) {
         setLastBackupExportedAt(savedLastBackup);
@@ -251,6 +267,32 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       window.removeEventListener("offline", handleOffline);
     };
   }, [syncConfig]);
+
+  // 4. Theme Mode Listener and Class Application
+  useEffect(() => {
+    const applyTheme = () => {
+      if (typeof window === "undefined") return;
+      const root = document.documentElement;
+      const isDark =
+        themeMode === "dark" ||
+        (themeMode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+      if (isDark) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    };
+
+    applyTheme();
+
+    if (themeMode === "system" && typeof window !== "undefined") {
+      const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+      const handleChange = () => applyTheme();
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+  }, [themeMode]);
 
   // Push local changes to cloud (Encrypted with PIN)
   const pushEncryptedUpdate = useCallback(async (currentProfile: UserFinancialProfile, config: SyncConfig) => {
@@ -649,6 +691,26 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     updateProfile((p) => ({ ...p, currency: c }));
   };
 
+  const setThemeMode = (mode: ThemeMode) => {
+    setThemeModeState(mode);
+    try {
+      localStorage.setItem(THEME_KEY, mode);
+    } catch (e) {
+      console.error("Failed to save theme to localStorage", e);
+    }
+  };
+
+  const toggleTheme = () => {
+    const isCurrentDark =
+      themeMode === "dark" ||
+      (themeMode === "system" &&
+        typeof window !== "undefined" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+
+    const newMode: ThemeMode = isCurrentDark ? "light" : "dark";
+    setThemeMode(newMode);
+  };
+
   const snoozeBackupReminder = (days: number = 7) => {
     const snoozeDate = new Date();
     snoozeDate.setDate(snoozeDate.getDate() + days);
@@ -868,6 +930,11 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         isGuideModalOpen,
         setIsGuideModalOpen,
         isInitialized,
+
+        // Theme Mode
+        themeMode,
+        setThemeMode,
+        toggleTheme,
 
         // Local Backup
         lastBackupExportedAt,
