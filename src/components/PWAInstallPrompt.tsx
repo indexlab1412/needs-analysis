@@ -17,12 +17,31 @@ export const PWAInstallPrompt: React.FC = () => {
   const [installedSuccessfully, setInstalledSuccessfully] = useState<boolean>(false);
 
   useEffect(() => {
-    // 1. Register Service Worker for offline capability
+    // 1. Register Service Worker for offline capability & check for updates
     if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+
       navigator.serviceWorker
         .register("/sw.js")
         .then((registration) => {
-          // ServiceWorker successfully registered
+          // Check for worker updates
+          registration.update();
+          registration.addEventListener("updatefound", () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener("statechange", () => {
+                if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+                  newWorker.postMessage({ type: "SKIP_WAITING" });
+                }
+              });
+            }
+          });
         })
         .catch((error) => {
           console.warn("PWA Service Worker registration failed:", error);

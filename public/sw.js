@@ -1,5 +1,5 @@
 // Service Worker for Financial Needs Analysis Pro (FNA Pro)
-const CACHE_NAME = "fna-pro-cache-v1";
+const CACHE_VERSION = "fna-pro-cache-v2";
 
 const PRECACHE_RESOURCES = [
   "/",
@@ -7,24 +7,23 @@ const PRECACHE_RESOURCES = [
   "/icon.svg"
 ];
 
-// 1. Install: Precache core application shell
+// 1. Install: Precache core application shell and skip waiting immediately
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
+    caches.open(CACHE_VERSION).then((cache) => {
       return cache.addAll(PRECACHE_RESOURCES);
-    }).then(() => {
-      return self.skipWaiting();
     })
   );
 });
 
-// 2. Activate: Clean up older cache versions
+// 2. Activate: Clean up older cache versions and claim all clients immediately
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((name) => {
-          if (name !== CACHE_NAME) {
+          if (name !== CACHE_VERSION) {
             return caches.delete(name);
           }
         })
@@ -35,7 +34,14 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// 3. Fetch: Cache-first for static assets, network-first for navigation & pages
+// Allow clients to trigger skipWaiting on demand
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
+// 3. Fetch: Network-First for HTML/Navigation, Cache-First for static assets
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
@@ -44,41 +50,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Next.js static assets and fonts (Cache-First)
-  if (
-    url.pathname.startsWith("/_next/static/") ||
-    url.pathname.endsWith(".svg") ||
-    url.pathname.endsWith(".png") ||
-    url.pathname.endsWith(".ico") ||
-    url.pathname.endsWith(".json")
-  ) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-        return fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return networkResponse;
-        });
-      })
-    );
-    return;
-  }
-
-  // HTML / Page Navigation (Network-First with Cache Fallback)
+  // HTML / Page Navigation (Network-First with Cache Fallback for offline)
   if (event.request.mode === "navigate" || event.request.headers.get("accept")?.includes("text/html")) {
     event.respondWith(
       fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
+            caches.open(CACHE_VERSION).then((cache) => {
               cache.put(event.request, responseClone);
             });
           }
@@ -89,21 +68,20 @@ self.addEventListener("fetch", (event) => {
           if (cachedResponse) {
             return cachedResponse;
           }
-          // Fallback to cached root
           return caches.match("/");
         })
     );
     return;
   }
 
-  // Default Stale-While-Revalidate for other GET requests
+  // Next.js static chunks, stylesheets, images & icons (Stale-While-Revalidate)
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request)
         .then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
-            caches.open(CACHE_NAME).then((cache) => {
+            caches.open(CACHE_VERSION).then((cache) => {
               cache.put(event.request, responseClone);
             });
           }
