@@ -25,6 +25,11 @@ import {
   Sun,
   Moon,
   Monitor,
+  PieChart,
+  ShieldAlert,
+  ListOrdered,
+  Compass,
+  Sliders,
 } from "lucide-react";
 
 export const MobileHeader: React.FC = () => {
@@ -43,6 +48,7 @@ export const MobileHeader: React.FC = () => {
     setWelcomeGuideDismissed,
     setIsSyncModalOpen,
     setIsGuideModalOpen,
+    activeTab,
     setActiveTab,
     themeMode,
     setThemeMode,
@@ -53,6 +59,16 @@ export const MobileHeader: React.FC = () => {
 
   const cadence = profile.planningCadence || "monthly";
   const isJoint = profile.planningScope === "joint" || profile.partner?.isEnabled;
+  const criticalCount = summary.shortfalls.filter((s) => s.status === "critical").length;
+
+  const navTabs = [
+    { id: "dashboard" as const, label: "Snapshot", icon: PieChart },
+    { id: "shortfall" as const, label: "Safety Gaps", icon: ShieldAlert, badge: criticalCount > 0 ? criticalCount : undefined },
+    { id: "priorities" as const, label: "Priorities", icon: ListOrdered },
+    { id: "wizard" as const, label: "Setup Wizard", icon: Compass },
+    { id: "simulator" as const, label: "What-If?", icon: Sliders },
+    { id: "vault" as const, label: "My Vault", icon: FolderLock },
+  ];
 
   const getScoreBadge = (score: number) => {
     if (score >= 80) {
@@ -76,45 +92,135 @@ export const MobileHeader: React.FC = () => {
   const badge = getScoreBadge(summary.overallFinancialHealthScore);
 
   return (
-    <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-3 sm:px-4 py-2 space-y-2">
-      <div className="max-w-2xl mx-auto flex items-center justify-between gap-2">
-        {/* Brand & Active Profile Name (Tap to switch personas / view options) */}
-        <button
-          onClick={() => setIsOptionsOpen(true)}
-          className="flex items-center gap-2 min-w-0 text-left hover:opacity-80 transition-opacity group cursor-pointer"
-          title="Click to switch profiles or plan settings"
-        >
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-emerald-500 text-white flex items-center justify-center shadow-sm shrink-0">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-1.5">
-              <h1 className="text-xs sm:text-sm font-bold tracking-tight text-slate-900 dark:text-white truncate">
-                {profile.name || "My Money Plan"}
-              </h1>
-              {isSamplePreset ? (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
-                  Sample
-                </span>
-              ) : (
-                <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
-                  Custom
-                </span>
-              )}
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 shrink-0" />
+    <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8 py-2.5">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+        {/* Left: Brand & Active Profile Name */}
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={() => setIsOptionsOpen(true)}
+            className="flex items-center gap-2.5 text-left hover:opacity-80 transition-opacity group cursor-pointer"
+            title="Click to switch profiles or plan settings"
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-emerald-500 text-white flex items-center justify-center shadow-md shrink-0">
+              <Sparkles className="w-5 h-5 text-white" />
             </div>
-            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium truncate">
-              Age {profile.currentAge} • Retire {profile.targetRetirementAge}
-            </p>
-          </div>
-        </button>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="text-sm sm:text-base font-bold tracking-tight text-slate-900 dark:text-white truncate max-w-[160px] sm:max-w-xs">
+                  {profile.name || "My Money Plan"}
+                </h1>
+                {isSamplePreset ? (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shrink-0">
+                    Sample
+                  </span>
+                ) : (
+                  <span className="px-1.5 py-0.2 rounded text-[9px] font-black bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+                    Custom
+                  </span>
+                )}
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 shrink-0" />
+              </div>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium truncate">
+                Age {profile.currentAge} • Retire {profile.targetRetirementAge}
+              </p>
+            </div>
+          </button>
+        </div>
 
-        {/* Clean, Streamlined Action Controls */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        {/* Center: Desktop Navigation Tabs */}
+        <nav className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/90 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/80 shadow-inner">
+          {navTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer ${
+                  isActive
+                    ? "bg-indigo-600 text-white shadow-sm"
+                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/80 dark:hover:bg-slate-700/60"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{tab.label}</span>
+                {tab.badge !== undefined && (
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-black ${
+                      isActive ? "bg-rose-500 text-white" : "bg-rose-100 dark:bg-rose-950 text-rose-600 dark:text-rose-300"
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Right: Controls & Actions */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Desktop Cadence & Scope Controls */}
+          <div className="hidden lg:flex items-center gap-1.5">
+            {/* Cadence Switcher */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => setPlanningCadence("monthly")}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  cadence === "monthly"
+                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                }`}
+                title="Monthly cashflow pulse"
+              >
+                <Zap className="w-3 h-3 text-amber-500" />
+                <span>Monthly</span>
+              </button>
+              <button
+                onClick={() => setPlanningCadence("yearly")}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  cadence === "yearly"
+                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                }`}
+                title="Annual review"
+              >
+                <Calendar className="w-3 h-3 text-indigo-500" />
+                <span>Yearly</span>
+              </button>
+            </div>
+
+            {/* Scope Switcher */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => setPlanningScope("individual")}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  !isJoint
+                    ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                    : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                }`}
+              >
+                <User className="w-3 h-3" />
+                <span>Solo</span>
+              </button>
+              <button
+                onClick={() => setPlanningScope("joint")}
+                className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                  isJoint
+                    ? "bg-rose-500 text-white shadow-sm"
+                    : "text-rose-600 dark:text-rose-400"
+                }`}
+              >
+                <Heart className="w-3 h-3 fill-current" />
+                <span>Couple</span>
+              </button>
+            </div>
+          </div>
+
           {/* Visual User Guide Button */}
           <button
             onClick={() => setIsGuideModalOpen(true)}
-            className="flex items-center gap-1 px-2 py-1 rounded-xl text-[11px] font-bold bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer shadow-sm"
             title="Open Platform Guide & Tutorial"
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -124,12 +230,12 @@ export const MobileHeader: React.FC = () => {
           {/* Multi-Device Encrypted Sync Status Badge */}
           <SyncStatusBadge onOpenModal={() => setIsSyncModalOpen(true)} />
 
-          {/* Quick 1-Tap Theme Switcher */}
+          {/* Quick Theme Switcher */}
           <button
             onClick={toggleTheme}
-            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-sm"
-            title={`Current theme: ${themeMode}. Click to toggle Light / Dark.`}
-            aria-label="Toggle Light / Dark mode"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-amber-400 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-sm"
+            title={`Current theme: ${themeMode}. Click to toggle.`}
+            aria-label="Toggle theme"
           >
             {themeMode === "dark" ? (
               <Moon className="w-3.5 h-3.5 fill-current text-amber-400" />
@@ -143,18 +249,18 @@ export const MobileHeader: React.FC = () => {
           {/* Financial Fitness Score Chip */}
           <button
             onClick={() => setActiveTab("shortfall")}
-            className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold border ${badge.color} transition-transform hover:scale-105 active:scale-95 cursor-pointer`}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${badge.color} transition-transform hover:scale-105 active:scale-95 cursor-pointer shadow-sm`}
             title="Financial Fitness Score (Click to view shortfalls)"
           >
-            <Activity className="w-3 h-3" />
+            <Activity className="w-3.5 h-3.5" />
             <span>{summary.overallFinancialHealthScore}/100</span>
           </button>
 
           {/* More Options / Settings Menu Button */}
           <button
             onClick={() => setIsOptionsOpen(true)}
-            className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
-            title="More Options, Currency, Proposal Export & Settings"
+            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer shadow-sm"
+            title="More Options & Settings"
             aria-label="Open Plan Options"
           >
             <MoreVertical className="w-4 h-4" />
@@ -162,10 +268,9 @@ export const MobileHeader: React.FC = () => {
         </div>
       </div>
 
-
-      {/* Cadence & Planning Scope Control Bar */}
-      <div className="max-w-2xl mx-auto flex items-center justify-between gap-2 pt-1 border-t border-slate-100 dark:border-slate-800 text-xs">
-        {/* Cadence Switcher: Monthly vs Yearly */}
+      {/* Mobile-Only Sub-header Bar (Cadence & Scope Switchers) */}
+      <div className="lg:hidden flex items-center justify-between gap-2 pt-2 mt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+        {/* Cadence Switcher */}
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
           <button
             onClick={() => setPlanningCadence("monthly")}
@@ -174,7 +279,6 @@ export const MobileHeader: React.FC = () => {
                 ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
             }`}
-            title="Maintain money monthly with granular cashflow tracking & leaky bucket audits"
           >
             <Zap className="w-3 h-3 text-amber-500" />
             <span>Monthly Pulse</span>
@@ -187,14 +291,13 @@ export const MobileHeader: React.FC = () => {
                 ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
             }`}
-            title="Update income, assets, debts & goals once a year at tax season or year-end"
           >
             <Calendar className="w-3 h-3 text-indigo-500" />
-            <span>Annual Review</span>
+            <span>Annual</span>
           </button>
         </div>
 
-        {/* Scope Switcher: Solo vs Joint / Couple */}
+        {/* Scope Switcher */}
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
           <button
             onClick={() => setPlanningScope("individual")}
@@ -213,7 +316,7 @@ export const MobileHeader: React.FC = () => {
             className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
               isJoint
                 ? "bg-rose-500 text-white shadow-sm"
-                : "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+                : "text-rose-600 dark:text-rose-400"
             }`}
           >
             <Heart className="w-3 h-3 fill-current" />

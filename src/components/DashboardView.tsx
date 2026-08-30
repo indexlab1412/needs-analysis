@@ -130,129 +130,248 @@ export const DashboardView: React.FC = () => {
   const nextMonthLabel = nextDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
   return (
-    <div className="space-y-4 pb-20">
-      {/* 1. Net Worth Hero Card */}
-      <div className="p-4 sm:p-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-xl relative overflow-hidden border border-indigo-500/30">
-        <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/15 rounded-full blur-2xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-7 h-7 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                <Wallet className="w-4 h-4" />
-              </span>
-              <span className="text-xs uppercase font-black tracking-wider text-indigo-200">
-                Your Net Worth
-              </span>
-              {isCoupleEnabled && (
-                <span className="flex items-center gap-1 text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2.5 py-0.5 rounded-full border border-rose-500/30">
-                  <Heart className="w-2.5 h-2.5 fill-rose-400 text-rose-400" /> Couple ({profile.partner?.name || "Partner"})
+    <div className="space-y-6 pb-20 animate-in fade-in duration-200">
+      {/* 1. Top Summary KPI 4-Card Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        {/* Card 1: Net Worth */}
+        <div className="p-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-lg relative overflow-hidden border border-indigo-500/30 flex flex-col justify-between">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/15 rounded-full blur-xl pointer-events-none" />
+          <div className="relative z-10 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                  <Wallet className="w-4 h-4" />
                 </span>
-              )}
+                <span className="text-xs uppercase font-black tracking-wider text-indigo-200">
+                  Net Worth
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => goToWizardStep(3)}
+                className="text-[10px] font-bold bg-white/15 hover:bg-white/25 text-white px-2 py-0.5 rounded-full border border-white/20 transition-all cursor-pointer"
+                title="Edit assets and debts"
+              >
+                Edit
+              </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => goToWizardStep(3)}
-              className="flex items-center gap-1 text-[11px] font-bold bg-white/15 hover:bg-white/25 text-white px-2.5 py-1 rounded-full border border-white/20 transition-all cursor-pointer shadow-sm"
-              title="Edit your bank savings, investments & debts in Step 3"
-            >
-              <Edit3 className="w-3 h-3" />
-              <span>Edit</span>
-            </button>
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1">
+              {formatCurrency(netWorth.netWorth, currency)}
+            </div>
+            {isCoupleEnabled && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30">
+                <Heart className="w-2.5 h-2.5 fill-rose-400 text-rose-400" /> Couple ({profile.partner?.name || "Partner"})
+              </span>
+            )}
           </div>
 
-          <div className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            {formatCurrency(netWorth.netWorth, currency)}
-          </div>
-
-          {/* Asset vs Liability Split */}
-          <div className="grid grid-cols-2 gap-3 pt-3 border-t border-white/15">
+          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-white/15 text-xs">
             <div>
-              <div className="text-[11px] text-slate-300 font-medium">What You Own (Assets)</div>
-              <div className="text-sm sm:text-base font-extrabold text-emerald-400 mt-0.5">
+              <span className="text-[10px] text-slate-300 block">Assets</span>
+              <span className="font-extrabold text-emerald-400 text-xs sm:text-sm">
                 {formatCurrency(netWorth.totalAssets, currency)}
-              </div>
-              <div className="text-[10px] text-indigo-200 mt-0.5">
-                Auto-Invest: {formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency)}/mo
-              </div>
+              </span>
             </div>
             <div>
-              <div className="text-[11px] text-slate-300 font-medium">What You Owe (Debts)</div>
-              <div className="text-sm sm:text-base font-extrabold text-rose-400 mt-0.5">
+              <span className="text-[10px] text-slate-300 block">Debts</span>
+              <span className="font-extrabold text-rose-400 text-xs sm:text-sm">
                 {formatCurrency(netWorth.totalLiabilities, currency)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 2: Monthly Cashflow */}
+        <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <Zap className="w-4 h-4" />
+                </span>
+                <span className="text-xs uppercase font-black tracking-wider text-slate-500 dark:text-slate-400">
+                  Monthly Cashflow
+                </span>
               </div>
-              <div className="text-[10px] text-indigo-200 mt-0.5">
-                Monthly Debt: {cashFlow.debtToIncomeRatio}% of pay
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
+                {cashFlow.savingsRatePercentage}% Saved
+              </span>
+            </div>
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-600 dark:text-emerald-400 mt-1">
+              +{formatCurrency(cashFlow.monthlyNetSavings, currency)}
+              <span className="text-xs text-slate-400 font-semibold ml-1">/mo</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div>
+              <span className="text-[10px] text-slate-400 block">Income</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                {formatCurrency(cashFlow.totalMonthlyIncome, currency)}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 block">Living Bills</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                {formatCurrency(cashFlow.totalMonthlyExpenses, currency)}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Invested DCA */}
+        <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                  <TrendingUp className="w-4 h-4" />
+                </span>
+                <span className="text-xs uppercase font-black tracking-wider text-slate-500 dark:text-slate-400">
+                  Investments & DCA
+                </span>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveMainTab("invest");
+                  setInvestSubTab("dca_growth");
+                }}
+                className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                Growth
+              </button>
+            </div>
+            <div className="text-2xl sm:text-3xl font-black tracking-tight text-indigo-600 dark:text-indigo-400 mt-1">
+              {formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency)}
+              <span className="text-xs text-slate-400 font-semibold ml-1">/mo DCA</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div>
+              <span className="text-[10px] text-slate-400 block">Liquid Assets</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                {formatCurrency(netWorth.liquidAssets, currency)}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 block">Retire Age</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                Age {profile.targetRetirementAge}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 4: Financial Health Score */}
+        <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                  <ShieldCheck className="w-4 h-4" />
+                </span>
+                <span className="text-xs uppercase font-black tracking-wider text-slate-500 dark:text-slate-400">
+                  Health & Gaps
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab("shortfall")}
+                className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+              >
+                Gaps
+              </button>
+            </div>
+            <div className="flex items-baseline gap-2 mt-1">
+              <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                {summary.overallFinancialHealthScore}
+              </span>
+              <span className="text-xs text-slate-400 font-bold">/100 Score</span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <div>
+              <span className="text-[10px] text-slate-400 block">Critical Gaps</span>
+              <span className={`font-bold text-xs ${criticalCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                {criticalCount > 0 ? `${criticalCount} Missing` : "None 🎉"}
+              </span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 block">Status</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                {summary.overallFinancialHealthScore >= 80 ? "Optimal" : summary.overallFinancialHealthScore >= 60 ? "On Track" : "Needs Review"}
+              </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Primary Navigation Bar - Clean, uncluttered 4 to 5 Pillar Tabs */}
-      <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
+      {/* 2. Primary Navigation Bar - Clean, spacious Pillar Tabs */}
+      <div className="p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1.5 border border-slate-200 dark:border-slate-700 shadow-inner">
         <button
           onClick={() => setActiveMainTab("overview")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "overview"
               ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
-              : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
           }`}
         >
-          <PieChart className="w-3.5 h-3.5 shrink-0" />
+          <PieChart className="w-4 h-4 shrink-0" />
           <span>Overview</span>
         </button>
 
         <button
           onClick={() => setActiveMainTab("goals")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "goals"
               ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
-              : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
           }`}
         >
-          <Target className="w-3.5 h-3.5 shrink-0" />
+          <Target className="w-4 h-4 shrink-0" />
           <span>Goals</span>
           {childCount > 0 && (
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
           )}
         </button>
 
         <button
           onClick={() => setActiveMainTab("invest")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "invest"
               ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
-              : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
           }`}
         >
-          <TrendingUp className="w-3.5 h-3.5 shrink-0" />
+          <TrendingUp className="w-4 h-4 shrink-0" />
           <span>Invest</span>
         </button>
 
         <button
           onClick={() => setActiveMainTab("debts")}
-          className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
             activeTab === "debts"
               ? "bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm"
-              : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
           }`}
         >
-          <CreditCard className="w-3.5 h-3.5 shrink-0" />
+          <CreditCard className="w-4 h-4 shrink-0" />
           <span>Debts</span>
         </button>
 
         {isCoupleEnabled && (
           <button
             onClick={() => setActiveMainTab("couple")}
-            className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeTab === "couple"
                 ? "bg-rose-500 text-white shadow-sm"
                 : "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
             }`}
           >
-            <Heart className="w-3.5 h-3.5 shrink-0 fill-current" />
+            <Heart className="w-4 h-4 shrink-0 fill-current" />
             <span>Couple</span>
           </button>
         )}
@@ -262,7 +381,7 @@ export const DashboardView: React.FC = () => {
       {/* PILLAR 1: OVERVIEW */}
       {/* ========================================================================= */}
       {activeTab === "overview" && (
-        <div className="space-y-4 animate-in fade-in duration-200">
+        <div className="space-y-6 animate-in fade-in duration-200">
           {/* Welcome & Getting Started Onboarding Banner for New Users */}
           <GettingStartedBanner />
 
@@ -271,498 +390,459 @@ export const DashboardView: React.FC = () => {
 
           {/* Toast Notification */}
           {loggedToast && (
-            <div className="p-3 bg-emerald-600 text-white rounded-2xl text-xs font-bold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
-              <span className="flex items-center gap-1.5">
+            <div className="p-3.5 bg-emerald-600 text-white rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+              <span className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 shrink-0" /> {loggedToast}
               </span>
-              <button onClick={() => setLoggedToast(null)} className="text-white/80 hover:text-white text-xs font-black ml-2">
+              <button onClick={() => setLoggedToast(null)} className="text-white/80 hover:text-white text-xs font-black ml-2 cursor-pointer">
                 ✕
               </button>
             </div>
           )}
 
-          {/* High-Contrast Cadence Status & Monthly Lifecycle Card */}
-          {(profile.planningCadence || "monthly") === "monthly" ? (
-            <div className="fin-card p-4 bg-white dark:bg-slate-900 border-2 border-amber-500/30 dark:border-amber-500/40 rounded-3xl shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                    <Zap className="w-3 h-3 text-amber-500 fill-amber-500" /> Monthly Pulse
-                  </span>
-                  <span className="text-xs font-black text-slate-900 dark:text-white">
-                    {activeMonthLabel} (Active)
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setIsHistoryModalOpen(true)}
-                  className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
-                >
-                  <History className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Past Snapshots ({profile.monthlyLogs?.length || 0})</span>
-                </button>
-              </div>
-
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                    {activeMonthLabel} Net Cashflow:
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                    +{formatCurrency(cashFlow.monthlyNetSavings, currency)} / month
-                  </span>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                    Monthly Savings Rate:
-                  </span>
-                  <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                    {cashFlow.savingsRatePercentage}% of pay
-                  </span>
-                </div>
-              </div>
-
-              {/* Monthly Transition Action Buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setIsQuickCheckinOpen(true)}
-                  className="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Zap className="w-4 h-4 fill-current text-slate-950" />
-                  <span>1-Click Monthly Check-In</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    logMonthlyCashflow();
-                    setLoggedToast(`Recorded ${activeMonthLabel} milestone snapshot!`);
-                    setTimeout(() => setLoggedToast(null), 3000);
-                  }}
-                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                  title="Archive current month numbers into Vault history without rolling the calendar"
-                >
-                  <History className="w-3.5 h-3.5 text-indigo-500" />
-                  <span>Log Snapshot</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeMonthAndRollNext();
-                    setLoggedToast(`Archived ${activeMonthLabel} snapshot & advanced to ${nextMonthLabel}!`);
-                    setTimeout(() => setLoggedToast(null), 4000);
-                  }}
-                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>Close &amp; Start {nextMonthLabel.split(" ")[0]}</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="fin-card p-4 bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 rounded-3xl shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
-                    <Calendar className="w-3 h-3 text-indigo-500" /> Annual Review
-                  </span>
-                  <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
-                    ⏳ 11 Months to Next Review
-                  </span>
-                </div>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
-                  {profile.yearlySnapshots?.length || 0} Annual Records
+          {/* Responsive 12-Column Layout on Desktop */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Analytical Charts & Breakdowns (Col 7 / 8) */}
+            <div className="lg:col-span-7 xl:col-span-8 space-y-6">
+              {/* Overview Section Controls / Compact Toggle */}
+              <div className="flex items-center justify-between px-1 text-xs">
+                <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                  Financial Breakdown ({[isPaycheckOpen, isAssetsOpen, isRadarOpen].filter(Boolean).length}/3 Open)
                 </span>
-              </div>
-
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
-                <div>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                    Annual Savings Created:
-                  </span>
-                  <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                    +{formatCurrency(cashFlow.monthlyNetSavings * 12, currency)} / year
-                  </span>
-                </div>
-
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                    Savings Rate:
-                  </span>
-                  <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                    {cashFlow.savingsRatePercentage}%
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    captureYearlySnapshot();
-                    setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
-                    setTimeout(() => setLoggedToast(null), 3000);
-                  }}
-                  className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  onClick={toggleExpandAll}
+                  className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer shadow-xs"
                 >
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>Capture {new Date().getFullYear()} Snapshot</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab("wizard")}
-                  className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Full Annual Check-In</span>
+                  <ChevronsUpDown className="w-3.5 h-3.5" />
+                  <span>{areAllExpanded ? "Collapse All" : "Expand All"}</span>
                 </button>
               </div>
-            </div>
-          )}
 
-          {/* Overview Section Controls / Compact Toggle */}
-          <div className="flex items-center justify-between px-1 text-xs">
-            <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Financial Breakdown ({[isPaycheckOpen, isAssetsOpen, isRadarOpen, isActionsOpen, isToolsOpen].filter(Boolean).length}/5 Open)
-            </span>
-            <button
-              type="button"
-              onClick={toggleExpandAll}
-              className="flex items-center gap-1 text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-2.5 py-1 rounded-xl border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer shadow-xs"
-            >
-              <ChevronsUpDown className="w-3 h-3" />
-              <span>{areAllExpanded ? "Collapse All (Compact)" : "Expand All"}</span>
-            </button>
-          </div>
-
-          {/* Card 1: Monthly Paycheck Split */}
-          <CollapsibleSection
-            variant="card"
-            accentColor="indigo"
-            title="Monthly Paycheck Split"
-            subtitle="Income vs Living Bills vs Savings"
-            icon={<Receipt className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-            isOpenControlled={isPaycheckOpen}
-            onToggleControlled={setIsPaycheckOpen}
-            collapsedSummary={
-              <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs">
-                +{formatCurrency(cashFlow.monthlyNetSavings, currency)}/mo ({cashFlow.savingsRatePercentage}% saved)
-              </span>
-            }
-            badge={
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToWizardStep(2);
-                }}
-                className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-0.5 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800"
-              >
-                <Edit3 className="w-2.5 h-2.5" /> Edit
-              </button>
-            }
-          >
-            <div className="pt-2">
-              <CashflowBreakdown
-                income={cashFlow.totalMonthlyIncome}
-                expenses={cashFlow.totalMonthlyExpenses}
-                savings={cashFlow.monthlyNetSavings}
-                savingsRate={cashFlow.savingsRatePercentage}
-                currency={currency}
-              />
-            </div>
-          </CollapsibleSection>
-
-          {/* Card 2: Where Your Money Lives */}
-          <CollapsibleSection
-            variant="card"
-            accentColor="emerald"
-            title="Where Your Money Lives"
-            subtitle="Cash, stocks, property & retirement"
-            icon={<Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-            isOpenControlled={isAssetsOpen}
-            onToggleControlled={setIsAssetsOpen}
-            collapsedSummary={
-              <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">
-                Assets: {formatCurrency(netWorth.totalAssets, currency)}
-              </span>
-            }
-            badge={
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToWizardStep(3);
-                }}
-                className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-0.5 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800"
-              >
-                <Edit3 className="w-2.5 h-2.5" /> Edit
-              </button>
-            }
-          >
-            <div className="pt-2">
-              <NetWorthDonut
-                assets={profile.assets}
-                insurancePolicies={profile.insurancePolicies}
-                currency={currency}
-              />
-            </div>
-          </CollapsibleSection>
-
-          {/* Card 3: Safety Net & Goal Health */}
-          <CollapsibleSection
-            variant="card"
-            accentColor="blue"
-            title="Safety Net & Goal Health"
-            subtitle="Emergency fund, critical illness & retirement"
-            icon={<ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
-            isOpenControlled={isRadarOpen}
-            onToggleControlled={setIsRadarOpen}
-            collapsedSummary={
-              <span className="font-extrabold text-indigo-600 dark:text-indigo-400 text-xs">
-                Health Score: {summary.overallFinancialHealthScore}/100
-              </span>
-            }
-            badge={
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToWizardStep(4);
-                }}
-                className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-0.5 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md border border-indigo-200 dark:border-indigo-800"
-              >
-                <Edit3 className="w-2.5 h-2.5" /> Edit
-              </button>
-            }
-          >
-            <div className="pt-2">
-              <ShortfallRadar
-                shortfalls={shortfalls}
-                currency={currency}
-                onSelectCategory={() => setActiveTab("shortfall")}
-              />
-            </div>
-          </CollapsibleSection>
-
-          {/* Card 4: Recommended Next Steps */}
-          <CollapsibleSection
-            variant="card"
-            accentColor="amber"
-            title="Recommended Next Steps"
-            subtitle="Automated guidance for your plan"
-            icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
-            isOpenControlled={isActionsOpen}
-            onToggleControlled={setIsActionsOpen}
-            collapsedSummary={
-              <span className="font-extrabold text-amber-600 dark:text-amber-400 text-xs">
-                {keyActionItems.length} Action Steps
-              </span>
-            }
-          >
-            <div className="space-y-2 pt-2">
-              {keyActionItems.map((action, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
-                >
-                  <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
-                    {i + 1}
+              {/* Card 1: Monthly Paycheck Split */}
+              <CollapsibleSection
+                variant="card"
+                accentColor="indigo"
+                title="Monthly Paycheck Split"
+                subtitle="Income vs Living Bills vs Savings"
+                icon={<Receipt className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+                isOpenControlled={isPaycheckOpen}
+                onToggleControlled={setIsPaycheckOpen}
+                collapsedSummary={
+                  <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm">
+                    +{formatCurrency(cashFlow.monthlyNetSavings, currency)}/mo ({cashFlow.savingsRatePercentage}% saved)
                   </span>
-                  <span className="leading-relaxed">{action}</span>
+                }
+                badge={
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToWizardStep(2);
+                    }}
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 cursor-pointer"
+                  >
+                    <Edit3 className="w-3 h-3" /> Edit
+                  </button>
+                }
+              >
+                <div className="pt-2">
+                  <CashflowBreakdown
+                    income={cashFlow.totalMonthlyIncome}
+                    expenses={cashFlow.totalMonthlyExpenses}
+                    savings={cashFlow.monthlyNetSavings}
+                    savingsRate={cashFlow.savingsRatePercentage}
+                    currency={currency}
+                  />
                 </div>
-              ))}
+              </CollapsibleSection>
+
+              {/* Card 2: Where Your Money Lives */}
+              <CollapsibleSection
+                variant="card"
+                accentColor="emerald"
+                title="Where Your Money Lives"
+                subtitle="Cash, stocks, property & retirement"
+                icon={<Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+                isOpenControlled={isAssetsOpen}
+                onToggleControlled={setIsAssetsOpen}
+                collapsedSummary={
+                  <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
+                    Assets: {formatCurrency(netWorth.totalAssets, currency)}
+                  </span>
+                }
+                badge={
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToWizardStep(3);
+                    }}
+                    className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 cursor-pointer"
+                  >
+                    <Edit3 className="w-3 h-3" /> Edit
+                  </button>
+                }
+              >
+                <div className="pt-2">
+                  <NetWorthDonut
+                    assets={profile.assets}
+                    insurancePolicies={profile.insurancePolicies}
+                    currency={currency}
+                  />
+                </div>
+              </CollapsibleSection>
+
+              {/* Card 3: Safety Net & Goal Health */}
+              <CollapsibleSection
+                variant="card"
+                accentColor="blue"
+                title="Safety Net & Goal Health"
+                subtitle="Emergency fund, critical illness & retirement"
+                icon={<ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
+                isOpenControlled={isRadarOpen}
+                onToggleControlled={setIsRadarOpen}
+                collapsedSummary={
+                  <span className="font-extrabold text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm">
+                    Health Score: {summary.overallFinancialHealthScore}/100
+                  </span>
+                }
+                badge={
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goToWizardStep(4);
+                    }}
+                    className="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 cursor-pointer"
+                  >
+                    <Edit3 className="w-3 h-3" /> Edit
+                  </button>
+                }
+              >
+                <div className="pt-2">
+                  <ShortfallRadar
+                    shortfalls={shortfalls}
+                    currency={currency}
+                    onSelectCategory={() => setActiveTab("shortfall")}
+                  />
+                </div>
+              </CollapsibleSection>
             </div>
 
-            {/* Advisory Suggestion Disclaimer */}
-            <div className="mt-3 p-2.5 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 flex items-start gap-2 text-[11px] text-amber-800 dark:text-amber-300">
-              <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <p className="leading-snug">
-                <strong>Suggestion Disclaimer:</strong> These recommended next steps are automated guidance ideas based on your inputs and assumptions. They are helpful suggestions to consider, not mandatory requirements to follow.
-              </p>
-            </div>
+            {/* Right Insights, Actions & Tools Column (Col 5 / 4) */}
+            <div className="lg:col-span-5 xl:col-span-4 space-y-6">
+              {/* High-Contrast Cadence Status & Monthly Lifecycle Card */}
+              {(profile.planningCadence || "monthly") === "monthly" ? (
+                <div className="fin-card p-5 bg-white dark:bg-slate-900 border-2 border-amber-500/30 dark:border-amber-500/40 rounded-3xl shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
+                        <Zap className="w-3 h-3 text-amber-500 fill-amber-500" /> Monthly Pulse
+                      </span>
+                      <span className="text-xs font-black text-slate-900 dark:text-white">
+                        {activeMonthLabel}
+                      </span>
+                    </div>
 
-            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => goToWizardStep(1)}
-                className="py-2 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
-                title="Open the 5-step guided financial setup"
-              >
-                <Wand2 className="w-3.5 h-3.5" /> Setup
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab("simulator")}
-                className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
-              >
-                <Sliders className="w-3.5 h-3.5" /> What-If
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsReportModalOpen(true)}
-                className="py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors cursor-pointer"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" /> Proposal
-              </button>
-            </div>
-          </CollapsibleSection>
-
-          {/* Planning Tools */}
-          <CollapsibleSection
-            variant="card"
-            accentColor="purple"
-            title="Interactive Planning Tools"
-            subtitle="What-if simulations, loan refinance & calculators"
-            icon={<Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-            isOpenControlled={isToolsOpen}
-            onToggleControlled={setIsToolsOpen}
-            collapsedSummary={
-              <span className="font-bold text-slate-500 dark:text-slate-400 text-xs">
-                6 Calculators
-              </span>
-            }
-          >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
-              <div
-                onClick={() => setActiveTab("shortfall")}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Safety Gaps</span>
-                  <ShieldCheck className="w-4 h-4 text-slate-400" />
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  {criticalCount > 0 ? `${criticalCount} gap(s) to patch` : "100% Protected"}
-                </p>
-              </div>
-
-              <div
-                onClick={() => {
-                  setActiveMainTab("goals");
-                  setGoalsSubTab("milestones");
-                }}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Milestone Goals</span>
-                  <Target className="w-4 h-4 text-slate-400" />
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  {computedGoals.length} milestones active
-                </p>
-              </div>
-
-              <div
-                onClick={() => {
-                  setActiveMainTab("invest");
-                  setInvestSubTab("expense_audit");
-                }}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Spending Audit</span>
-                  <Receipt className="w-4 h-4 text-slate-400" />
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  Find leaky buckets
-                </p>
-              </div>
-
-              <div
-                onClick={() => setActiveMainTab("couple")}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Couple & Joint</span>
-                  <Heart className="w-4 h-4 text-slate-400" />
-                </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  {isCoupleEnabled ? `Active: ${profile.partner?.name}` : "Retire together"}
-                </p>
-              </div>
-
-              {childCount > 0 && (
-                <div
-                  onClick={() => {
-                    setActiveMainTab("goals");
-                    setGoalsSubTab("education");
-                  }}
-                  className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
-                >
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Kids Education</span>
-                    <GraduationCap className="w-4 h-4 text-slate-400" />
+                    <button
+                      type="button"
+                      onClick={() => setIsHistoryModalOpen(true)}
+                      className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <History className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Past Snapshots ({profile.monthlyLogs?.length || 0})</span>
+                    </button>
                   </div>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                    {childCount} child university funds
-                  </p>
+
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                        Net Cashflow:
+                      </span>
+                      <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                        +{formatCurrency(cashFlow.monthlyNetSavings, currency)}/mo
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                        Savings Rate:
+                      </span>
+                      <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
+                        {cashFlow.savingsRatePercentage}%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Monthly Transition Action Buttons */}
+                  <div className="space-y-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setIsQuickCheckinOpen(true)}
+                      className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Zap className="w-4 h-4 fill-current text-slate-950" />
+                      <span>1-Click Monthly Check-In</span>
+                    </button>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          logMonthlyCashflow();
+                          setLoggedToast(`Recorded ${activeMonthLabel} milestone snapshot!`);
+                          setTimeout(() => setLoggedToast(null), 3000);
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                        title="Archive current month numbers into Vault history without rolling the calendar"
+                      >
+                        <History className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>Log Snapshot</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          closeMonthAndRollNext();
+                          setLoggedToast(`Archived ${activeMonthLabel} snapshot & advanced to ${nextMonthLabel}!`);
+                          setTimeout(() => setLoggedToast(null), 4000);
+                        }}
+                        className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Close &amp; Roll</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="fin-card p-5 bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 rounded-3xl shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
+                        <Calendar className="w-3 h-3 text-indigo-500" /> Annual Review
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
+                      {profile.yearlySnapshots?.length || 0} Records
+                    </span>
+                  </div>
+
+                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                        Annual Savings Created:
+                      </span>
+                      <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
+                        +{formatCurrency(cashFlow.monthlyNetSavings * 12, currency)} / year
+                      </span>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
+                        Savings Rate:
+                      </span>
+                      <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                        {cashFlow.savingsRatePercentage}%
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        captureYearlySnapshot();
+                        setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
+                        setTimeout(() => setLoggedToast(null), 3000);
+                      }}
+                      className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Calendar className="w-3.5 h-3.5" />
+                      <span>Capture Snapshot</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("wizard")}
+                      className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>Annual Check-In</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
-              <div
-                onClick={() => {
-                  setActiveMainTab("debts");
-                  setDebtSubTab("refinance");
-                }}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
+              {/* Card 4: Recommended Next Steps */}
+              <CollapsibleSection
+                variant="card"
+                accentColor="amber"
+                title="Recommended Next Steps"
+                subtitle="Automated guidance for your plan"
+                icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
+                isOpenControlled={isActionsOpen}
+                onToggleControlled={setIsActionsOpen}
+                collapsedSummary={
+                  <span className="font-extrabold text-amber-600 dark:text-amber-400 text-xs">
+                    {keyActionItems.length} Action Steps
+                  </span>
+                }
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Interest Killer</span>
-                  <Percent className="w-4 h-4 text-slate-400" />
+                <div className="space-y-2 pt-2">
+                  {keyActionItems.map((action, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
+                    >
+                      <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                        {i + 1}
+                      </span>
+                      <span className="leading-relaxed">{action}</span>
+                    </div>
+                  ))}
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  Refinance & early payoff
-                </p>
-              </div>
 
-              <div
-                onClick={() => {
-                  setSelectedFormulaKey("retirement_nest_egg");
-                  setIsFormulaModalOpen(true);
-                }}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Formula Guide</span>
-                  <Calculator className="w-4 h-4 text-slate-400" />
+                {/* Advisory Suggestion Disclaimer */}
+                <div className="mt-3 p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 flex items-start gap-2 text-[11px] text-amber-800 dark:text-amber-300">
+                  <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="leading-snug">
+                    <strong>Suggestion Disclaimer:</strong> These recommended next steps are automated guidance ideas based on your inputs and assumptions. They are helpful suggestions to consider, not mandatory requirements to follow.
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  Transparent math & derivations
-                </p>
-              </div>
 
-              <div
-                onClick={() => setActiveTab("priorities")}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Priority Roadmap</span>
-                  <ListOrdered className="w-4 h-4 text-slate-400" />
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => goToWizardStep(1)}
+                    className="py-2 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
+                    title="Open the 5-step guided financial setup"
+                  >
+                    <Wand2 className="w-3.5 h-3.5" /> Setup
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("simulator")}
+                    className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Sliders className="w-3.5 h-3.5" /> What-If
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsReportModalOpen(true)}
+                    className="py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors cursor-pointer"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5" /> Proposal
+                  </button>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  Phased budget action plan
-                </p>
-              </div>
+              </CollapsibleSection>
 
-              <div
-                onClick={() => setIsInvestCalcOpen(true)}
-                className="fin-card fin-card-interactive p-2.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300"
+              {/* Planning Tools */}
+              <CollapsibleSection
+                variant="card"
+                accentColor="purple"
+                title="Interactive Planning Tools"
+                subtitle="Calculators, refinance & guides"
+                icon={<Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
+                isOpenControlled={isToolsOpen}
+                onToggleControlled={setIsToolsOpen}
+                collapsedSummary={
+                  <span className="font-bold text-slate-500 dark:text-slate-400 text-xs">
+                    6 Calculators
+                  </span>
+                }
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Actual % Return</span>
-                  <TrendingUp className="w-4 h-4 text-slate-400" />
+                <div className="grid grid-cols-2 gap-2.5 pt-2">
+                  <div
+                    onClick={() => setActiveTab("shortfall")}
+                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Safety Gaps</span>
+                      <ShieldCheck className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                      {criticalCount > 0 ? `${criticalCount} gap(s) to patch` : "100% Protected"}
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      setActiveMainTab("goals");
+                      setGoalsSubTab("milestones");
+                    }}
+                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Milestones</span>
+                      <Target className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                      {computedGoals.length} goals active
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      setActiveMainTab("invest");
+                      setInvestSubTab("expense_audit");
+                    }}
+                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Spending Audit</span>
+                      <Receipt className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                      Find leaky buckets
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => setActiveMainTab("couple")}
+                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Couple &amp; Joint</span>
+                      <Heart className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                      {isCoupleEnabled ? `Active: ${profile.partner?.name}` : "Retire together"}
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => {
+                      setSelectedFormulaKey("retirement_nest_egg");
+                      setIsFormulaModalOpen(true);
+                    }}
+                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Formula Guide</span>
+                      <Calculator className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                      Transparent math
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={() => setIsInvestCalcOpen(true)}
+                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Actual % Return</span>
+                      <TrendingUp className="w-4 h-4 text-slate-400" />
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                      Calculate CAGR
+                    </p>
+                  </div>
                 </div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                  Calculate CAGR from DCA
-                </p>
-              </div>
+              </CollapsibleSection>
             </div>
-          </CollapsibleSection>
+          </div>
         </div>
       )}
 

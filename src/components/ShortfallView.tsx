@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { FormulaModal, FormulaKey } from "./FormulaModal";
 import { IllnessShieldCard } from "./IllnessShieldCard";
+import { ShortfallRadar } from "./Charts/ShortfallRadar";
 
 export const ShortfallView: React.FC = () => {
   const { summary, currency, setActiveTab } = useFinancialStore();
@@ -28,6 +29,8 @@ export const ShortfallView: React.FC = () => {
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("retirement_nest_egg");
+
+  const criticalCount = shortfalls.filter((s) => s.status === "critical").length;
 
   const getFormulaKey = (category: string): FormulaKey => {
     switch (category) {
@@ -81,32 +84,70 @@ export const ShortfallView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 pb-24 animate-in fade-in duration-200">
+    <div className="space-y-6 pb-24 animate-in fade-in duration-200">
       {/* Header Info */}
-      <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-2">
+      <div className="fin-card p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <ShieldAlert className="w-5 h-5 text-indigo-600" />
-            Your Safety Net & Goal Gaps
+          <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+            <ShieldAlert className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            Your Safety Net &amp; Goal Gaps
           </h2>
           <button
             onClick={() => setActiveTab("priorities")}
-            className="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm transition-all flex items-center gap-1"
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
           >
-            <ListOrdered className="w-3.5 h-3.5" />
+            <ListOrdered className="w-4 h-4" />
             <span>Priority Sequencer</span>
           </button>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-          Here is a simple check of where your money and insurance stand today versus what you need. If budget is limited, use the <strong>Priority Sequencer</strong> to solve one milestone at a time without financial stress.
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
+          Here is a comprehensive check of where your money and insurance stand today versus your ideal targets. If budget is limited, use the <strong>Priority Sequencer</strong> to solve one milestone at a time without financial stress.
         </p>
       </div>
 
-      {/* Feature #1: The Illness & Income Shield Card */}
-      <IllnessShieldCard />
+      {/* Multi-Column Layout on Desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (5 cols): Radar Chart & Quick Navigation */}
+        <div className="lg:col-span-5 space-y-6">
+          {/* Radar Chart Card */}
+          <div className="fin-card p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">Safety Net Radar</h3>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Coverage across 5 financial pillars</p>
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${criticalCount > 0 ? "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300" : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300"}`}>
+                {criticalCount > 0 ? `${criticalCount} Critical Gaps` : "100% Protected"}
+              </span>
+            </div>
 
-      {/* Shortfall Detail Accordion / Cards */}
-      <div className="space-y-3">
+            <div className="pt-2">
+              <ShortfallRadar shortfalls={shortfalls} currency={currency} />
+            </div>
+          </div>
+
+          {/* Simulator Link Card */}
+          <div className="p-5 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-3xl shadow-md space-y-3">
+            <h4 className="text-sm font-bold">Stress-Test Different Scenarios</h4>
+            <p className="text-xs text-indigo-100 leading-relaxed">
+              Use the What-If Simulator to test retrenchment runway, market shocks, and early retirement milestones.
+            </p>
+            <button
+              onClick={() => setActiveTab("simulator")}
+              className="w-full py-2.5 px-3 rounded-xl bg-white text-indigo-700 font-bold text-xs hover:bg-indigo-50 transition-colors shadow-sm cursor-pointer"
+            >
+              Open What-If Simulator →
+            </button>
+          </div>
+        </div>
+
+        {/* Right Column (7 cols): Illness Shield & Shortfall Cards */}
+        <div className="lg:col-span-7 space-y-4">
+          {/* Feature #1: The Illness & Income Shield Card */}
+          <IllnessShieldCard />
+
+          {/* Shortfall Detail Accordion / Cards */}
+          <div className="space-y-3">
         {shortfalls.map((item, idx) => {
           const Icon = getIcon(item.category);
           const isExpanded = expandedIndex === idx;
@@ -325,22 +366,8 @@ export const ShortfallView: React.FC = () => {
             </div>
           );
         })}
-      </div>
-
-      {/* Simulator Link Card */}
-      <div className="p-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-2xl shadow-lg flex items-center justify-between gap-3">
-        <div>
-          <h4 className="text-xs sm:text-sm font-bold">Try Different Scenarios</h4>
-          <p className="text-[11px] text-indigo-100 mt-0.5">
-            Slide and see how retiring earlier or investing $200 more a month changes your numbers!
-          </p>
+          </div>
         </div>
-        <button
-          onClick={() => setActiveTab("simulator")}
-          className="px-3 py-2 rounded-xl bg-white text-indigo-600 font-bold text-xs shrink-0 hover:bg-indigo-50 transition-colors shadow-sm"
-        >
-          Open Simulator
-        </button>
       </div>
 
       {/* Formula Explanation Modal */}

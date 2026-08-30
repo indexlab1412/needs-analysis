@@ -146,34 +146,34 @@ export const PriorityPlannerView: React.FC = () => {
     : 0;
 
   return (
-    <div className="space-y-4 pb-24 animate-in fade-in duration-200">
+    <div className="space-y-6 pb-24 animate-in fade-in duration-200">
       {/* Header Info */}
-      <div className="fin-card p-4 sm:p-5 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white rounded-3xl shadow-xl space-y-3">
+      <div className="fin-card p-5 sm:p-6 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 text-white rounded-3xl shadow-xl space-y-4">
         <div className="flex items-center justify-between">
           <span className="text-xs uppercase font-extrabold tracking-wider text-amber-400 flex items-center gap-1.5">
-            <ListOrdered className="w-4 h-4" /> Smart Budget & Priority Sequencer
+            <ListOrdered className="w-4 h-4" /> Smart Budget &amp; Priority Sequencer
           </span>
-          <span className="text-[10px] bg-white/10 px-2.5 py-0.5 rounded-full text-indigo-200">
+          <span className="text-[11px] bg-white/10 px-3 py-1 rounded-full text-indigo-200 font-bold">
             Work on What Matters Most
           </span>
         </div>
 
         <div>
-          <h2 className="text-base sm:text-lg font-black text-white leading-tight">
+          <h2 className="text-lg sm:text-2xl font-black text-white leading-tight">
             Can't Plan For Everything at Once? Sequence It!
           </h2>
-          <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed max-w-3xl">
             When budget is limited, trying to solve all gaps simultaneously causes stress. Use the 5-Stage Priority Sequencer to channel your monthly savings step-by-step without spreading yourself too thin.
           </p>
         </div>
 
         {/* Monthly Free Cashflow Budget Slider */}
-        <div className="p-3.5 bg-white/10 rounded-2xl border border-white/10 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-slate-300 font-bold flex items-center gap-1.5">
-              <Wallet className="w-3.5 h-3.5 text-emerald-400" /> Your Available Monthly Free Cashflow:
+        <div className="p-4 bg-white/10 rounded-2xl border border-white/10 space-y-2.5">
+          <div className="flex items-center justify-between text-xs sm:text-sm">
+            <span className="text-slate-200 font-bold flex items-center gap-2">
+              <Wallet className="w-4 h-4 text-emerald-400" /> Your Available Monthly Free Cashflow:
             </span>
-            <span className="text-sm font-black text-emerald-400">
+            <span className="text-sm sm:text-base font-black text-emerald-400">
               +{formatCurrency(customMonthlyBudget, currency)} / month
             </span>
           </div>
@@ -185,10 +185,10 @@ export const PriorityPlannerView: React.FC = () => {
             step={50}
             value={customMonthlyBudget}
             onChange={(e) => setCustomMonthlyBudget(Number(e.target.value))}
-            className="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-400"
+            className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-emerald-400"
           />
 
-          <div className="flex justify-between text-[10px] text-slate-400">
+          <div className="flex justify-between text-xs text-slate-400">
             <span>Tight: {currency}100/mo</span>
             <span>Current Inflow: {formatCurrency(monthlyFreeCashflow, currency)}/mo</span>
             <span>Aggressive: {currency}3,000/mo</span>
@@ -197,55 +197,55 @@ export const PriorityPlannerView: React.FC = () => {
       </div>
 
       {/* Phased Action Roadmap Preview */}
-      <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
-        <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+      <div className="fin-card p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-sm">
+        <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-500" />
           Your Tailored 3-Phase Action Roadmap ({formatCurrency(customMonthlyBudget, currency)}/mo)
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs sm:text-sm">
           {/* Phase 1 */}
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-900/60 space-y-1.5">
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/30 rounded-2xl border border-amber-200 dark:border-amber-900/60 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-black text-amber-900 dark:text-amber-200 text-[11px] uppercase">
+              <span className="font-black text-amber-900 dark:text-amber-200 text-xs uppercase">
                 Phase 1: Security Shield
               </span>
-              <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400">
+              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">
                 {monthsToEmergencyTarget > 0 ? `Next ${monthsToEmergencyTarget} Mo` : "Complete ✅"}
               </span>
             </div>
-            <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
               Channel <strong>{formatCurrency(customMonthlyBudget, currency)}/mo</strong> to lock in your 6-Month Emergency Cash Buffer ({formatCurrency(cashFlow.essentialMonthlyExpenses * 6, currency)}).
             </p>
           </div>
 
           {/* Phase 2 */}
-          <div className="p-3 bg-indigo-50 dark:bg-indigo-950/30 rounded-xl border border-indigo-200 dark:border-indigo-900/60 space-y-1.5">
+          <div className="p-4 bg-indigo-50 dark:bg-indigo-950/30 rounded-2xl border border-indigo-200 dark:border-indigo-900/60 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-black text-indigo-900 dark:text-indigo-200 text-[11px] uppercase">
-                Phase 2: Health & Safety Net
+              <span className="font-black text-indigo-900 dark:text-indigo-200 text-xs uppercase">
+                Phase 2: Health &amp; Safety Net
               </span>
-              <span className="text-[10px] font-bold text-indigo-700 dark:text-indigo-400">
+              <span className="text-[11px] font-bold text-indigo-700 dark:text-indigo-400">
                 Ongoing ~$150/mo
               </span>
             </div>
-            <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">
-              Lock in cost-effective Term Life & Critical Illness coverage to protect against salary loss without overpaying on whole-life plans.
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              Lock in cost-effective Term Life &amp; Critical Illness coverage to protect against salary loss without overpaying on whole-life plans.
             </p>
           </div>
 
           {/* Phase 3 */}
-          <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 rounded-xl border border-emerald-200 dark:border-emerald-900/60 space-y-1.5">
+          <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 space-y-2">
             <div className="flex items-center justify-between">
-              <span className="font-black text-emerald-900 dark:text-emerald-200 text-[11px] uppercase">
-                Phase 3: Wealth Compounding
+              <span className="font-black text-emerald-900 dark:text-emerald-200 text-xs uppercase">
+                Phase 3: Wealth Growth
               </span>
-              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">
-                Long-Term Horizon
+              <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                Long-Term
               </span>
             </div>
-            <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-snug">
-              With emergency & health secured, automate <strong>{formatCurrency(Math.max(100, customMonthlyBudget - 150), currency)}/mo</strong> into global index funds for education & retirement.
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              With emergency &amp; health secured, automate <strong>{formatCurrency(Math.max(100, customMonthlyBudget - 150), currency)}/mo</strong> into global index funds for education &amp; retirement.
             </p>
           </div>
         </div>

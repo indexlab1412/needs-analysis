@@ -48,7 +48,7 @@ export default function Home() {
       <MobileHeader />
 
       {/* Main Responsive View Container */}
-      <div className="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-5">
+      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         {activeTab === "dashboard" && <DashboardView />}
         {activeTab === "shortfall" && <ShortfallView />}
         {activeTab === "priorities" && <PriorityPlannerView />}

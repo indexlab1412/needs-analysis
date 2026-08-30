@@ -161,129 +161,130 @@ export const RetirementWeatherView: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-200">
-      {/* 1. Main Weather Score Card (Harmonized with standard fin-card theme) */}
-      <div className="fin-card p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-sm">
-        {/* Top Header */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className={`w-11 h-11 rounded-2xl border flex items-center justify-center shrink-0 shadow-sm ${weather.iconBg}`}>
-              <WeatherIcon className={`w-6 h-6 ${weather.colorText}`} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                  Retirement Weather Forecast
-                </h3>
+    <div className="space-y-6 animate-in fade-in duration-200">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* 1. Main Weather Score Card & Chart (Col 7) */}
+        <div className="lg:col-span-7 fin-card p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-5 shadow-sm">
+          {/* Top Header */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center shrink-0 shadow-sm ${weather.iconBg}`}>
+                <WeatherIcon className={`w-6 h-6 ${weather.colorText}`} />
               </div>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border inline-block mt-1 ${weather.badgeBg}`}>
-                {liveResult.weatherTitle}
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white">
+                    Retirement Weather Forecast
+                  </h3>
+                </div>
+                <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border inline-block mt-1 ${weather.badgeBg}`}>
+                  {liveResult.weatherTitle}
+                </span>
+              </div>
+            </div>
+
+            {/* Big Score Dial */}
+            <div className={`flex flex-col items-center justify-center w-18 h-18 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border-2 ${weather.scoreBorder} shadow-sm shrink-0`}>
+              <span className={`text-xl font-black leading-none ${weather.scoreText}`}>
+                {liveResult.successRate}%
+              </span>
+              <span className="text-[9px] text-slate-500 dark:text-slate-400 font-extrabold uppercase mt-1 tracking-wider">
+                Resilience
               </span>
             </div>
           </div>
 
-          {/* Big Score Dial */}
-          <div className={`flex flex-col items-center justify-center w-16 h-16 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border-2 ${weather.scoreBorder} shadow-sm shrink-0`}>
-            <span className={`text-lg font-black leading-none ${weather.scoreText}`}>
-              {liveResult.successRate}%
-            </span>
-            <span className="text-[8px] text-slate-500 dark:text-slate-400 font-extrabold uppercase mt-0.5 tracking-wider">
-              Resilience
-            </span>
+          {/* Narrative Description */}
+          <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 flex items-start gap-3">
+            <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                {liveResult.weatherDescription}
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Tested across <strong>1,000 randomized market lifelines</strong> including historical recessions and high inflation cycles.
+              </p>
+            </div>
           </div>
+
+          {/* Confidence Band Area Chart */}
+          <div className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="font-bold text-slate-700 dark:text-slate-300">
+                Your Portfolio Range (Age {currentAge} to {profile.lifeExpectancy || 88})
+              </span>
+              <span className="text-xs text-slate-500 dark:text-slate-400">
+                Retire at Age {retireAge}
+              </span>
+            </div>
+
+            <div className="h-56 sm:h-64 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={liveResult.trajectories} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorBoom" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="colorMedian" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.05} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.25} />
+                  <XAxis dataKey="age" stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} />
+                  <YAxis
+                    stroke="#64748b"
+                    tick={{ fontSize: 10 }}
+                    tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
+                    domain={[0, "auto"]}
+                  />
+                  <Tooltip content={<CustomChartTooltip />} />
+                  <ReferenceLine x={retireAge} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: "Retire", fill: "#f59e0b", fontSize: 10, position: "insideTopRight" }} />
+                  
+                  {/* 90th Percentile (Boom) */}
+                  <Area type="monotone" dataKey="percentile90" stroke="#10b981" strokeWidth={1.5} fillOpacity={1} fill="url(#colorBoom)" />
+                  {/* 50th Percentile (Median) */}
+                  <Area type="monotone" dataKey="percentile50" stroke="#38bdf8" strokeWidth={2.5} fillOpacity={1} fill="url(#colorMedian)" />
+                  {/* 10th Percentile (Worst Market) */}
+                  <Line type="monotone" dataKey="percentile10" stroke="#f43f5e" strokeWidth={2} strokeDasharray="4 4" dot={false} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="flex items-center justify-center gap-5 text-xs text-slate-600 dark:text-slate-300 pt-1">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Top 10% (Boom)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" /> Average (Median)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-0.5 bg-rose-500 inline-block" /> Worst 10% (Crash)
+              </span>
+            </div>
+          </div>
+
+          {/* Worst Case Callout */}
+          {liveResult.worstCaseDepletionAge ? (
+            <div className="p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 flex items-center gap-3 text-xs sm:text-sm text-rose-900 dark:text-rose-200">
+              <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0" />
+              <span>
+                <strong>Crash Warning:</strong> In the worst 10% market crash scenario, funds reach {formatCurrency(0, currency)} at <strong>Age {liveResult.worstCaseDepletionAge}</strong>. Use the tuning sliders to protect against this!
+              </span>
+            </div>
+          ) : (
+            <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-3 text-xs sm:text-sm text-emerald-900 dark:text-emerald-200">
+              <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
+              <span>
+                <strong>Crash Resistant:</strong> Even in the worst 10% market crash, your nest egg survives through your entire life expectancy!
+              </span>
+            </div>
+          )}
         </div>
 
-        {/* Narrative Description */}
-        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-3.5 flex items-start gap-2.5">
-          <Sparkles className="w-4 h-4 text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
-              {liveResult.weatherDescription}
-            </p>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              Tested across <strong>1,000 randomized market lifelines</strong> including historical recessions and high inflation cycles.
-            </p>
-          </div>
-        </div>
-
-        {/* Confidence Band Area Chart */}
-        <div className="bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-700 dark:text-slate-300">
-              Your Portfolio Range (Age {currentAge} to {profile.lifeExpectancy || 88})
-            </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400">
-              Retire at Age {retireAge}
-            </span>
-          </div>
-
-          <div className="h-48 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={liveResult.trajectories} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorBoom" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="colorMedian" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#38bdf8" stopOpacity={0.05} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#94a3b8" opacity={0.25} />
-                <XAxis dataKey="age" stroke="#64748b" tick={{ fontSize: 10 }} tickLine={false} />
-                <YAxis
-                  stroke="#64748b"
-                  tick={{ fontSize: 9 }}
-                  tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
-                  domain={[0, "auto"]}
-                />
-                <Tooltip content={<CustomChartTooltip />} />
-                <ReferenceLine x={retireAge} stroke="#f59e0b" strokeDasharray="3 3" label={{ value: "Retire", fill: "#f59e0b", fontSize: 10, position: "insideTopRight" }} />
-                
-                {/* 90th Percentile (Boom) */}
-                <Area type="monotone" dataKey="percentile90" stroke="#10b981" strokeWidth={1.5} fillOpacity={1} fill="url(#colorBoom)" />
-                {/* 50th Percentile (Median) */}
-                <Area type="monotone" dataKey="percentile50" stroke="#38bdf8" strokeWidth={2.5} fillOpacity={1} fill="url(#colorMedian)" />
-                {/* 10th Percentile (Worst Market) */}
-                <Line type="monotone" dataKey="percentile10" stroke="#f43f5e" strokeWidth={2} strokeDasharray="4 4" dot={false} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="flex items-center justify-center gap-4 text-[10px] text-slate-600 dark:text-slate-300 pt-1">
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block" /> Top 10% (Boom)
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-sky-500 inline-block" /> Average (Median)
-            </span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-2.5 h-0.5 bg-rose-500 inline-block" /> Worst 10% (Crash)
-            </span>
-          </div>
-        </div>
-
-        {/* Worst Case Callout (Cleaned up: No escaped backslashes, uses formatCurrency) */}
-        {liveResult.worstCaseDepletionAge ? (
-          <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 flex items-center gap-2.5 text-xs text-rose-900 dark:text-rose-200">
-            <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0" />
-            <span>
-              <strong>Crash Warning:</strong> In the worst 10% market crash scenario, funds reach {formatCurrency(0, currency)} at <strong>Age {liveResult.worstCaseDepletionAge}</strong>. Use the sliders below to protect against this!
-            </span>
-          </div>
-        ) : (
-          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 flex items-center gap-2.5 text-xs text-emerald-900 dark:text-emerald-200">
-            <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
-            <span>
-              <strong>Crash Resistant:</strong> Even in the worst 10% market crash, your nest egg survives through your entire life expectancy!
-            </span>
-          </div>
-        )}
-      </div>
-
-      {/* 2. Interactive Single-Thumb Quick Fix Sliders */}
-      <div className="fin-card p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-sm">
+        {/* 2. Interactive Quick Fix Sliders (Col 5) */}
+        <div className="lg:col-span-5 fin-card p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
@@ -395,5 +396,6 @@ export const RetirementWeatherView: React.FC = () => {
         </div>
       </div>
     </div>
+  </div>
   );
 };
