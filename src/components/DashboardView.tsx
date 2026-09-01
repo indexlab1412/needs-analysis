@@ -829,14 +829,16 @@ export const DashboardView: React.FC = () => {
 
                   <div
                     onClick={() => setIsInvestCalcOpen(true)}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
+                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 rounded-2xl cursor-pointer transition-all group"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Actual % Return</span>
-                      <TrendingUp className="w-4 h-4 text-slate-400" />
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        Actual % Return
+                      </span>
+                      <TrendingUp className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      Calculate CAGR
+                      Calculate CAGR / IRR 🧮
                     </p>
                   </div>
                 </div>
