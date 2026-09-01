@@ -65,7 +65,7 @@ export const ExpenseTrackerView: React.FC = () => {
       category: cat,
       isEssential: isEssential,
     };
-    updateProfile((p) => ({ ...p, expenses: [...p.expenses, newItem] }));
+    updateProfile((p) => ({ ...p, expenses: [newItem, ...p.expenses] }));
   };
 
   const removeExpense = (id: string) => {

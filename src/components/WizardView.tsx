@@ -63,7 +63,7 @@ export const WizardView: React.FC = () => {
       yearsOfSupportNeeded: 20,
       monthlySupportAmount: 0,
     };
-    updateProfile((p) => ({ ...p, dependents: [...p.dependents, newDep] }));
+    updateProfile((p) => ({ ...p, dependents: [newDep, ...p.dependents] }));
   };
 
   const removeDependent = (id: string) => {
@@ -84,7 +84,7 @@ export const WizardView: React.FC = () => {
       description: "",
       monthlyAmount: 0,
     };
-    updateProfile((p) => ({ ...p, incomes: [...p.incomes, newItem] }));
+    updateProfile((p) => ({ ...p, incomes: [newItem, ...p.incomes] }));
   };
 
   const removeIncome = (id: string) => {
@@ -99,7 +99,7 @@ export const WizardView: React.FC = () => {
       monthlyAmount: 0,
       isEssential: false,
     };
-    updateProfile((p) => ({ ...p, expenses: [...p.expenses, newItem] }));
+    updateProfile((p) => ({ ...p, expenses: [newItem, ...p.expenses] }));
   };
 
   const removeExpense = (id: string) => {
@@ -118,7 +118,7 @@ export const WizardView: React.FC = () => {
       monthlyContribution: 0,
       targetPurpose: "retirement",
     };
-    updateProfile((p) => ({ ...p, assets: [...p.assets, newItem] }));
+    updateProfile((p) => ({ ...p, assets: [newItem, ...p.assets] }));
   };
 
   const removeAsset = (id: string) => {
@@ -135,7 +135,7 @@ export const WizardView: React.FC = () => {
       interestRate: 3.5,
       tenureYearsRemaining: 5,
     };
-    updateProfile((p) => ({ ...p, liabilities: [...p.liabilities, newItem] }));
+    updateProfile((p) => ({ ...p, liabilities: [newItem, ...p.liabilities] }));
   };
 
   const removeLiability = (id: string) => {
@@ -156,7 +156,7 @@ export const WizardView: React.FC = () => {
       annualPremium: 0,
       expiryAge: 65,
     };
-    updateProfile((p) => ({ ...p, insurancePolicies: [...p.insurancePolicies, newPol] }));
+    updateProfile((p) => ({ ...p, insurancePolicies: [newPol, ...p.insurancePolicies] }));
   };
 
   const removePolicy = (id: string) => {
@@ -1402,7 +1402,7 @@ export const WizardView: React.FC = () => {
                     targetYearsFromNow: 5,
                     currentSavingsAssigned: 0,
                   };
-                  updateProfile((p) => ({ ...p, goals: [...p.goals, newG] }));
+                  updateProfile((p) => ({ ...p, goals: [newG, ...p.goals] }));
                 }}
                 className="flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1.5 rounded-lg border border-amber-200 dark:border-amber-800"
               >
@@ -1425,7 +1425,7 @@ export const WizardView: React.FC = () => {
                     currentSavingsAssigned: 10000,
                     recommendedVehicle: "Balanced Robo-Advisor (4.5%)",
                   };
-                  updateProfile((p) => ({ ...p, goals: [...p.goals, newG] }));
+                  updateProfile((p) => ({ ...p, goals: [newG, ...p.goals] }));
                 }}
                 className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 text-left font-bold text-slate-800 dark:text-slate-200 transition-colors"
               >
@@ -1445,7 +1445,7 @@ export const WizardView: React.FC = () => {
                     currentSavingsAssigned: 5000,
                     recommendedVehicle: "High-Yield Bank Cash (3.2%)",
                   };
-                  updateProfile((p) => ({ ...p, goals: [...p.goals, newG] }));
+                  updateProfile((p) => ({ ...p, goals: [newG, ...p.goals] }));
                 }}
                 className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 border border-slate-200 dark:border-slate-700 text-left font-bold text-slate-800 dark:text-slate-200 transition-colors"
               >

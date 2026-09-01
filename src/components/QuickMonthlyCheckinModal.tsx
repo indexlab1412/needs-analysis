@@ -56,7 +56,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
       description: "",
       monthlyAmount: 0,
     };
-    updateProfile((p) => ({ ...p, incomes: [...p.incomes, newItem] }));
+    updateProfile((p) => ({ ...p, incomes: [newItem, ...p.incomes] }));
   };
 
   const handleRemoveIncome = (id: string) => {
@@ -71,7 +71,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
       monthlyAmount: 0,
       isEssential: false,
     };
-    updateProfile((p) => ({ ...p, expenses: [...p.expenses, newItem] }));
+    updateProfile((p) => ({ ...p, expenses: [newItem, ...p.expenses] }));
   };
 
   const handleRemoveExpense = (id: string) => {
@@ -90,7 +90,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
       platformOrVehicle: "Robo / Broker",
       targetPurpose: "wealth_growth",
     };
-    updateProfile((p) => ({ ...p, assets: [...p.assets, newItem] }));
+    updateProfile((p) => ({ ...p, assets: [newItem, ...p.assets] }));
   };
 
   const handleRemoveDCA = (id: string) => {

@@ -111,7 +111,7 @@ export const GoalPlannerView: React.FC = () => {
       currentSavingsAssigned: 0,
       recommendedVehicle: tmpl.recommendedVehicle,
     };
-    updateProfile((p) => ({ ...p, goals: [...p.goals, newGoal] }));
+    updateProfile((p) => ({ ...p, goals: [newGoal, ...p.goals] }));
   };
 
   const removeGoal = (id: string) => {

@@ -78,7 +78,7 @@ export const EducationPlannerView: React.FC = () => {
       currentEducationSavingsAssigned: 5000,
       monthlyEducationSavings: 150,
     };
-    updateProfile((p) => ({ ...p, dependents: [...p.dependents, newChild] }));
+    updateProfile((p) => ({ ...p, dependents: [newChild, ...p.dependents] }));
   };
 
   const removeChild = (id: string) => {
