@@ -40,6 +40,7 @@ export const VaultView: React.FC = () => {
     isOnline,
     setIsSyncModalOpen,
     lastBackupExportedAt,
+    isPrivacyMode,
   } = useFinancialStore();
   const [activeTab, setActiveTab] = useState<"monthly_archive" | "yearly_review" | "backup_restore">("monthly_archive");
   const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -169,28 +170,28 @@ export const VaultView: React.FC = () => {
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase block">Income</span>
                       <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                        +{formatCurrency(log.totalIncome, currency)}
+                        +{formatCurrency(log.totalIncome, currency, 0, isPrivacyMode)}
                       </span>
                     </div>
 
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase block">Spending</span>
                       <span className="font-bold text-rose-600 dark:text-rose-400">
-                        -{formatCurrency(log.totalExpenses, currency)}
+                        -{formatCurrency(log.totalExpenses, currency, 0, isPrivacyMode)}
                       </span>
                     </div>
 
                     <div>
                       <span className="text-[10px] text-slate-400 font-bold uppercase block">Net Savings</span>
                       <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                        +{formatCurrency(log.netSavings, currency)}
+                        +{formatCurrency(log.netSavings, currency, 0, isPrivacyMode)}
                       </span>
                     </div>
                   </div>
 
                   <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800">
                     <span className="text-xs text-slate-500">
-                      Net Worth: <strong className="text-slate-900 dark:text-white">{formatCurrency(log.netWorthAtMonthEnd, currency)}</strong>
+                      Net Worth: <strong className="text-slate-900 dark:text-white">{formatCurrency(log.netWorthAtMonthEnd, currency, 0, isPrivacyMode)}</strong>
                     </span>
                     {log.keyNotes && <span className="text-[10px] text-slate-400 italic truncate max-w-[120px]">{log.keyNotes}</span>}
                   </div>

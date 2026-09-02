@@ -52,7 +52,7 @@ function ShieldCheckIcon(props: any) {
 }
 
 export const ExpenseTrackerView: React.FC = () => {
-  const { profile, updateProfile, summary, currency } = useFinancialStore();
+  const { profile, updateProfile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { cashFlow } = summary;
 
   const [selectedExpenseForCutback, setSelectedExpenseForCutback] = useState<ExpenseItem | null>(null);
@@ -153,7 +153,7 @@ export const ExpenseTrackerView: React.FC = () => {
           <div className="p-2.5 bg-amber-50/50 dark:bg-amber-950/20 rounded-xl border border-amber-200 dark:border-amber-900">
             <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 block">Needs ({needsPct}%)</span>
             <span className="text-xs font-black text-slate-900 dark:text-white mt-0.5 block">
-              {formatCurrency(needsSpend, currency)}/mo
+              {formatCurrency(needsSpend, currency, 0, isPrivacyMode)}/mo
             </span>
             <span className="text-[9px] text-slate-400">Rent, groceries, commute</span>
           </div>
@@ -161,7 +161,7 @@ export const ExpenseTrackerView: React.FC = () => {
           <div className="p-2.5 bg-rose-50/50 dark:bg-rose-950/20 rounded-xl border border-rose-200 dark:border-rose-900">
             <span className="text-[10px] font-bold text-rose-700 dark:text-rose-300 block">Wants ({wantsPct}%)</span>
             <span className="text-xs font-black text-slate-900 dark:text-white mt-0.5 block">
-              {formatCurrency(wantsSpend, currency)}/mo
+              {formatCurrency(wantsSpend, currency, 0, isPrivacyMode)}/mo
             </span>
             <span className="text-[9px] text-slate-400">Cafes, shopping, subs</span>
           </div>
@@ -169,7 +169,7 @@ export const ExpenseTrackerView: React.FC = () => {
           <div className="p-2.5 bg-emerald-50/50 dark:bg-emerald-950/20 rounded-xl border border-emerald-200 dark:border-emerald-900">
             <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 block">Save/DCA ({savingsPct}%)</span>
             <span className="text-xs font-black text-slate-900 dark:text-white mt-0.5 block">
-              {formatCurrency(savingsInvestments, currency)}/mo
+              {formatCurrency(savingsInvestments, currency, 0, isPrivacyMode)}/mo
             </span>
             <span className="text-[9px] text-slate-400">Cash + Robos + ETFs</span>
           </div>
@@ -207,7 +207,7 @@ export const ExpenseTrackerView: React.FC = () => {
                       return (
                         <div className="bg-slate-900 text-white p-2 rounded-xl text-xs shadow-lg">
                           <span className="font-bold">{data.name}: </span>
-                          <span>{formatCurrency(Number(data.value), currency)}/mo</span>
+                          <span>{formatCurrency(Number(data.value), currency, 0, isPrivacyMode)}/mo</span>
                         </div>
                       );
                     }
@@ -226,7 +226,7 @@ export const ExpenseTrackerView: React.FC = () => {
                   <span className="text-slate-700 dark:text-slate-300 font-medium truncate">{cat.name}</span>
                 </div>
                 <span className="font-bold text-slate-900 dark:text-white shrink-0">
-                  {formatCurrency(cat.value, currency)}/mo
+                  {formatCurrency(cat.value, currency, 0, isPrivacyMode)}/mo
                 </span>
               </div>
             ))}
@@ -254,7 +254,7 @@ export const ExpenseTrackerView: React.FC = () => {
           <div className="flex items-center justify-between text-xs">
             <span>Cutting Back Monthly Spend:</span>
             <strong className="text-emerald-400 font-extrabold text-sm">
-              {formatCurrency(cutbackAmount, currency)} / month
+              {formatCurrency(cutbackAmount, currency, 0, isPrivacyMode)} / month
             </strong>
           </div>
 
@@ -262,19 +262,19 @@ export const ExpenseTrackerView: React.FC = () => {
             <div className="p-2 bg-black/20 rounded-xl">
               <span className="text-[9px] uppercase font-bold text-slate-400 block">In 5 Years</span>
               <span className="text-xs font-black text-white mt-0.5 block">
-                {formatCurrency(calculateFV(cutbackAmount, 5), currency)}
+                {formatCurrency(calculateFV(cutbackAmount, 5), currency, 0, isPrivacyMode)}
               </span>
             </div>
             <div className="p-2 bg-black/20 rounded-xl">
               <span className="text-[9px] uppercase font-bold text-slate-400 block">In 10 Years</span>
               <span className="text-xs font-black text-emerald-400 mt-0.5 block">
-                {formatCurrency(calculateFV(cutbackAmount, 10), currency)}
+                {formatCurrency(calculateFV(cutbackAmount, 10), currency, 0, isPrivacyMode)}
               </span>
             </div>
             <div className="p-2 bg-black/20 rounded-xl">
               <span className="text-[9px] uppercase font-bold text-slate-400 block">In 20 Years</span>
               <span className="text-xs font-black text-amber-300 mt-0.5 block">
-                {formatCurrency(calculateFV(cutbackAmount, 20), currency)}
+                {formatCurrency(calculateFV(cutbackAmount, 20), currency, 0, isPrivacyMode)}
               </span>
             </div>
           </div>

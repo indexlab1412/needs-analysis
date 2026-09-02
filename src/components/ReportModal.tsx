@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 
 export const ReportModal: React.FC = () => {
-  const { isReportModalOpen, setIsReportModalOpen, summary, profile, currency } = useFinancialStore();
+  const { isReportModalOpen, setIsReportModalOpen, summary, profile, currency, isPrivacyMode } = useFinancialStore();
 
   if (!isReportModalOpen) return null;
 
@@ -108,16 +108,16 @@ export const ReportModal: React.FC = () => {
               <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
                 <div className="flex justify-between">
                   <span className="text-slate-500">What You Own (Assets)</span>
-                  <span className="font-bold">{formatCurrency(netWorth.totalAssets, currency)}</span>
+                  <span className="font-bold">{formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">What You Owe (Debts)</span>
-                  <span className="font-bold text-rose-500">{formatCurrency(netWorth.totalLiabilities, currency)}</span>
+                  <span className="font-bold text-rose-500">{formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}</span>
                 </div>
                 <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
                   <span className="font-bold">Net Worth</span>
                   <span className="font-black text-indigo-600 dark:text-indigo-400">
-                    {formatCurrency(netWorth.netWorth, currency)}
+                    {formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode)}
                   </span>
                 </div>
               </div>
@@ -125,16 +125,16 @@ export const ReportModal: React.FC = () => {
               <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Monthly Inflow</span>
-                  <span className="font-bold text-emerald-600">{formatCurrency(cashFlow.totalMonthlyIncome, currency)}</span>
+                  <span className="font-bold text-emerald-600">{formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Monthly Expenses</span>
-                  <span className="font-bold text-rose-500">{formatCurrency(cashFlow.totalMonthlyExpenses, currency)}</span>
+                  <span className="font-bold text-rose-500">{formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode)}</span>
                 </div>
                 <div className="flex justify-between pt-1 border-t border-slate-200 dark:border-slate-700">
                   <span className="font-bold">Monthly Savings</span>
                   <span className="font-black text-emerald-600">
-                    {cashFlow.savingsRatePercentage}% ({formatCurrency(cashFlow.monthlyNetSavings, currency)}/mo)
+                    {cashFlow.savingsRatePercentage}% ({formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo)
                   </span>
                 </div>
               </div>
@@ -163,10 +163,10 @@ export const ReportModal: React.FC = () => {
                     return (
                       <tr key={s.category}>
                         <td className="p-2.5 font-bold text-slate-900 dark:text-white">{s.title}</td>
-                        <td className="p-2.5">{formatCurrency(s.requiredAmount, currency)}</td>
-                        <td className="p-2.5">{formatCurrency(s.existingAmount, currency)}</td>
+                        <td className="p-2.5">{formatCurrency(s.requiredAmount, currency, 0, isPrivacyMode)}</td>
+                        <td className="p-2.5">{formatCurrency(s.existingAmount, currency, 0, isPrivacyMode)}</td>
                         <td className={`p-2.5 font-bold ${isDeficit ? "text-rose-600 dark:text-rose-400" : "text-emerald-600"}`}>
-                          {isDeficit ? `-${formatCurrency(s.shortfallAmount, currency)}` : "Fully Covered"}
+                          {isDeficit ? `-${formatCurrency(s.shortfallAmount, currency, 0, isPrivacyMode)}` : "Fully Covered"}
                         </td>
                         <td className="p-2.5">
                           <span

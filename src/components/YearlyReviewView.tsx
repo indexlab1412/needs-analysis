@@ -32,7 +32,7 @@ import {
 } from "recharts";
 
 export const YearlyReviewView: React.FC = () => {
-  const { profile, updateProfile, summary, currency } = useFinancialStore();
+  const { profile, updateProfile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { netWorth, cashFlow, overallFinancialHealthScore } = summary;
 
   const snapshots = (profile.yearlySnapshots || []).sort((a, b) => a.year - b.year);
@@ -114,14 +114,14 @@ export const YearlyReviewView: React.FC = () => {
     if (netWorthDelta > 0 && debtDelta <= 0 && scoreDelta >= 0) {
       return {
         title: "🌟 Outstanding Year of Financial Growth!",
-        desc: `You increased your net worth by ${formatCurrency(netWorthDelta, currency)} (${netWorthDeltaPct > 0 ? `+${netWorthDeltaPct}%` : ""}), while cutting down your debts and boosting your financial fitness score by +${scoreDelta} points!`,
+        desc: `You increased your net worth by ${formatCurrency(netWorthDelta, currency, 0, isPrivacyMode)} (${netWorthDeltaPct > 0 ? `+${netWorthDeltaPct}%` : ""}), while cutting down your debts and boosting your financial fitness score by +${scoreDelta} points!`,
         status: "excellent",
       };
     }
     if (netWorthDelta > 0) {
       return {
         title: "🚀 Solid Positive Progress Year!",
-        desc: `Your wealth expanded by ${formatCurrency(netWorthDelta, currency)} year-over-year. Consistency in your monthly saving & DCA habits is paying off!`,
+        desc: `Your wealth expanded by ${formatCurrency(netWorthDelta, currency, 0, isPrivacyMode)} year-over-year. Consistency in your monthly saving & DCA habits is paying off!`,
         status: "good",
       };
     }
@@ -195,7 +195,7 @@ export const YearlyReviewView: React.FC = () => {
                   }`}
                 >
                   {netWorthDelta >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {formatCurrency(netWorthDelta, currency)}
+                  {formatCurrency(netWorthDelta, currency, 0, isPrivacyMode)}
                 </span>
               </div>
 
@@ -207,7 +207,7 @@ export const YearlyReviewView: React.FC = () => {
                   }`}
                 >
                   {investmentDelta >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {formatCurrency(investmentDelta, currency)}
+                  {formatCurrency(investmentDelta, currency, 0, isPrivacyMode)}
                 </span>
               </div>
 
@@ -219,7 +219,7 @@ export const YearlyReviewView: React.FC = () => {
                   }`}
                 >
                   {savingsDelta >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                  {formatCurrency(savingsDelta, currency)}
+                  {formatCurrency(savingsDelta, currency, 0, isPrivacyMode)}
                 </span>
               </div>
 
@@ -231,7 +231,7 @@ export const YearlyReviewView: React.FC = () => {
                   }`}
                 >
                   {debtDelta <= 0 ? <ArrowDownRight className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
-                  {formatCurrency(Math.abs(debtDelta), currency)}
+                  {formatCurrency(Math.abs(debtDelta), currency, 0, isPrivacyMode)}
                 </span>
               </div>
             </div>
@@ -266,7 +266,7 @@ export const YearlyReviewView: React.FC = () => {
                           {payload.map((p, i) => (
                             <div key={i} className="flex justify-between gap-4" style={{ color: p.color }}>
                               <span>{p.name}:</span>
-                              <span className="font-bold">{formatCurrency(Number(p.value), currency)}</span>
+                              <span className="font-bold">{formatCurrency(Number(p.value), currency, 0, isPrivacyMode)}</span>
                             </div>
                           ))}
                         </div>
@@ -325,25 +325,25 @@ export const YearlyReviewView: React.FC = () => {
                 <div>
                   <span className="text-[9px] uppercase font-bold text-slate-400">Net Worth</span>
                   <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 block mt-0.5">
-                    {formatCurrency(snap.totalNetWorth, currency)}
+                    {formatCurrency(snap.totalNetWorth, currency, 0, isPrivacyMode)}
                   </span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-bold text-slate-400">Investments</span>
                   <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 block mt-0.5">
-                    {formatCurrency(snap.totalInvestments, currency)}
+                    {formatCurrency(snap.totalInvestments, currency, 0, isPrivacyMode)}
                   </span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-bold text-slate-400">Cash Stash</span>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block mt-0.5">
-                    {formatCurrency(snap.totalLiquidSavings, currency)}
+                    {formatCurrency(snap.totalLiquidSavings, currency, 0, isPrivacyMode)}
                   </span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-bold text-slate-400">Debts</span>
                   <span className="text-xs font-bold text-rose-600 dark:text-rose-400 block mt-0.5">
-                    {formatCurrency(snap.totalLiabilities, currency)}
+                    {formatCurrency(snap.totalLiabilities, currency, 0, isPrivacyMode)}
                   </span>
                 </div>
               </div>
@@ -377,15 +377,15 @@ export const YearlyReviewView: React.FC = () => {
             <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl space-y-1 text-xs text-slate-700 dark:text-slate-300">
               <div className="flex justify-between">
                 <span>Net Worth:</span>
-                <strong>{formatCurrency(netWorth.netWorth, currency)}</strong>
+                <strong>{formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode)}</strong>
               </div>
               <div className="flex justify-between">
                 <span>Liquid Cash:</span>
-                <strong>{formatCurrency(netWorth.liquidAssets, currency)}</strong>
+                <strong>{formatCurrency(netWorth.liquidAssets, currency, 0, isPrivacyMode)}</strong>
               </div>
               <div className="flex justify-between">
                 <span>Total Debts:</span>
-                <strong>{formatCurrency(netWorth.totalLiabilities, currency)}</strong>
+                <strong>{formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}</strong>
               </div>
               <div className="flex justify-between">
                 <span>Health Score:</span>

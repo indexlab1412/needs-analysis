@@ -31,7 +31,7 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
   onClose,
   onSuccessToast,
 }) => {
-  const { profile, updateProfile, currency, summary, logMonthlyCashflow, goToWizardStep } = useFinancialStore();
+  const { profile, updateProfile, currency, summary, logMonthlyCashflow, goToWizardStep, isPrivacyMode } = useFinancialStore();
 
   const activeMonthYear = profile.activePlanningMonthYear || "2026-08";
   const [yStr, mStr] = activeMonthYear.split("-");
@@ -139,21 +139,21 @@ export const QuickMonthlyCheckinModal: React.FC<QuickMonthlyCheckinModalProps> =
             <div>
               <span className="text-[9px] text-slate-400 font-bold uppercase block">Inflow</span>
               <span className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                +{formatCurrency(totalIncome, currency)}
+                +{formatCurrency(totalIncome, currency, 0, isPrivacyMode)}
               </span>
             </div>
 
             <div>
               <span className="text-[9px] text-slate-400 font-bold uppercase block">Outflow</span>
               <span className="text-xs sm:text-sm font-black text-rose-600 dark:text-rose-400 mt-0.5 block">
-                -{formatCurrency(totalExpenses, currency)}
+                -{formatCurrency(totalExpenses, currency, 0, isPrivacyMode)}
               </span>
             </div>
 
             <div>
               <span className="text-[9px] text-slate-400 font-bold uppercase block">Net Savings</span>
               <span className="text-xs sm:text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                +{formatCurrency(netSavings, currency)} ({savingsRate}%)
+                +{formatCurrency(netSavings, currency, 0, isPrivacyMode)} ({savingsRate}%)
               </span>
             </div>
           </div>

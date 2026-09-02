@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { InvestmentTrajectoryPoint, AssetItem } from "@/lib/fna/types";
+import { useFinancialStore } from "@/context/financial-store";
 import { formatCurrency } from "@/lib/utils";
 import { TrendingUp, Sparkles, Plus, Wallet } from "lucide-react";
 
@@ -29,6 +30,7 @@ export const InvestmentGrowthChart: React.FC<InvestmentGrowthChartProps> = ({
   currency,
   retirementAge,
 }) => {
+  const { isPrivacyMode } = useFinancialStore();
   const dcaAssets = assets.filter((a) => (Number(a.monthlyContribution) || 0) > 0 || (Number(a.currentValue) || 0) > 0);
   const cashPolicies = insurancePolicies.filter((p) => (Number(p.currentCashValue) || 0) > 0 || (Number(p.projectedRetirementMaturityValue) || 0) > 0);
   const totalMonthlyDCA = assets.reduce((sum, a) => sum + (Number(a.monthlyContribution) || 0), 0);
@@ -42,7 +44,7 @@ export const InvestmentGrowthChart: React.FC<InvestmentGrowthChartProps> = ({
         <div className="p-3 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl border border-indigo-100 dark:border-indigo-900">
           <span className="text-[10px] uppercase font-bold text-indigo-500 block">Monthly DCA Auto-Invest</span>
           <span className="text-sm sm:text-base font-extrabold text-indigo-700 dark:text-indigo-300 mt-0.5 block">
-            {formatCurrency(totalMonthlyDCA, currency)}/mo
+            {formatCurrency(totalMonthlyDCA, currency, 0, isPrivacyMode)}/mo
           </span>
           <span className="text-[10px] text-indigo-500/80">Across {dcaAssets.length} account(s)</span>
         </div>
@@ -50,17 +52,17 @@ export const InvestmentGrowthChart: React.FC<InvestmentGrowthChartProps> = ({
         <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 rounded-2xl border border-emerald-100 dark:border-emerald-900">
           <span className="text-[10px] uppercase font-bold text-emerald-600 block">Future Pot at Age {retirementAge}</span>
           <span className="text-sm sm:text-base font-extrabold text-emerald-700 dark:text-emerald-300 mt-0.5 block">
-            {finalPoint ? formatCurrency(finalPoint.projectedValue, currency) : "$0"}
+            {finalPoint ? formatCurrency(finalPoint.projectedValue, currency, 0, isPrivacyMode) : "$0"}
           </span>
           <span className="text-[10px] text-emerald-600/80">
-            +{finalPoint ? formatCurrency(finalPoint.totalCompoundedGains, currency) : "$0"} gains
+            +{finalPoint ? formatCurrency(finalPoint.totalCompoundedGains, currency, 0, isPrivacyMode) : "$0"} gains
           </span>
         </div>
 
         <div className="col-span-2 sm:col-span-1 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
           <span className="text-[10px] uppercase font-bold text-slate-400 block">Your Total Capital In</span>
           <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">
-            {finalPoint ? formatCurrency(finalPoint.totalInvestedPrincipal, currency) : "$0"}
+            {finalPoint ? formatCurrency(finalPoint.totalInvestedPrincipal, currency, 0, isPrivacyMode) : "$0"}
           </span>
           <span className="text-[10px] text-slate-400">Cash you personally put in</span>
         </div>
@@ -123,15 +125,15 @@ export const InvestmentGrowthChart: React.FC<InvestmentGrowthChartProps> = ({
                         </div>
                         <div className="flex justify-between gap-4 text-emerald-400 font-bold">
                           <span>Projected Pot:</span>
-                          <span>{formatCurrency(data.projectedValue, currency)}</span>
+                          <span>{formatCurrency(data.projectedValue, currency, 0, isPrivacyMode)}</span>
                         </div>
                         <div className="flex justify-between gap-4 text-slate-300">
                           <span>Total Invested:</span>
-                          <span>{formatCurrency(data.totalInvestedPrincipal, currency)}</span>
+                          <span>{formatCurrency(data.totalInvestedPrincipal, currency, 0, isPrivacyMode)}</span>
                         </div>
                         <div className="flex justify-between gap-4 text-indigo-300 pt-1 border-t border-slate-800 font-semibold">
                           <span>Compounded Gains:</span>
-                          <span>+{formatCurrency(data.totalCompoundedGains, currency)}</span>
+                          <span>+{formatCurrency(data.totalCompoundedGains, currency, 0, isPrivacyMode)}</span>
                         </div>
                       </div>
                     );
@@ -191,13 +193,13 @@ export const InvestmentGrowthChart: React.FC<InvestmentGrowthChartProps> = ({
                   )}
                 </div>
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  Current: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(currentVal, currency)}</strong> • Return: <strong>{rate}% p.a.</strong>
+                  Current: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(currentVal, currency, 0, isPrivacyMode)}</strong> • Return: <strong>{rate}% p.a.</strong>
                 </div>
               </div>
 
               <div className="text-right shrink-0">
                 <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 block">
-                  +{formatCurrency(dca, currency)}/mo
+                  +{formatCurrency(dca, currency, 0, isPrivacyMode)}/mo
                 </span>
                 <span className="text-[10px] text-slate-400">Monthly DCA</span>
               </div>
@@ -225,7 +227,7 @@ export const InvestmentGrowthChart: React.FC<InvestmentGrowthChartProps> = ({
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  Current Cash Value: <strong className="text-cyan-700 dark:text-cyan-300">{formatCurrency(cVal, currency)}</strong>
+                  Current Cash Value: <strong className="text-cyan-700 dark:text-cyan-300">{formatCurrency(cVal, currency, 0, isPrivacyMode)}</strong>
                 </div>
               </div>
 
@@ -233,14 +235,14 @@ export const InvestmentGrowthChart: React.FC<InvestmentGrowthChartProps> = ({
                 {matVal > 0 ? (
                   <>
                     <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300 block">
-                      {formatCurrency(matVal, currency)}
+                      {formatCurrency(matVal, currency, 0, isPrivacyMode)}
                     </span>
                     <span className="text-[10px] text-slate-400">At Retirement</span>
                   </>
                 ) : (
                   <>
                     <span className="text-xs font-bold text-cyan-700 dark:text-cyan-300 block">
-                      {formatCurrency(cVal, currency)}
+                      {formatCurrency(cVal, currency, 0, isPrivacyMode)}
                     </span>
                     <span className="text-[10px] text-slate-400">Cash Value</span>
                   </>

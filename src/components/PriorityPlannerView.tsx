@@ -38,7 +38,7 @@ export interface PriorityItem {
 }
 
 export const PriorityPlannerView: React.FC = () => {
-  const { summary, profile, currency, setActiveTab } = useFinancialStore();
+  const { summary, profile, currency, setActiveTab, isPrivacyMode } = useFinancialStore();
   const { netWorth, cashFlow, shortfalls, computedGoals, retirementDetails } = summary;
 
   const monthlyFreeCashflow = Math.max(0, cashFlow.monthlyNetSavings + cashFlow.totalMonthlyDCAInvestments);
@@ -51,7 +51,7 @@ export const PriorityPlannerView: React.FC = () => {
       level: 1,
       category: "emergency",
       title: "1. Liquid Emergency Cash Cushion",
-      description: `Build a 6-month cash stash of ${formatCurrency(cashFlow.essentialMonthlyExpenses * 6, currency)} in high-yield bank accounts.`,
+      description: `Build a 6-month cash stash of ${formatCurrency(cashFlow.essentialMonthlyExpenses * 6, currency, 0, isPrivacyMode)} in high-yield bank accounts.`,
       whyItMatters: "Prevents you from taking high-interest credit card loans or panic-selling investments during unexpected retrenchment or family emergencies.",
       targetCost: Math.max(0, (cashFlow.essentialMonthlyExpenses * 6) - netWorth.liquidAssets),
       isMonthlyCost: false,
@@ -93,13 +93,13 @@ export const PriorityPlannerView: React.FC = () => {
       id: "p4-education",
       level: 4,
       category: "education",
-      title: "4. Child Education & Life Goals",
-      description: "Set up auto-DCA sinking funds for children's university or home downpayment.",
-      whyItMatters: "Tuition inflates at 5.0% per year. Funding early allows 15+ years of compounding to do 60% of the heavy lifting.",
+      title: "4. Child Education / Medium-Term Sinking Funds",
+      description: "Set up structured monthly savings for your children's tertiary education or property downpayment.",
+      whyItMatters: "Education tuition inflates at 5.0% p.a.; saving early prevents massive financial crunches in your 40s and 50s.",
       targetCost: profile.dependents.filter((d) => d.relationship === "child").length > 0 ? 300 : 0,
       isMonthlyCost: true,
       currentAllocated: 0,
-      isCompleted: profile.dependents.filter((d) => d.relationship === "child").length === 0 || false,
+      isCompleted: profile.dependents.filter((d) => d.relationship === "child").length === 0,
       isActiveFocus: profile.dependents.filter((d) => d.relationship === "child").length > 0,
     },
     {
@@ -107,7 +107,7 @@ export const PriorityPlannerView: React.FC = () => {
       level: 5,
       category: "retirement",
       title: "5. Wealth Engine & Early Retirement",
-      description: `Invest surplus into diversified global index funds to build your ${formatCurrency(retirementDetails.totalNestEggRequired, currency)} nest egg.`,
+      description: `Invest surplus into diversified global index funds to build your ${formatCurrency(retirementDetails.totalNestEggRequired, currency, 0, isPrivacyMode)} nest egg.`,
       whyItMatters: "Achieves financial freedom so you have the choice to work on your own terms and retire comfortably.",
       targetCost: Math.max(100, customMonthlyBudget - 180),
       isMonthlyCost: true,
@@ -174,7 +174,7 @@ export const PriorityPlannerView: React.FC = () => {
               <Wallet className="w-4 h-4 text-emerald-400" /> Your Available Monthly Free Cashflow:
             </span>
             <span className="text-sm sm:text-base font-black text-emerald-400">
-              +{formatCurrency(customMonthlyBudget, currency)} / month
+              +{formatCurrency(customMonthlyBudget, currency, 0, isPrivacyMode)} / month
             </span>
           </div>
 
@@ -190,7 +190,7 @@ export const PriorityPlannerView: React.FC = () => {
 
           <div className="flex justify-between text-xs text-slate-400">
             <span>Tight: {currency}100/mo</span>
-            <span>Current Inflow: {formatCurrency(monthlyFreeCashflow, currency)}/mo</span>
+            <span>Current Inflow: {formatCurrency(monthlyFreeCashflow, currency, 0, isPrivacyMode)}/mo</span>
             <span>Aggressive: {currency}3,000/mo</span>
           </div>
         </div>
@@ -200,7 +200,7 @@ export const PriorityPlannerView: React.FC = () => {
       <div className="fin-card p-5 sm:p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 shadow-sm">
         <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-indigo-500" />
-          Your Tailored 3-Phase Action Roadmap ({formatCurrency(customMonthlyBudget, currency)}/mo)
+          Your Tailored 3-Phase Action Roadmap ({formatCurrency(customMonthlyBudget, currency, 0, isPrivacyMode)}/mo)
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs sm:text-sm">
@@ -215,7 +215,7 @@ export const PriorityPlannerView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-              Channel <strong>{formatCurrency(customMonthlyBudget, currency)}/mo</strong> to lock in your 6-Month Emergency Cash Buffer ({formatCurrency(cashFlow.essentialMonthlyExpenses * 6, currency)}).
+              Channel <strong>{formatCurrency(customMonthlyBudget, currency, 0, isPrivacyMode)}/mo</strong> to lock in your 6-Month Emergency Cash Buffer ({formatCurrency(cashFlow.essentialMonthlyExpenses * 6, currency, 0, isPrivacyMode)}).
             </p>
           </div>
 
@@ -245,7 +245,7 @@ export const PriorityPlannerView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-              With emergency &amp; health secured, automate <strong>{formatCurrency(Math.max(100, customMonthlyBudget - 150), currency)}/mo</strong> into global index funds for education &amp; retirement.
+              With emergency &amp; health secured, automate <strong>{formatCurrency(Math.max(100, customMonthlyBudget - 150), currency, 0, isPrivacyMode)}/mo</strong> into global index funds for education &amp; retirement.
             </p>
           </div>
         </div>

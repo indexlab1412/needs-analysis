@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 
 export const LifeTransitionView: React.FC = () => {
-  const { profile, updateProfile, summary, currency } = useFinancialStore();
+  const { profile, updateProfile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { cashFlow, netWorth } = summary;
 
   const maritalStatus: MaritalStatus = profile.maritalStatus;
@@ -177,7 +177,7 @@ export const LifeTransitionView: React.FC = () => {
                     maintenanceAdjustment >= 0 ? "text-emerald-400" : "text-rose-400"
                   }`}
                 >
-                  {maintenanceAdjustment >= 0 ? `+${formatCurrency(maintenanceAdjustment, currency)}` : formatCurrency(maintenanceAdjustment, currency)}/mo
+                  {maintenanceAdjustment >= 0 ? `+${formatCurrency(maintenanceAdjustment, currency, 0, isPrivacyMode)}` : formatCurrency(maintenanceAdjustment, currency, 0, isPrivacyMode)}/mo
                 </span>
                 <span className="text-[9px] text-slate-400">Child support cashflow</span>
               </div>
@@ -185,7 +185,7 @@ export const LifeTransitionView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Adjusted Income</span>
                 <span className="text-sm font-black text-white block mt-0.5">
-                  {formatCurrency(adjustedMonthlyIncome, currency)}/mo
+                  {formatCurrency(adjustedMonthlyIncome, currency, 0, isPrivacyMode)}/mo
                 </span>
                 <span className="text-[9px] text-slate-400">Net take-home budget</span>
               </div>
@@ -197,9 +197,9 @@ export const LifeTransitionView: React.FC = () => {
                     totalUserLifeCover >= soleParentTargetLifeCover ? "text-emerald-400" : "text-amber-300"
                   }`}
                 >
-                  {formatCurrency(totalUserLifeCover, currency)}
+                  {formatCurrency(totalUserLifeCover, currency, 0, isPrivacyMode)}
                 </span>
-                <span className="text-[9px] text-slate-400">Target: {formatCurrency(soleParentTargetLifeCover, currency)}</span>
+                <span className="text-[9px] text-slate-400">Target: {formatCurrency(soleParentTargetLifeCover, currency, 0, isPrivacyMode)}</span>
               </div>
             </div>
           </div>
@@ -306,7 +306,7 @@ export const LifeTransitionView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Total Payout Received</span>
                 <span className="text-sm sm:text-base font-black text-emerald-400 block mt-0.5">
-                  {formatCurrency(totalBereavementLumpSum, currency)}
+                  {formatCurrency(totalBereavementLumpSum, currency, 0, isPrivacyMode)}
                 </span>
                 <span className="text-[9px] text-slate-400">Insurance + CPF Payout</span>
               </div>
@@ -314,7 +314,7 @@ export const LifeTransitionView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Monthly Family Need</span>
                 <span className="text-sm sm:text-base font-black text-white block mt-0.5">
-                  {formatCurrency(monthlyFamilyDrawdown, currency)}/mo
+                  {formatCurrency(monthlyFamilyDrawdown, currency, 0, isPrivacyMode)}/mo
                 </span>
                 <span className="text-[9px] text-slate-400">To replace lost income</span>
               </div>

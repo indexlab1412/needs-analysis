@@ -91,7 +91,7 @@ const GOAL_TEMPLATES: {
 ];
 
 export const GoalPlannerView: React.FC = () => {
-  const { profile, updateProfile, summary, currency } = useFinancialStore();
+  const { profile, updateProfile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { computedGoals, retirementDetails } = summary;
 
   const [activeBucketFilter, setActiveBucketFilter] = useState<"all" | "short_term" | "mid_term" | "long_term">("all");
@@ -279,19 +279,19 @@ export const GoalPlannerView: React.FC = () => {
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold uppercase">Target Today</span>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block mt-0.5">
-                      {formatCurrency(goal.targetAmount, currency)}
+                      {formatCurrency(goal.targetAmount, currency, 0, isPrivacyMode)}
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 font-bold uppercase">Saved So Far</span>
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block mt-0.5">
-                      {formatCurrency(goal.currentSavingsAssigned, currency)}
+                      {formatCurrency(goal.currentSavingsAssigned, currency, 0, isPrivacyMode)}
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold uppercase">Save Each Month</span>
                     <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 block mt-0.5">
-                      {monthlySavingsNeeded > 0 ? `${formatCurrency(monthlySavingsNeeded, currency)}/mo` : "Funded 🎉"}
+                      {monthlySavingsNeeded > 0 ? `${formatCurrency(monthlySavingsNeeded, currency, 0, isPrivacyMode)}/mo` : "Funded 🎉"}
                     </span>
                   </div>
                 </div>

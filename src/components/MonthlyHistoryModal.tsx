@@ -29,7 +29,7 @@ export const MonthlyHistoryModal: React.FC<MonthlyHistoryModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { profile, currency, summary } = useFinancialStore();
+  const { profile, currency, summary, isPrivacyMode } = useFinancialStore();
   const logs = profile.monthlyLogs || [];
 
   const [selectedLogId, setSelectedLogId] = useState<string | null>(
@@ -123,21 +123,21 @@ export const MonthlyHistoryModal: React.FC<MonthlyHistoryModalProps> = ({
                       <div>
                         <span className="text-[9px] text-slate-400 uppercase font-bold block">Inflow (Income)</span>
                         <span className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                          +{formatCurrency(selectedLog.totalIncome, currency)}
+                          +{formatCurrency(selectedLog.totalIncome, currency, 0, isPrivacyMode)}
                         </span>
                       </div>
 
                       <div>
                         <span className="text-[9px] text-slate-400 uppercase font-bold block">Outflow (Spend)</span>
                         <span className="text-xs sm:text-sm font-black text-rose-600 dark:text-rose-400 mt-0.5 block">
-                          -{formatCurrency(selectedLog.totalExpenses, currency)}
+                          -{formatCurrency(selectedLog.totalExpenses, currency, 0, isPrivacyMode)}
                         </span>
                       </div>
 
                       <div>
                         <span className="text-[9px] text-slate-400 uppercase font-bold block">Net Saved / Invested</span>
                         <span className="text-xs sm:text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                          +{formatCurrency(selectedLog.netSavings, currency)}
+                          +{formatCurrency(selectedLog.netSavings, currency, 0, isPrivacyMode)}
                         </span>
                       </div>
                     </div>
@@ -156,7 +156,7 @@ export const MonthlyHistoryModal: React.FC<MonthlyHistoryModalProps> = ({
                       <Wallet className="w-4 h-4 text-indigo-500" /> Net Worth Recorded at Month-End:
                     </span>
                     <span className="text-sm font-black text-indigo-700 dark:text-indigo-300">
-                      {formatCurrency(selectedLog.netWorthAtMonthEnd, currency)}
+                      {formatCurrency(selectedLog.netWorthAtMonthEnd, currency, 0, isPrivacyMode)}
                     </span>
                   </div>
 
@@ -176,7 +176,7 @@ export const MonthlyHistoryModal: React.FC<MonthlyHistoryModalProps> = ({
                               {exp.description}
                             </span>
                             <span className="font-bold text-slate-900 dark:text-white">
-                              {formatCurrency(exp.monthlyAmount, currency)}
+                              {formatCurrency(exp.monthlyAmount, currency, 0, isPrivacyMode)}
                             </span>
                           </div>
                         ))}

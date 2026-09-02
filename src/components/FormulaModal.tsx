@@ -43,7 +43,7 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
   onClose,
   initialKey = "retirement_nest_egg",
 }) => {
-  const { profile, summary, currency } = useFinancialStore();
+  const { profile, summary, currency, isPrivacyMode } = useFinancialStore();
   const [selectedKey, setSelectedKey] = useState<FormulaKey>(initialKey);
 
   if (!isOpen) return null;
@@ -82,7 +82,7 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
       variables: [
         {
           label: "Desired Monthly Spend (Today's $)",
-          value: formatCurrency(profile.desiredMonthlyRetirementSpendToday, currency) + "/mo",
+          value: formatCurrency(profile.desiredMonthlyRetirementSpendToday, currency, 0, isPrivacyMode) + "/mo",
           note: "What you want to live on in today's purchasing power",
         },
         {
@@ -97,17 +97,17 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
         },
         {
           label: "Future Monthly Spend at Age " + profile.targetRetirementAge,
-          value: formatCurrency(retirementDetails.futureMonthlySpendAtRetirement, currency) + "/mo",
-          note: `${formatCurrency(profile.desiredMonthlyRetirementSpendToday, currency)} × (1 + ${generalInf / 100})^${yearsToRetire}`,
+          value: formatCurrency(retirementDetails.futureMonthlySpendAtRetirement, currency, 0, isPrivacyMode) + "/mo",
+          note: `${formatCurrency(profile.desiredMonthlyRetirementSpendToday, currency, 0, isPrivacyMode)} × (1 + ${generalInf / 100})^${yearsToRetire}`,
         },
         {
           label: "CPF LIFE Guaranteed Monthly Payout",
-          value: profile.cpfLife?.isEnabled !== false ? `${formatCurrency(retirementDetails.cpfMonthlyPayoutFuture, currency)}/mo` : "$0 (Disabled)",
+          value: profile.cpfLife?.isEnabled !== false ? `${formatCurrency(retirementDetails.cpfMonthlyPayoutFuture, currency, 0, isPrivacyMode)}/mo` : "$0 (Disabled)",
           note: "Reduces private capital burden for life",
         },
         {
           label: "Net Monthly Private Gap",
-          value: formatCurrency(retirementDetails.privateMonthlySpendNeededFuture, currency) + "/mo",
+          value: formatCurrency(retirementDetails.privateMonthlySpendNeededFuture, currency, 0, isPrivacyMode) + "/mo",
           note: "Amount your private investment portfolio must generate",
         },
         {
@@ -117,12 +117,12 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
         },
       ],
       derivationSteps: [
-        `Step 1: Inflate your today spend (${formatCurrency(profile.desiredMonthlyRetirementSpendToday, currency)}/mo) by ${generalInf}% over ${yearsToRetire} years = ${formatCurrency(retirementDetails.futureMonthlySpendAtRetirement, currency)}/mo at age ${profile.targetRetirementAge}.`,
-        `Step 2: Deduct CPF LIFE lifelong monthly annuity floor of ${formatCurrency(retirementDetails.cpfMonthlyPayoutFuture, currency)}/mo, leaving a net private need of ${formatCurrency(retirementDetails.privateMonthlySpendNeededFuture, currency)}/mo (${formatCurrency(retirementDetails.privateMonthlySpendNeededFuture * 12, currency)}/year).`,
-        `Step 3: Calculate the lump sum required to sustain ${formatCurrency(retirementDetails.privateMonthlySpendNeededFuture * 12, currency)}/year for ${yearsInRetire} years at a ${postRetireReturn}% post-retirement return.`,
+        `Step 1: Inflate your today spend (${formatCurrency(profile.desiredMonthlyRetirementSpendToday, currency, 0, isPrivacyMode)}/mo) by ${generalInf}% over ${yearsToRetire} years = ${formatCurrency(retirementDetails.futureMonthlySpendAtRetirement, currency, 0, isPrivacyMode)}/mo at age ${profile.targetRetirementAge}.`,
+        `Step 2: Deduct CPF LIFE lifelong monthly annuity floor of ${formatCurrency(retirementDetails.cpfMonthlyPayoutFuture, currency, 0, isPrivacyMode)}/mo, leaving a net private need of ${formatCurrency(retirementDetails.privateMonthlySpendNeededFuture, currency, 0, isPrivacyMode)}/mo (${formatCurrency(retirementDetails.privateMonthlySpendNeededFuture * 12, currency, 0, isPrivacyMode)}/year).`,
+        `Step 3: Calculate the lump sum required to sustain ${formatCurrency(retirementDetails.privateMonthlySpendNeededFuture * 12, currency, 0, isPrivacyMode)}/year for ${yearsInRetire} years at a ${postRetireReturn}% post-retirement return.`,
       ],
       resultLabel: "Total Private Nest Egg Required",
-      resultValue: formatCurrency(retirementDetails.totalNestEggRequired, currency),
+      resultValue: formatCurrency(retirementDetails.totalNestEggRequired, currency, 0, isPrivacyMode),
     },
     {
       key: "emergency_fund",
@@ -135,7 +135,7 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
       variables: [
         {
           label: "Essential Monthly Expenses",
-          value: formatCurrency(cashFlow.essentialMonthlyExpenses, currency) + "/mo",
+          value: formatCurrency(cashFlow.essentialMonthlyExpenses, currency, 0, isPrivacyMode) + "/mo",
           note: "Rent/mortgage, food, utilities, debt payments, and basic bills",
         },
         {
@@ -145,17 +145,17 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
         },
         {
           label: "Existing Liquid Bank Cash",
-          value: formatCurrency(netWorth.liquidAssets, currency),
+          value: formatCurrency(netWorth.liquidAssets, currency, 0, isPrivacyMode),
           note: "Cash in bank and fixed deposits",
         },
       ],
       derivationSteps: [
-        `Step 1: Filter your expense list for essential survival items (Total: ${formatCurrency(cashFlow.essentialMonthlyExpenses, currency)}/month).`,
-        `Step 2: Multiply by target buffer (${profile.assumptions.emergencyFundMonthsTarget} months) = ${formatCurrency(cashFlow.essentialMonthlyExpenses * profile.assumptions.emergencyFundMonthsTarget, currency)}.`,
-        `Step 3: Compare against your current liquid bank savings (${formatCurrency(netWorth.liquidAssets, currency)}).`,
+        `Step 1: Filter your expense list for essential survival items (Total: ${formatCurrency(cashFlow.essentialMonthlyExpenses, currency, 0, isPrivacyMode)}/month).`,
+        `Step 2: Multiply by target buffer (${profile.assumptions.emergencyFundMonthsTarget} months) = ${formatCurrency(cashFlow.essentialMonthlyExpenses * profile.assumptions.emergencyFundMonthsTarget, currency, 0, isPrivacyMode)}.`,
+        `Step 3: Compare against your current liquid bank savings (${formatCurrency(netWorth.liquidAssets, currency, 0, isPrivacyMode)}).`,
       ],
       resultLabel: "Required Emergency Cash Stash",
-      resultValue: formatCurrency(cashFlow.essentialMonthlyExpenses * profile.assumptions.emergencyFundMonthsTarget, currency),
+      resultValue: formatCurrency(cashFlow.essentialMonthlyExpenses * profile.assumptions.emergencyFundMonthsTarget, currency, 0, isPrivacyMode),
     },
     {
       key: "life_protection",
@@ -168,12 +168,12 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
       variables: [
         {
           label: "Total Outstanding Debts & Mortgages",
-          value: formatCurrency(netWorth.totalLiabilities, currency),
+          value: formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode),
           note: "To clear all housing, car, and personal loans to $0",
         },
         {
           label: "Annual Dependent Living Support",
-          value: formatCurrency(cashFlow.essentialMonthlyExpenses * 12, currency) + "/yr",
+          value: formatCurrency(cashFlow.essentialMonthlyExpenses * 12, currency, 0, isPrivacyMode) + "/yr",
           note: "To maintain your family's baseline standard of living",
         },
         {
@@ -183,21 +183,23 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
         },
         {
           label: "Existing Life / TPD Insurance In-Force",
-          value: formatCurrency(profile.insurancePolicies.reduce((s, p) => s + (p.deathBenefit || 0), 0), currency),
+          value: formatCurrency(profile.insurancePolicies.reduce((s, p) => s + (p.deathBenefit || 0), 0), currency, 0, isPrivacyMode),
           note: "Term and Whole Life death benefit coverage",
         },
       ],
       derivationSteps: [
-        `Step 1: Calculate full debt settlement: ${formatCurrency(netWorth.totalLiabilities, currency)}.`,
-        `Step 2: Add living fund for dependents: ${formatCurrency(cashFlow.essentialMonthlyExpenses * 12, currency)} × ${profile.assumptions.familySupportYearsTarget} years = ${formatCurrency(cashFlow.essentialMonthlyExpenses * 12 * profile.assumptions.familySupportYearsTarget, currency)}.`,
-        `Step 3: Add tertiary university education funds for children = ${formatCurrency(profile.dependents.reduce((s, d) => s + (d.tertiaryEducationTarget || 0), 0), currency)}.`,
+        `Step 1: Calculate full debt settlement: ${formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}.`,
+        `Step 2: Add living fund for dependents: ${formatCurrency(cashFlow.essentialMonthlyExpenses * 12, currency, 0, isPrivacyMode)} × ${profile.assumptions.familySupportYearsTarget} years = ${formatCurrency(cashFlow.essentialMonthlyExpenses * 12 * profile.assumptions.familySupportYearsTarget, currency, 0, isPrivacyMode)}.`,
+        `Step 3: Add tertiary university education funds for children = ${formatCurrency(profile.dependents.reduce((s, d) => s + (d.tertiaryEducationTarget || 0), 0), currency, 0, isPrivacyMode)}.`,
       ],
       resultLabel: "Total Life Protection Required",
       resultValue: formatCurrency(
         netWorth.totalLiabilities +
           cashFlow.essentialMonthlyExpenses * 12 * profile.assumptions.familySupportYearsTarget +
           profile.dependents.reduce((s, d) => s + (d.tertiaryEducationTarget || 0), 0),
-        currency
+        currency,
+        0,
+        isPrivacyMode
       ),
     },
     {
@@ -211,12 +213,12 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
       variables: [
         {
           label: "Monthly Take-Home / Gross Pay",
-          value: formatCurrency(cashFlow.totalMonthlyIncome, currency) + "/mo",
+          value: formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode) + "/mo",
           note: "Your monthly earning capacity",
         },
         {
           label: "Annual Income",
-          value: formatCurrency(cashFlow.totalMonthlyIncome * 12, currency) + "/yr",
+          value: formatCurrency(cashFlow.totalMonthlyIncome * 12, currency, 0, isPrivacyMode) + "/yr",
           note: "Base yearly income replacement need",
         },
         {
@@ -226,17 +228,17 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
         },
         {
           label: "Existing Major CI Coverage",
-          value: formatCurrency(profile.insurancePolicies.reduce((s, p) => s + (p.majorCiBenefit || 0), 0), currency),
+          value: formatCurrency(profile.insurancePolicies.reduce((s, p) => s + (p.majorCiBenefit || 0), 0), currency, 0, isPrivacyMode),
           note: "In-force Critical Illness policies",
         },
       ],
       derivationSteps: [
-        `Step 1: Multiply gross annual income (${formatCurrency(cashFlow.totalMonthlyIncome * 12, currency)}) by ${profile.assumptions.ciIncomeReplacementYears} years.`,
-        `Step 2: Total required = ${formatCurrency(cashFlow.totalMonthlyIncome * 12 * profile.assumptions.ciIncomeReplacementYears, currency)}.`,
-        `Step 3: Compare against in-force CI insurance (${formatCurrency(profile.insurancePolicies.reduce((s, p) => s + (p.majorCiBenefit || 0), 0), currency)}) to find your gap.`,
+        `Step 1: Multiply gross annual income (${formatCurrency(cashFlow.totalMonthlyIncome * 12, currency, 0, isPrivacyMode)}) by ${profile.assumptions.ciIncomeReplacementYears} years.`,
+        `Step 2: Total required = ${formatCurrency(cashFlow.totalMonthlyIncome * 12 * profile.assumptions.ciIncomeReplacementYears, currency, 0, isPrivacyMode)}.`,
+        `Step 3: Compare against in-force CI insurance (${formatCurrency(profile.insurancePolicies.reduce((s, p) => s + (p.majorCiBenefit || 0), 0), currency, 0, isPrivacyMode)}) to find your gap.`,
       ],
       resultLabel: "Critical Illness Target Coverage",
-      resultValue: formatCurrency(cashFlow.totalMonthlyIncome * 12 * profile.assumptions.ciIncomeReplacementYears, currency),
+      resultValue: formatCurrency(cashFlow.totalMonthlyIncome * 12 * profile.assumptions.ciIncomeReplacementYears, currency, 0, isPrivacyMode),
     },
     {
       key: "couple_burn_rate",
@@ -249,17 +251,17 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
       variables: [
         {
           label: "Combined Joint Monthly Expenses",
-          value: formatCurrency(cashFlow.totalMonthlyExpenses + (profile.partner?.isEnabled ? (profile.partner.monthlyPersonalExpenses + profile.partner.monthlyDebtRepayment) : 0), currency) + "/mo",
+          value: formatCurrency(cashFlow.totalMonthlyExpenses + (profile.partner?.isEnabled ? (profile.partner.monthlyPersonalExpenses + profile.partner.monthlyDebtRepayment) : 0), currency, 0, isPrivacyMode) + "/mo",
           note: "Mortgages, bills, food, and partner personal commitments",
         },
         {
           label: "Single Surviving Partner Salary",
-          value: formatCurrency(cashFlow.totalMonthlyIncome, currency) + "/mo",
+          value: formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode) + "/mo",
           note: "Income remaining when 1 partner is retrenched",
         },
         {
           label: "Joint Bank Cash Buffer",
-          value: formatCurrency(netWorth.liquidAssets + (profile.partner?.isEnabled ? profile.partner.liquidSavings : 0), currency),
+          value: formatCurrency(netWorth.liquidAssets + (profile.partner?.isEnabled ? profile.partner.liquidSavings : 0), currency, 0, isPrivacyMode),
           note: "Combined cash cushion available to absorb the burn",
         },
       ],
@@ -281,22 +283,22 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
       variables: [
         {
           label: "User CPF LIFE Estimated Payout",
-          value: profile.cpfLife?.isEnabled !== false ? `${formatCurrency(profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650, currency)}/mo` : "$0",
+          value: profile.cpfLife?.isEnabled !== false ? `${formatCurrency(profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650, currency, 0, isPrivacyMode)}/mo` : "$0",
           note: "Full Retirement Sum (FRS) lifelong monthly payout",
         },
         {
           label: "Partner CPF LIFE Estimated Payout",
-          value: profile.partner?.isEnabled ? `${formatCurrency(profile.partner.cpfLifeEstimatedMonthlyToday, currency)}/mo` : "$0",
+          value: profile.partner?.isEnabled ? `${formatCurrency(profile.partner.cpfLifeEstimatedMonthlyToday, currency, 0, isPrivacyMode)}/mo` : "$0",
           note: "Partner FRS lifelong monthly payout",
         },
       ],
       derivationSteps: [
-        `Step 1: Sum User payout (${formatCurrency(profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650, currency)}/mo) and Partner payout (${formatCurrency(profile.partner?.cpfLifeEstimatedMonthlyToday ?? 1650, currency)}/mo).`,
-        `Step 2: Total combined baseline annuity = ${formatCurrency((profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650) + (profile.partner?.cpfLifeEstimatedMonthlyToday ?? 1650), currency)}/mo.`,
+        `Step 1: Sum User payout (${formatCurrency(profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650, currency, 0, isPrivacyMode)}/mo) and Partner payout (${formatCurrency(profile.partner?.cpfLifeEstimatedMonthlyToday ?? 1650, currency, 0, isPrivacyMode)}/mo).`,
+        `Step 2: Total combined baseline annuity = ${formatCurrency((profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650) + (profile.partner?.cpfLifeEstimatedMonthlyToday ?? 1650), currency, 0, isPrivacyMode)}/mo.`,
         `Step 3: This lifelong floor guarantees basic housing & utility expenses will be covered unconditionally, eliminating the risk of outliving your wealth.`,
       ],
       resultLabel: "Combined Guaranteed Lifelong Annuity",
-      resultValue: formatCurrency((profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650) + (profile.partner?.cpfLifeEstimatedMonthlyToday ?? 1650), currency) + "/mo",
+      resultValue: formatCurrency((profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650) + (profile.partner?.cpfLifeEstimatedMonthlyToday ?? 1650), currency, 0, isPrivacyMode) + "/mo",
     },
     {
       key: "education_compounding",

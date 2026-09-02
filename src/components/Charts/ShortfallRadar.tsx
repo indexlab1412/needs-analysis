@@ -2,6 +2,7 @@
 
 import React from "react";
 import { ShortfallResult } from "@/lib/fna/types";
+import { useFinancialStore } from "@/context/financial-store";
 import { formatCurrency } from "@/lib/utils";
 import {
   ShieldAlert,
@@ -34,6 +35,7 @@ export const ShortfallRadar: React.FC<ShortfallRadarProps> = ({
   currency,
   onSelectCategory,
 }) => {
+  const { isPrivacyMode } = useFinancialStore();
   return (
     <div className="space-y-3">
       {shortfalls.map((item) => {
@@ -106,13 +108,13 @@ export const ShortfallRadar: React.FC<ShortfallRadarProps> = ({
               <div>
                 <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Required</div>
                 <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                  {formatCurrency(item.requiredAmount, currency)}
+                  {formatCurrency(item.requiredAmount, currency, 0, isPrivacyMode)}
                 </div>
               </div>
               <div>
                 <div className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">Existing</div>
                 <div className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                  {formatCurrency(item.existingAmount, currency)}
+                  {formatCurrency(item.existingAmount, currency, 0, isPrivacyMode)}
                 </div>
               </div>
               <div>
@@ -125,8 +127,8 @@ export const ShortfallRadar: React.FC<ShortfallRadarProps> = ({
                   }`}
                 >
                   {isDeficit
-                    ? `- ${formatCurrency(item.shortfallAmount, currency)}`
-                    : `+ ${formatCurrency(Math.abs(item.existingAmount - item.requiredAmount), currency)}`}
+                    ? `- ${formatCurrency(item.shortfallAmount, currency, 0, isPrivacyMode)}`
+                    : `+ ${formatCurrency(Math.abs(item.existingAmount - item.requiredAmount), currency, 0, isPrivacyMode)}`}
                 </div>
               </div>
             </div>

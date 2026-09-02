@@ -29,7 +29,7 @@ import { PartnerMergeModal } from "./PartnerMergeModal";
 import { FormulaModal, FormulaKey } from "./FormulaModal";
 
 export const CouplePlannerView: React.FC = () => {
-  const { profile, updateProfile, summary, currency } = useFinancialStore();
+  const { profile, updateProfile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { netWorth, cashFlow } = summary;
 
   const [isMergeModalOpen, setIsMergeModalOpen] = useState<boolean>(false);
@@ -194,15 +194,15 @@ export const CouplePlannerView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Joint Income</span>
                 <span className="text-sm sm:text-base font-black text-emerald-400 block mt-0.5">
-                  {formatCurrency(jointIncome, currency)}/mo
+                  {formatCurrency(jointIncome, currency, 0, isPrivacyMode)}/mo
                 </span>
-                <span className="text-[9px] text-slate-400">{currency} {userIncome.toLocaleString()} + {currency} {partnerIncome.toLocaleString()}</span>
+                <span className="text-[9px] text-slate-400">{currency} {isPrivacyMode ? "••••••" : userIncome.toLocaleString()} + {currency} {isPrivacyMode ? "••••••" : partnerIncome.toLocaleString()}</span>
               </div>
 
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Joint Expenses</span>
                 <span className="text-sm sm:text-base font-black text-rose-400 block mt-0.5">
-                  {formatCurrency(jointExpenses, currency)}/mo
+                  {formatCurrency(jointExpenses, currency, 0, isPrivacyMode)}/mo
                 </span>
                 <span className="text-[9px] text-slate-400">Bills, rent & personal loans</span>
               </div>
@@ -210,7 +210,7 @@ export const CouplePlannerView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Combined Net Worth</span>
                 <span className="text-sm sm:text-base font-black text-indigo-300 block mt-0.5">
-                  {formatCurrency(jointNetWorth, currency)}
+                  {formatCurrency(jointNetWorth, currency, 0, isPrivacyMode)}
                 </span>
                 <span className="text-[9px] text-slate-400">Assets minus all debts</span>
               </div>
@@ -220,7 +220,7 @@ export const CouplePlannerView: React.FC = () => {
                 <span className="text-sm sm:text-base font-black text-amber-300 block mt-0.5">
                   {jointSavingsRate}%
                 </span>
-                <span className="text-[9px] text-slate-400">Saving {formatCurrency(jointNetSavings + jointDCA, currency)}/mo</span>
+                <span className="text-[9px] text-slate-400">Saving {formatCurrency(jointNetSavings + jointDCA, currency, 0, isPrivacyMode)}/mo</span>
               </div>
             </div>
 
@@ -231,7 +231,7 @@ export const CouplePlannerView: React.FC = () => {
                 <div>
                   <strong className="text-emerald-300 block">Dual CPF LIFE Guaranteed Annuity Floor</strong>
                   <span className="text-slate-300 text-[11px]">
-                    At Age 65, both CPF payouts combine to give you a guaranteed <strong>{formatCurrency(jointCpfLifeFloor, currency)}/month for life</strong>!
+                    At Age 65, both CPF payouts combine to give you a guaranteed <strong>{formatCurrency(jointCpfLifeFloor, currency, 0, isPrivacyMode)}/month for life</strong>!
                   </span>
                 </div>
               </div>
@@ -439,13 +439,13 @@ export const CouplePlannerView: React.FC = () => {
                   <div className="p-2.5 bg-white/60 dark:bg-slate-900/60 rounded-xl">
                     <span className="text-[10px] text-slate-500 block">Remaining Household Income</span>
                     <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 block">
-                      {formatCurrency(survivingIncome, currency)}/mo
+                      {formatCurrency(survivingIncome, currency, 0, isPrivacyMode)}/mo
                     </span>
                   </div>
                   <div className="p-2.5 bg-white/60 dark:bg-slate-900/60 rounded-xl">
                     <span className="text-[10px] text-slate-500 block">Total Bills + Partner Debts</span>
                     <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 block">
-                      {formatCurrency(survivingMonthlyBurn, currency)}/mo
+                      {formatCurrency(survivingMonthlyBurn, currency, 0, isPrivacyMode)}/mo
                     </span>
                   </div>
                 </div>
@@ -454,11 +454,11 @@ export const CouplePlannerView: React.FC = () => {
                   <div className="text-xs leading-relaxed flex-1">
                     {isSurvivingDeficit ? (
                       <p>
-                        ⚠️ <strong>Cashflow Drain:</strong> The remaining income leaves a monthly gap of <strong>-{formatCurrency(monthlyCashDrain, currency)}/month</strong>. Your combined liquid savings of <strong>{formatCurrency(jointLiquidCash, currency)}</strong> will sustain the household for <strong>{coupleRunwayMonths} months</strong> before cash runs out.
+                        ⚠️ <strong>Cashflow Drain:</strong> The remaining income leaves a monthly gap of <strong>-{formatCurrency(monthlyCashDrain, currency, 0, isPrivacyMode)}/month</strong>. Your combined liquid savings of <strong>{formatCurrency(jointLiquidCash, currency, 0, isPrivacyMode)}</strong> will sustain the household for <strong>{coupleRunwayMonths} months</strong> before cash runs out.
                       </p>
                     ) : (
                       <p>
-                        🎉 <strong>Immense Resilience:</strong> One income of <strong>{formatCurrency(survivingIncome, currency)}/mo</strong> is sufficient to cover 100% of joint living costs and all debt repayments, still leaving <strong>+{formatCurrency(survivingMonthlySurplusDeficit, currency)}/month</strong> in surplus!
+                        🎉 <strong>Immense Resilience:</strong> One income of <strong>{formatCurrency(survivingIncome, currency, 0, isPrivacyMode)}/mo</strong> is sufficient to cover 100% of joint living costs and all debt repayments, still leaving <strong>+{formatCurrency(survivingMonthlySurplusDeficit, currency, 0, isPrivacyMode)}/month</strong> in surplus!
                       </p>
                     )}
                   </div>
@@ -506,13 +506,13 @@ export const CouplePlannerView: React.FC = () => {
                   <div className="p-2.5 bg-white/60 dark:bg-slate-900/60 rounded-xl">
                     <span className="text-[10px] text-slate-500 block">3-Year Income to Protect</span>
                     <span className="text-sm font-black text-slate-900 dark:text-white mt-0.5 block">
-                      {formatCurrency(threeYearLostIncome, currency)}
+                      {formatCurrency(threeYearLostIncome, currency, 0, isPrivacyMode)}
                     </span>
                   </div>
                   <div className="p-2.5 bg-white/60 dark:bg-slate-900/60 rounded-xl">
                     <span className="text-[10px] text-slate-500 block">Current CI Payout Insurance</span>
                     <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                      {formatCurrency(illPartnerCiCover, currency)}
+                      {formatCurrency(illPartnerCiCover, currency, 0, isPrivacyMode)}
                     </span>
                   </div>
                 </div>
@@ -521,11 +521,11 @@ export const CouplePlannerView: React.FC = () => {
                   <div className="text-xs leading-relaxed flex-1">
                     {ciInsuranceGap > 0 ? (
                       <p>
-                        🛡️ <strong>Insurance Buffer:</strong> {illPartnerName}'s Critical Illness policy will pay out <strong>{formatCurrency(illPartnerCiCover, currency)}</strong> cash, covering {ciCoverageRatio}% of lost salary so the healthy partner is not forced to bear all personal loans and medical recovery costs alone. Adding <strong>{formatCurrency(ciInsuranceGap, currency)}</strong> in CI coverage would achieve 100% income replacement.
+                        🛡️ <strong>Insurance Buffer:</strong> {illPartnerName}'s Critical Illness policy will pay out <strong>{formatCurrency(illPartnerCiCover, currency, 0, isPrivacyMode)}</strong> cash, covering {ciCoverageRatio}% of lost salary so the healthy partner is not forced to bear all personal loans and medical recovery costs alone. Adding <strong>{formatCurrency(ciInsuranceGap, currency, 0, isPrivacyMode)}</strong> in CI coverage would achieve 100% income replacement.
                       </p>
                     ) : (
                       <p>
-                        🎉 <strong>Fully Protected:</strong> {illPartnerName} has <strong>{formatCurrency(illPartnerCiCover, currency)}</strong> in Critical Illness coverage, fully replacing 3 years of income with zero financial stress on the surviving partner!
+                        🎉 <strong>Fully Protected:</strong> {illPartnerName} has <strong>{formatCurrency(illPartnerCiCover, currency, 0, isPrivacyMode)}</strong> in Critical Illness coverage, fully replacing 3 years of income with zero financial stress on the surviving partner!
                       </p>
                     )}
                   </div>

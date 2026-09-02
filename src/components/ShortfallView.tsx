@@ -23,7 +23,7 @@ import { IllnessShieldCard } from "./IllnessShieldCard";
 import { ShortfallRadar } from "./Charts/ShortfallRadar";
 
 export const ShortfallView: React.FC = () => {
-  const { summary, currency, setActiveTab } = useFinancialStore();
+  const { summary, currency, setActiveTab, isPrivacyMode } = useFinancialStore();
   const { shortfalls } = summary;
 
   const [expandedIndex, setExpandedIndex] = useState<number | null>(0);
@@ -243,7 +243,7 @@ export const ShortfallView: React.FC = () => {
                         isDeficit ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
                       }`}
                     >
-                      {isDeficit ? `-${formatCurrency(item.shortfallAmount, currency)}` : "Fully Covered"}
+                      {isDeficit ? `-${formatCurrency(item.shortfallAmount, currency, 0, isPrivacyMode)}` : "Fully Covered"}
                     </div>
                     <div className="text-[10px] text-slate-500 dark:text-slate-400 font-bold">{item.coverageRatio}% Ready</div>
                   </div>
@@ -284,7 +284,7 @@ export const ShortfallView: React.FC = () => {
                         Ideal Safety Target
                       </div>
                       <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {formatCurrency(item.requiredAmount, currency)}
+                        {formatCurrency(item.requiredAmount, currency, 0, isPrivacyMode)}
                       </div>
                     </div>
                     <div className="bg-white dark:bg-slate-800 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -292,7 +292,7 @@ export const ShortfallView: React.FC = () => {
                         What You Have Today
                       </div>
                       <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 mt-0.5">
-                        {formatCurrency(item.existingAmount, currency)}
+                        {formatCurrency(item.existingAmount, currency, 0, isPrivacyMode)}
                       </div>
                     </div>
                   </div>
@@ -333,7 +333,7 @@ export const ShortfallView: React.FC = () => {
                           <span>{b.label}</span>
                           <span className="font-bold text-slate-900 dark:text-white">
                             {typeof b.value === "number" && b.value > 100
-                              ? formatCurrency(b.value, currency)
+                              ? formatCurrency(b.value, currency, 0, isPrivacyMode)
                               : b.value}
                           </span>
                         </div>

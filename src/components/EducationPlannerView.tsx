@@ -56,7 +56,7 @@ const UNI_PRESETS: {
 };
 
 export const EducationPlannerView: React.FC = () => {
-  const { profile, updateProfile, summary, currency } = useFinancialStore();
+  const { profile, updateProfile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { assumptions } = profile;
 
   const children = profile.dependents.filter((d) => d.relationship === "child");
@@ -175,7 +175,7 @@ export const EducationPlannerView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Future University Cost</span>
                 <span className="text-sm sm:text-base font-black text-amber-400 block mt-0.5">
-                  {formatCurrency(totalFutureCostAllChildren, currency)}
+                  {formatCurrency(totalFutureCostAllChildren, currency, 0, isPrivacyMode)}
                 </span>
                 <span className="text-[9px] text-slate-400">Inflated at {assumptions.educationInflationRate}% p.a.</span>
               </div>
@@ -183,7 +183,7 @@ export const EducationPlannerView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl">
                 <span className="text-[10px] text-slate-400 block font-bold">Current Funds Saved</span>
                 <span className="text-sm sm:text-base font-black text-emerald-400 block mt-0.5">
-                  {formatCurrency(totalAssignedSavingsAll, currency)}
+                  {formatCurrency(totalAssignedSavingsAll, currency, 0, isPrivacyMode)}
                 </span>
                 <span className="text-[9px] text-slate-400">CDA + Endowments + Robos</span>
               </div>
@@ -191,7 +191,7 @@ export const EducationPlannerView: React.FC = () => {
               <div className="p-2.5 bg-white/5 rounded-2xl col-span-2 sm:col-span-1">
                 <span className="text-[10px] text-slate-400 block font-bold">Recommended Monthly DCA</span>
                 <span className="text-sm sm:text-base font-black text-indigo-300 block mt-0.5">
-                  {formatCurrency(totalMonthlyDcaNeededAll, currency)}/mo
+                  {formatCurrency(totalMonthlyDcaNeededAll, currency, 0, isPrivacyMode)}/mo
                 </span>
                 <span className="text-[9px] text-slate-400">At {assumptions.investmentReturnRate}% compounding</span>
               </div>
@@ -264,7 +264,7 @@ export const EducationPlannerView: React.FC = () => {
                           >
                             <span className="font-bold text-[11px] block">{preset.label}</span>
                             <span className="text-[10px] text-indigo-600 dark:text-indigo-400 font-extrabold mt-0.5 block">
-                              {formatCurrency(preset.todayCost, currency)} in today's $
+                              {formatCurrency(preset.todayCost, currency, 0, isPrivacyMode)} in today's $
                             </span>
                           </button>
                         );
@@ -277,7 +277,7 @@ export const EducationPlannerView: React.FC = () => {
                     <div>
                       <span className="text-[9px] uppercase font-bold text-slate-400">Future Compounded Cost</span>
                       <span className="text-xs sm:text-sm font-black text-amber-600 dark:text-amber-400 block mt-0.5">
-                        {formatCurrency(futureCost, currency)}
+                        {formatCurrency(futureCost, currency, 0, isPrivacyMode)}
                       </span>
                     </div>
 
@@ -299,7 +299,7 @@ export const EducationPlannerView: React.FC = () => {
                     <div>
                       <span className="text-[9px] uppercase font-bold text-slate-400">Monthly Auto-DCA Target</span>
                       <span className="text-xs sm:text-sm font-black text-emerald-600 dark:text-emerald-400 block mt-0.5">
-                        {formatCurrency(monthlyDca, currency)}/mo
+                        {formatCurrency(monthlyDca, currency, 0, isPrivacyMode)}/mo
                       </span>
                     </div>
                   </div>
@@ -308,7 +308,7 @@ export const EducationPlannerView: React.FC = () => {
                   <div className="space-y-1">
                     <div className="flex justify-between text-[10px] text-slate-400">
                       <span>Funded Progress: {progressPct}%</span>
-                      <span>Target: {formatCurrency(futureCost, currency)} in {yearsLeft} yrs</span>
+                      <span>Target: {formatCurrency(futureCost, currency, 0, isPrivacyMode)} in {yearsLeft} yrs</span>
                     </div>
                     <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                       <div style={{ width: `${progressPct}%` }} className="bg-indigo-600 h-full rounded-full" />

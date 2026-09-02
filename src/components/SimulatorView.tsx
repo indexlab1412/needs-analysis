@@ -37,7 +37,7 @@ import {
 type SimulatorMode = "retirement_weather" | "retrenchment_stress_test" | "life_transitions" | "market_levers";
 
 export const SimulatorView: React.FC = () => {
-  const { profile, updateProfile, summary, currency } = useFinancialStore();
+  const { profile, updateProfile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { assumptions } = profile;
   const { netWorth, cashFlow } = summary;
 
@@ -220,7 +220,7 @@ export const SimulatorView: React.FC = () => {
                       <Scissors className="w-3.5 h-3.5 text-indigo-500" /> Barebones
                     </span>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">
-                      Essentials ({formatCurrency(cashFlow.essentialMonthlyExpenses, currency)}/mo)
+                      Essentials ({formatCurrency(cashFlow.essentialMonthlyExpenses, currency, 0, isPrivacyMode)}/mo)
                     </span>
                   </button>
 
@@ -235,7 +235,7 @@ export const SimulatorView: React.FC = () => {
                   >
                     <span className="text-xs font-bold block">Normal</span>
                     <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 block">
-                      Full lifestyle ({formatCurrency(cashFlow.totalMonthlyExpenses, currency)}/mo)
+                      Full lifestyle ({formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode)}/mo)
                     </span>
                   </button>
                 </div>
@@ -245,7 +245,7 @@ export const SimulatorView: React.FC = () => {
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <div>
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                    Pause Auto-Invest / DCA ({formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency)}/mo)?
+                    Pause Auto-Invest / DCA ({formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode)}/mo)?
                   </span>
                   <span className="text-[10px] text-slate-500">
                     Stop regular investments to preserve cash
@@ -324,7 +324,7 @@ export const SimulatorView: React.FC = () => {
                   <div className="text-right">
                     <span className="text-[10px] text-slate-400 block uppercase font-bold">Monthly Cash Burn</span>
                     <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
-                      {formatCurrency(netMonthlyBurn, currency)}/mo
+                      {formatCurrency(netMonthlyBurn, currency, 0, isPrivacyMode)}/mo
                     </span>
                   </div>
                 </div>
@@ -333,11 +333,11 @@ export const SimulatorView: React.FC = () => {
                 <div className="mt-4 pt-4 border-t border-slate-200/60 dark:border-slate-800 text-xs sm:text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                   {isRunwayDeficit ? (
                     <p>
-                      ⚠️ <strong>Warning:</strong> If you are unemployed for <strong>{unemploymentMonths} months</strong>, you will burn a total of <strong>{formatCurrency(totalBurnOverPeriod, currency)}</strong>. Your current liquid cash ({formatCurrency(liquidCashAvailable, currency)}) will run dry at <strong>Month {roundedRunwayMonths}</strong>, leaving a shortfall of <strong className="text-rose-600 dark:text-rose-400">{formatCurrency(cashShortfallAtEnd, currency)}</strong>.
+                      ⚠️ <strong>Warning:</strong> If you are unemployed for <strong>{unemploymentMonths} months</strong>, you will burn a total of <strong>{formatCurrency(totalBurnOverPeriod, currency, 0, isPrivacyMode)}</strong>. Your current liquid cash ({formatCurrency(liquidCashAvailable, currency, 0, isPrivacyMode)}) will run dry at <strong>Month {roundedRunwayMonths}</strong>, leaving a shortfall of <strong className="text-rose-600 dark:text-rose-400">{formatCurrency(cashShortfallAtEnd, currency, 0, isPrivacyMode)}</strong>.
                     </p>
                   ) : (
                     <p>
-                      🎉 <strong>Solid Runway:</strong> Your ready cash of <strong>{formatCurrency(liquidCashAvailable, currency)}</strong> will safely last you through all <strong>{unemploymentMonths} months</strong> of unemployment with <strong>{formatCurrency(remainingCashAtEnd, currency)}</strong> leftover!
+                      🎉 <strong>Solid Runway:</strong> Your ready cash of <strong>{formatCurrency(liquidCashAvailable, currency, 0, isPrivacyMode)}</strong> will safely last you through all <strong>{unemploymentMonths} months</strong> of unemployment with <strong>{formatCurrency(remainingCashAtEnd, currency, 0, isPrivacyMode)}</strong> leftover!
                     </p>
                   )}
                 </div>
@@ -380,7 +380,7 @@ export const SimulatorView: React.FC = () => {
                                 <div className="flex justify-between gap-4 text-emerald-400 font-bold mt-1.5">
                                   <span>Cash Balance:</span>
                                   <span className={data.cash < 0 ? "text-rose-400" : "text-emerald-400"}>
-                                    {formatCurrency(data.cash, currency)}
+                                    {formatCurrency(data.cash, currency, 0, isPrivacyMode)}
                                   </span>
                                 </div>
                               </div>
@@ -564,7 +564,7 @@ export const SimulatorView: React.FC = () => {
                     }`}
                   >
                     {retirementShortfall && retirementShortfall.shortfallAmount > 0
-                      ? formatCurrency(retirementShortfall.shortfallAmount, currency)
+                      ? formatCurrency(retirementShortfall.shortfallAmount, currency, 0, isPrivacyMode)
                       : "Fully Funded 🎉"}
                   </div>
                   <div className="text-xs text-slate-400 mt-1">

@@ -103,7 +103,7 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
   targetAssetId,
   onApplyReturnRate,
 }) => {
-  const { profile, updateProfile, currency } = useFinancialStore();
+  const { profile, updateProfile, currency, isPrivacyMode } = useFinancialStore();
 
   // Mode: "annual_lump" (single cumulative principal + total years) vs "monthly_dca" (initial lump + monthly DCA * months)
   const isAnnualCadence = profile.planningCadence !== "monthly";
@@ -304,7 +304,7 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
               <div className="p-2 bg-white dark:bg-slate-900 rounded-xl border border-emerald-100 dark:border-emerald-900/60">
                 <span className="text-[9px] text-slate-400 font-bold uppercase block">Total Deposited</span>
                 <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white mt-0.5 block">
-                  {formatCurrency(result.totalInvested, currency)}
+                  {formatCurrency(result.totalInvested, currency, 0, isPrivacyMode)}
                 </span>
               </div>
 
@@ -313,7 +313,7 @@ export const InvestmentReturnCalculatorModal: React.FC<InvestmentReturnCalculato
                 <span className={`text-xs sm:text-sm font-black mt-0.5 block ${
                   result.totalGain >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
                 }`}>
-                  {result.totalGain >= 0 ? `+${formatCurrency(result.totalGain, currency)}` : formatCurrency(result.totalGain, currency)}
+                  {result.totalGain >= 0 ? `+${formatCurrency(result.totalGain, currency, 0, isPrivacyMode)}` : formatCurrency(result.totalGain, currency, 0, isPrivacyMode)}
                 </span>
               </div>
 

@@ -11,6 +11,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { LoanRundownPoint, LiabilityItem } from "@/lib/fna/types";
+import { useFinancialStore } from "@/context/financial-store";
 import { formatCurrency } from "@/lib/utils";
 import { Building2, CalendarCheck, Percent, ArrowDownRight } from "lucide-react";
 
@@ -27,6 +28,7 @@ export const LoanRundownChart: React.FC<LoanRundownChartProps> = ({
   currency,
   totalLifetimeInterest,
 }) => {
+  const { isPrivacyMode } = useFinancialStore();
   const totalBalance = liabilities.reduce((sum, l) => sum + (Number(l.outstandingBalance) || 0), 0);
   const totalMonthlyRepayment = liabilities.reduce((sum, l) => sum + (Number(l.monthlyRepayment) || 0), 0);
 
@@ -55,7 +57,7 @@ export const LoanRundownChart: React.FC<LoanRundownChartProps> = ({
         <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-2xl border border-rose-100 dark:border-rose-900">
           <span className="text-[10px] uppercase font-bold text-rose-500 block">Total Outstanding Debt</span>
           <span className="text-sm sm:text-base font-extrabold text-rose-700 dark:text-rose-300 mt-0.5 block">
-            {formatCurrency(totalBalance, currency)}
+            {formatCurrency(totalBalance, currency, 0, isPrivacyMode)}
           </span>
           <span className="text-[10px] text-rose-500/80">{liabilities.length} active loan(s)</span>
         </div>
@@ -71,7 +73,7 @@ export const LoanRundownChart: React.FC<LoanRundownChartProps> = ({
         <div className="col-span-2 sm:col-span-1 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700">
           <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Lifetime Interest</span>
           <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 mt-0.5 block">
-            {formatCurrency(totalLifetimeInterest, currency)}
+            {formatCurrency(totalLifetimeInterest, currency, 0, isPrivacyMode)}
           </span>
           <span className="text-[10px] text-slate-400">Total borrowing cost</span>
         </div>
@@ -117,15 +119,15 @@ export const LoanRundownChart: React.FC<LoanRundownChartProps> = ({
                         <div className="font-bold text-rose-300">Age {data.clientAge} (Year {data.yearIndex})</div>
                         <div className="flex justify-between gap-4 text-rose-400 font-bold">
                           <span>Remaining Debt:</span>
-                          <span>{formatCurrency(data.remainingBalance, currency)}</span>
+                          <span>{formatCurrency(data.remainingBalance, currency, 0, isPrivacyMode)}</span>
                         </div>
                         <div className="flex justify-between gap-4 text-emerald-300">
                           <span>Principal Paid:</span>
-                          <span>{formatCurrency(data.principalPaidToDate, currency)}</span>
+                          <span>{formatCurrency(data.principalPaidToDate, currency, 0, isPrivacyMode)}</span>
                         </div>
                         <div className="flex justify-between gap-4 text-slate-300">
                           <span>Interest Paid:</span>
-                          <span>{formatCurrency(data.interestPaidToDate, currency)}</span>
+                          <span>{formatCurrency(data.interestPaidToDate, currency, 0, isPrivacyMode)}</span>
                         </div>
                       </div>
                     );
@@ -168,13 +170,13 @@ export const LoanRundownChart: React.FC<LoanRundownChartProps> = ({
                 </span>
               </div>
               <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Balance: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(loan.outstandingBalance, currency)}</strong> • {loan.tenureYearsRemaining || 5} yrs remaining
+                Balance: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(loan.outstandingBalance, currency, 0, isPrivacyMode)}</strong> • {loan.tenureYearsRemaining || 5} yrs remaining
               </div>
             </div>
 
             <div className="text-right shrink-0">
               <span className="text-xs font-bold text-slate-900 dark:text-white block">
-                {formatCurrency(loan.monthlyRepayment, currency)}/mo
+                {formatCurrency(loan.monthlyRepayment, currency, 0, isPrivacyMode)}/mo
               </span>
               <span className="text-[10px] text-slate-400">Repayment</span>
             </div>

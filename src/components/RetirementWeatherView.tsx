@@ -29,7 +29,7 @@ import {
 } from "recharts";
 
 export const RetirementWeatherView: React.FC = () => {
-  const { profile, summary, currency } = useFinancialStore();
+  const { profile, summary, currency, isPrivacyMode } = useFinancialStore();
   const { netWorth, cashFlow, retirementDetails } = summary;
 
   // Base profile values
@@ -146,13 +146,13 @@ export const RetirementWeatherView: React.FC = () => {
             Age {label} ({data.year})
           </div>
           <div className="text-emerald-600 dark:text-emerald-400">
-            Boom Market (Top 10%): {formatCurrency(data.percentile90, currency)}
+            Boom Market (Top 10%): {formatCurrency(data.percentile90, currency, 0, isPrivacyMode)}
           </div>
           <div className="text-sky-600 dark:text-sky-400 font-semibold">
-            Average Market (Median): {formatCurrency(data.percentile50, currency)}
+            Average Market (Median): {formatCurrency(data.percentile50, currency, 0, isPrivacyMode)}
           </div>
           <div className="text-rose-600 dark:text-rose-400">
-            Recession / Crash (Worst 10%): {formatCurrency(data.percentile10, currency)}
+            Recession / Crash (Worst 10%): {formatCurrency(data.percentile10, currency, 0, isPrivacyMode)}
           </div>
         </div>
       );
@@ -309,7 +309,7 @@ export const RetirementWeatherView: React.FC = () => {
           <div className="flex justify-between items-center text-xs">
             <span className="font-semibold text-slate-700 dark:text-slate-300">Boost Monthly Savings:</span>
             <span className="font-bold text-indigo-600 dark:text-indigo-400 text-sm">
-              +{formatCurrency(monthlySavingsBoost, currency)}/mo
+              +{formatCurrency(monthlySavingsBoost, currency, 0, isPrivacyMode)}/mo
             </span>
           </div>
           <input
@@ -322,9 +322,9 @@ export const RetirementWeatherView: React.FC = () => {
             className="w-full accent-indigo-600 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
           />
           <div className="flex justify-between text-[10px] text-slate-400">
-            <span>+{formatCurrency(0, currency)}</span>
-            <span>+{formatCurrency(500, currency)}/mo</span>
-            <span>+{formatCurrency(1000, currency)}/mo</span>
+            <span>+{formatCurrency(0, currency, 0, isPrivacyMode)}</span>
+            <span>+{formatCurrency(500, currency, 0, isPrivacyMode)}/mo</span>
+            <span>+{formatCurrency(1000, currency, 0, isPrivacyMode)}/mo</span>
           </div>
         </div>
 
@@ -357,7 +357,7 @@ export const RetirementWeatherView: React.FC = () => {
           <div className="flex justify-between items-center text-xs">
             <span className="font-semibold text-slate-700 dark:text-slate-300">Desired Monthly Spend (Today's Dollars):</span>
             <span className="font-bold text-indigo-600 dark:text-indigo-400 text-sm">
-              {formatCurrency(monthlySpendToday, currency)}/mo
+              {formatCurrency(monthlySpendToday, currency, 0, isPrivacyMode)}/mo
             </span>
           </div>
           <input
@@ -370,9 +370,9 @@ export const RetirementWeatherView: React.FC = () => {
             className="w-full accent-indigo-600 h-2 bg-slate-200 dark:bg-slate-700 rounded-lg cursor-pointer"
           />
           <div className="flex justify-between text-[10px] text-slate-400">
-            <span>{formatCurrency(1000, currency)} (Basic)</span>
-            <span>{formatCurrency(5000, currency)}</span>
-            <span>{formatCurrency(10000, currency)} (Abundant)</span>
+            <span>{formatCurrency(1000, currency, 0, isPrivacyMode)} (Basic)</span>
+            <span>{formatCurrency(5000, currency, 0, isPrivacyMode)}</span>
+            <span>{formatCurrency(10000, currency, 0, isPrivacyMode)} (Abundant)</span>
           </div>
         </div>
 

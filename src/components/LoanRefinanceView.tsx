@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 
 export const LoanRefinanceView: React.FC = () => {
-  const { profile, currency } = useFinancialStore();
+  const { profile, currency, isPrivacyMode } = useFinancialStore();
   const { liabilities } = profile;
 
   const [selectedLoanId, setSelectedLoanId] = useState<string>(
@@ -149,19 +149,19 @@ export const LoanRefinanceView: React.FC = () => {
           <div>
             <span className="text-[10px] uppercase font-bold text-slate-400 block">Remaining Principal</span>
             <span className="text-base sm:text-lg font-black text-white mt-0.5 block">
-              {formatCurrency(balance, currency)}
+              {formatCurrency(balance, currency, 0, isPrivacyMode)}
             </span>
           </div>
           <div>
             <span className="text-[10px] uppercase font-bold text-rose-400 block">Bank Interest You Will Pay</span>
             <span className="text-base sm:text-lg font-black text-rose-400 mt-0.5 block">
-              +{formatCurrency(currentTotalLifetimeInterest, currency)}
+              +{formatCurrency(currentTotalLifetimeInterest, currency, 0, isPrivacyMode)}
             </span>
           </div>
         </div>
 
         <div className="p-2.5 bg-white/5 rounded-xl text-xs text-slate-300">
-          Total amount to clear loan: <strong>{formatCurrency(balance + currentTotalLifetimeInterest, currency)}</strong> (Principal + Bank Interest).
+          Total amount to clear loan: <strong>{formatCurrency(balance + currentTotalLifetimeInterest, currency, 0, isPrivacyMode)}</strong> (Principal + Bank Interest).
         </div>
       </div>
 
@@ -201,7 +201,7 @@ export const LoanRefinanceView: React.FC = () => {
               Total Interest Saved
             </span>
             <span className="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-300 mt-0.5 block">
-              {formatCurrency(totalInterestSavedFromRefinance, currency)}
+              {formatCurrency(totalInterestSavedFromRefinance, currency, 0, isPrivacyMode)}
             </span>
             <span className="text-[10px] text-emerald-600/80">Kept in your pocket</span>
           </div>
@@ -211,7 +211,7 @@ export const LoanRefinanceView: React.FC = () => {
               Monthly Payment Drop
             </span>
             <span className="text-sm sm:text-base font-black text-indigo-700 dark:text-indigo-300 mt-0.5 block">
-              -{formatCurrency(monthlySavingsFromRefinance, currency)}/mo
+              -{formatCurrency(monthlySavingsFromRefinance, currency, 0, isPrivacyMode)}/mo
             </span>
             <span className="text-[10px] text-indigo-600/80">Extra monthly cashflow</span>
           </div>
@@ -276,7 +276,7 @@ export const LoanRefinanceView: React.FC = () => {
               Interest Kept Away from Bank
             </span>
             <span className="text-sm sm:text-base font-black text-indigo-700 dark:text-indigo-300 mt-0.5 block">
-              {formatCurrency(earlyPayoffResult.interestSaved, currency)}
+              {formatCurrency(earlyPayoffResult.interestSaved, currency, 0, isPrivacyMode)}
             </span>
             <span className="text-[10px] text-indigo-600/80">Lifetime savings</span>
           </div>

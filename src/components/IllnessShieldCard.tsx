@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 export const IllnessShieldCard: React.FC = () => {
-  const { summary, currency } = useFinancialStore();
+  const { summary, currency, isPrivacyMode } = useFinancialStore();
   const { illnessShield } = summary;
   const [isExpanded, setIsExpanded] = useState(true);
   const [showInflationModal, setShowInflationModal] = useState(false);
@@ -223,10 +223,10 @@ export const IllnessShieldCard: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Current: <strong>{formatCurrency(earlyStageRecovery.existing, currency)}</strong>
+                    Current: <strong>{formatCurrency(earlyStageRecovery.existing, currency, 0, isPrivacyMode)}</strong>
                   </span>
                   <span className="font-bold text-slate-900 dark:text-white">
-                    Target: {formatCurrency(earlyStageRecovery.needed, currency)}
+                    Target: {formatCurrency(earlyStageRecovery.needed, currency, 0, isPrivacyMode)}
                   </span>
                 </div>
                 <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -239,7 +239,7 @@ export const IllnessShieldCard: React.FC = () => {
                   <span>{earlyStageRecovery.coverageRatio}% Funded ({earlyStageRecovery.monthsSupported} months)</span>
                   {earlyStageRecovery.gap > 0 ? (
                     <span className="text-rose-600 dark:text-rose-400 font-semibold">
-                      Gap: -{formatCurrency(earlyStageRecovery.gap, currency)}
+                      Gap: -{formatCurrency(earlyStageRecovery.gap, currency, 0, isPrivacyMode)}
                     </span>
                   ) : (
                     <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -271,10 +271,10 @@ export const IllnessShieldCard: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Current: <strong>{formatCurrency(majorStageReset.existing, currency)}</strong>
+                    Current: <strong>{formatCurrency(majorStageReset.existing, currency, 0, isPrivacyMode)}</strong>
                   </span>
                   <span className="font-bold text-slate-900 dark:text-white">
-                    Target: {formatCurrency(majorStageReset.needed, currency)}
+                    Target: {formatCurrency(majorStageReset.needed, currency, 0, isPrivacyMode)}
                   </span>
                 </div>
                 <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -287,7 +287,7 @@ export const IllnessShieldCard: React.FC = () => {
                   <span>{majorStageReset.coverageRatio}% Funded ({majorStageReset.yearsSupported} yrs)</span>
                   {majorStageReset.gap > 0 ? (
                     <span className="text-rose-600 dark:text-rose-400 font-semibold">
-                      Gap: -{formatCurrency(majorStageReset.gap, currency)}
+                      Gap: -{formatCurrency(majorStageReset.gap, currency, 0, isPrivacyMode)}
                     </span>
                   ) : (
                     <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -319,10 +319,10 @@ export const IllnessShieldCard: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between text-xs">
                   <span className="text-slate-500 dark:text-slate-400">
-                    Current: <strong>{formatCurrency(monthlyPaycheckShield.existingMonthly, currency)}/mo</strong>
+                    Current: <strong>{formatCurrency(monthlyPaycheckShield.existingMonthly, currency, 0, isPrivacyMode)}/mo</strong>
                   </span>
                   <span className="font-bold text-slate-900 dark:text-white">
-                    Target: {formatCurrency(monthlyPaycheckShield.neededMonthly, currency)}/mo
+                    Target: {formatCurrency(monthlyPaycheckShield.neededMonthly, currency, 0, isPrivacyMode)}/mo
                   </span>
                 </div>
                 <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
@@ -335,7 +335,7 @@ export const IllnessShieldCard: React.FC = () => {
                   <span>{monthlyPaycheckShield.coverageRatio}% Covered</span>
                   {monthlyPaycheckShield.gapMonthly > 0 ? (
                     <span className="text-rose-600 dark:text-rose-400 font-semibold">
-                      Gap: -{formatCurrency(monthlyPaycheckShield.gapMonthly, currency)}/mo
+                      Gap: -{formatCurrency(monthlyPaycheckShield.gapMonthly, currency, 0, isPrivacyMode)}/mo
                     </span>
                   ) : (
                     <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -370,19 +370,19 @@ export const IllnessShieldCard: React.FC = () => {
                   <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-sm">
                     <span className="text-[10px] text-slate-400 block">Today</span>
                     <span className="font-bold text-slate-900 dark:text-white text-xs">
-                      {formatCurrency(medicalInflationProjection.baseBillToday, currency)}
+                      {formatCurrency(medicalInflationProjection.baseBillToday, currency, 0, isPrivacyMode)}
                     </span>
                   </div>
                   <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200 dark:border-indigo-800 shadow-sm">
                     <span className="text-[10px] text-indigo-600 dark:text-indigo-400 block font-medium">In 10 Years</span>
                     <span className="font-bold text-indigo-900 dark:text-indigo-200 text-xs">
-                      {formatCurrency(medicalInflationProjection.billIn10Years, currency)}
+                      {formatCurrency(medicalInflationProjection.billIn10Years, currency, 0, isPrivacyMode)}
                     </span>
                   </div>
                   <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 border border-purple-200 dark:border-purple-800 shadow-sm">
                     <span className="text-[10px] text-purple-600 dark:text-purple-400 block font-medium">In 20 Years</span>
                     <span className="font-bold text-purple-900 dark:text-purple-200 text-xs">
-                      {formatCurrency(medicalInflationProjection.billIn20Years, currency)}
+                      {formatCurrency(medicalInflationProjection.billIn20Years, currency, 0, isPrivacyMode)}
                     </span>
                     <span className="text-[9px] text-purple-600 dark:text-purple-400 font-bold block mt-0.5">
                       ({medicalInflationProjection.estimatedMultiplierIn20Years}x cost)
