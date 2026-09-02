@@ -5,7 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatCurrency(amount: number, currency: string = "SGD", decimals: number = 0): string {
+export function formatCurrency(
+  amount: number,
+  currency: string = "SGD",
+  decimals: number = 0,
+  isMasked: boolean = false
+): string {
   const symbolMap: { [key: string]: string } = {
     SGD: "S$",
     USD: "$",
@@ -18,7 +23,15 @@ export function formatCurrency(amount: number, currency: string = "SGD", decimal
   };
 
   const symbol = symbolMap[currency] || `${currency} `;
+  if (isMasked) {
+    return `${symbol}••••••`;
+  }
   return `${symbol}${Math.round(amount).toLocaleString()}`;
+}
+
+export function maskSensitive(val: string | number, isMasked: boolean = false): string {
+  if (isMasked) return "••••••";
+  return typeof val === "number" ? Math.round(val).toLocaleString() : String(val);
 }
 
 export function formatNumber(amount: number): string {

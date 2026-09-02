@@ -49,6 +49,8 @@ import {
   Edit3,
   Info,
   ChevronsUpDown,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { InvestmentReturnCalculatorModal } from "./InvestmentReturnCalculatorModal";
 
@@ -59,6 +61,8 @@ export const DashboardView: React.FC = () => {
     summary,
     profile,
     currency,
+    isPrivacyMode,
+    togglePrivacyMode,
     setActiveTab,
     goToWizardStep,
     isQuickCheckinOpen,
@@ -131,6 +135,31 @@ export const DashboardView: React.FC = () => {
 
   return (
     <div className="space-y-6 pb-20 animate-in fade-in duration-200">
+      {/* Face-to-Face Privacy Shield Notice Banner (When Active) */}
+      {isPrivacyMode && (
+        <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in">
+          <div className="flex items-center gap-2 text-emerald-900 dark:text-emerald-200 min-w-0">
+            <span className="p-1 rounded-lg bg-emerald-600 text-white shrink-0">
+              <EyeOff className="w-3.5 h-3.5" />
+            </span>
+            <div className="min-w-0">
+              <strong className="font-extrabold text-emerald-950 dark:text-emerald-100">
+                Face-to-Face Privacy Shield Active:
+              </strong>{" "}
+              <span className="text-emerald-800/90 dark:text-emerald-300/90">
+                Monthly income, net worth &amp; sensitive balances are masked with ••••••
+              </span>
+            </div>
+          </div>
+          <button
+            onClick={togglePrivacyMode}
+            className="px-2.5 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] shrink-0 cursor-pointer shadow-xs transition-colors"
+          >
+            Reveal / Unmask
+          </button>
+        </div>
+      )}
+
       {/* 1. Top Summary KPI 4-Card Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {/* Card 1: Net Worth */}
@@ -156,7 +185,7 @@ export const DashboardView: React.FC = () => {
               </button>
             </div>
             <div className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1">
-              {formatCurrency(netWorth.netWorth, currency)}
+              {formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode)}
             </div>
             {isCoupleEnabled && (
               <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30">
@@ -169,13 +198,13 @@ export const DashboardView: React.FC = () => {
             <div>
               <span className="text-[10px] text-slate-300 block">Assets</span>
               <span className="font-extrabold text-emerald-400 text-xs sm:text-sm">
-                {formatCurrency(netWorth.totalAssets, currency)}
+                {formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}
               </span>
             </div>
             <div>
               <span className="text-[10px] text-slate-300 block">Debts</span>
               <span className="font-extrabold text-rose-400 text-xs sm:text-sm">
-                {formatCurrency(netWorth.totalLiabilities, currency)}
+                {formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}
               </span>
             </div>
           </div>
@@ -198,7 +227,7 @@ export const DashboardView: React.FC = () => {
               </span>
             </div>
             <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-600 dark:text-emerald-400 mt-1">
-              +{formatCurrency(cashFlow.monthlyNetSavings, currency)}
+              +{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}
               <span className="text-xs text-slate-400 font-semibold ml-1">/mo</span>
             </div>
           </div>
@@ -207,13 +236,13 @@ export const DashboardView: React.FC = () => {
             <div>
               <span className="text-[10px] text-slate-400 block">Income</span>
               <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                {formatCurrency(cashFlow.totalMonthlyIncome, currency)}
+                {formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode)}
               </span>
             </div>
             <div>
               <span className="text-[10px] text-slate-400 block">Living Bills</span>
               <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                {formatCurrency(cashFlow.totalMonthlyExpenses, currency)}
+                {formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode)}
               </span>
             </div>
           </div>
@@ -243,7 +272,7 @@ export const DashboardView: React.FC = () => {
               </button>
             </div>
             <div className="text-2xl sm:text-3xl font-black tracking-tight text-indigo-600 dark:text-indigo-400 mt-1">
-              {formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency)}
+              {formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode)}
               <span className="text-xs text-slate-400 font-semibold ml-1">/mo DCA</span>
             </div>
           </div>
@@ -252,7 +281,7 @@ export const DashboardView: React.FC = () => {
             <div>
               <span className="text-[10px] text-slate-400 block">Liquid Assets</span>
               <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                {formatCurrency(netWorth.liquidAssets, currency)}
+                {formatCurrency(netWorth.liquidAssets, currency, 0, isPrivacyMode)}
               </span>
             </div>
             <div>
@@ -430,7 +459,7 @@ export const DashboardView: React.FC = () => {
                 onToggleControlled={setIsPaycheckOpen}
                 collapsedSummary={
                   <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm">
-                    +{formatCurrency(cashFlow.monthlyNetSavings, currency)}/mo ({cashFlow.savingsRatePercentage}% saved)
+                    +{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo ({cashFlow.savingsRatePercentage}% saved)
                   </span>
                 }
                 badge={
@@ -468,7 +497,7 @@ export const DashboardView: React.FC = () => {
                 onToggleControlled={setIsAssetsOpen}
                 collapsedSummary={
                   <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
-                    Assets: {formatCurrency(netWorth.totalAssets, currency)}
+                    Assets: {formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}
                   </span>
                 }
                 badge={
@@ -561,7 +590,7 @@ export const DashboardView: React.FC = () => {
                         Net Cashflow:
                       </span>
                       <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                        +{formatCurrency(cashFlow.monthlyNetSavings, currency)}/mo
+                        +{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo
                       </span>
                     </div>
 
@@ -635,7 +664,7 @@ export const DashboardView: React.FC = () => {
                         Annual Savings Created:
                       </span>
                       <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                        +{formatCurrency(cashFlow.monthlyNetSavings * 12, currency)} / year
+                        +{formatCurrency(cashFlow.monthlyNetSavings * 12, currency, 0, isPrivacyMode)} / year
                       </span>
                     </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useFinancialStore } from "@/context/financial-store";
 import { formatCurrency } from "@/lib/utils";
 import { ArrowUpRight, ArrowDownRight, PiggyBank } from "lucide-react";
 
@@ -19,6 +20,7 @@ export const CashflowBreakdown: React.FC<CashflowBreakdownProps> = ({
   savingsRate,
   currency,
 }) => {
+  const { isPrivacyMode } = useFinancialStore();
   const expensePct = income > 0 ? Math.min(100, Math.round((expenses / income) * 100)) : 100;
   const savingsPct = income > 0 ? Math.max(0, Math.min(100, Math.round((savings / income) * 100))) : 0;
 
@@ -32,7 +34,7 @@ export const CashflowBreakdown: React.FC<CashflowBreakdownProps> = ({
             <span className="truncate">Income</span>
           </div>
           <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1 truncate">
-            {formatCurrency(income, currency)}
+            {formatCurrency(income, currency, 0, isPrivacyMode)}
           </div>
           <div className="text-[10px] text-slate-400">/month</div>
         </div>
@@ -43,7 +45,7 @@ export const CashflowBreakdown: React.FC<CashflowBreakdownProps> = ({
             <span className="truncate">Expenses</span>
           </div>
           <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white mt-1 truncate">
-            {formatCurrency(expenses, currency)}
+            {formatCurrency(expenses, currency, 0, isPrivacyMode)}
           </div>
           <div className="text-[10px] text-slate-400">{expensePct}% of income</div>
         </div>
@@ -54,7 +56,7 @@ export const CashflowBreakdown: React.FC<CashflowBreakdownProps> = ({
             <span className="truncate">Net Savings</span>
           </div>
           <div className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 mt-1 truncate">
-            {formatCurrency(savings, currency)}
+            {formatCurrency(savings, currency, 0, isPrivacyMode)}
           </div>
           <div className="text-[10px] text-emerald-600 font-semibold">{savingsRate}% rate</div>
         </div>

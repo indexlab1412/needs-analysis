@@ -30,6 +30,8 @@ import {
   ListOrdered,
   Compass,
   Sliders,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 export const MobileHeader: React.FC = () => {
@@ -53,6 +55,8 @@ export const MobileHeader: React.FC = () => {
     themeMode,
     setThemeMode,
     toggleTheme,
+    isPrivacyMode,
+    togglePrivacyMode,
   } = useFinancialStore();
 
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
@@ -227,6 +231,34 @@ export const MobileHeader: React.FC = () => {
             <span className="hidden sm:inline">Guide</span>
           </button>
 
+          {/* Face-to-Face Privacy Shield Toggle */}
+          <button
+            onClick={togglePrivacyMode}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm ${
+              isPrivacyMode
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-500 shadow-emerald-500/20"
+                : "bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+            }`}
+            title={
+              isPrivacyMode
+                ? "Privacy Mode Active: Sensitive numbers masked for face-to-face sharing. Click to reveal. (Alt+P)"
+                : "Privacy Mode: Click to mask sensitive numbers for face-to-face sharing. (Alt+P)"
+            }
+            aria-label="Toggle Privacy Mode"
+          >
+            {isPrivacyMode ? (
+              <>
+                <EyeOff className="w-3.5 h-3.5 text-white" />
+                <span className="text-[11px] font-black uppercase tracking-wider">Masked</span>
+              </>
+            ) : (
+              <>
+                <Eye className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                <span className="hidden sm:inline">Mask</span>
+              </>
+            )}
+          </button>
+
           {/* Multi-Device Encrypted Sync Status Badge */}
           <SyncStatusBadge onOpenModal={() => setIsSyncModalOpen(true)} />
 
@@ -301,7 +333,7 @@ export const MobileHeader: React.FC = () => {
         <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-0.5 rounded-xl border border-slate-200/80 dark:border-slate-700/80">
           <button
             onClick={() => setPlanningScope("individual")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
               !isJoint
                 ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
                 : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
@@ -313,7 +345,7 @@ export const MobileHeader: React.FC = () => {
 
           <button
             onClick={() => setPlanningScope("joint")}
-            className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
               isJoint
                 ? "bg-rose-500 text-white shadow-sm"
                 : "text-rose-600 dark:text-rose-400"
@@ -323,6 +355,20 @@ export const MobileHeader: React.FC = () => {
             <span>Couple</span>
           </button>
         </div>
+
+        {/* Mobile Privacy Shield Button */}
+        <button
+          onClick={togglePrivacyMode}
+          className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer ${
+            isPrivacyMode
+              ? "bg-emerald-600 text-white shadow-sm font-black"
+              : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/80 dark:border-slate-700"
+          }`}
+          title="Toggle Face-to-Face Privacy Mode"
+        >
+          {isPrivacyMode ? <EyeOff className="w-3 h-3 text-white" /> : <Eye className="w-3 h-3" />}
+          <span>{isPrivacyMode ? "Masked" : "Mask"}</span>
+        </button>
       </div>
 
       {/* Unified Mobile Action & Settings Modal */}
@@ -382,6 +428,50 @@ export const MobileHeader: React.FC = () => {
                   <option value="EUR">€ (EUR)</option>
                   <option value="GBP">£ (GBP)</option>
                 </select>
+              </div>
+
+              {/* Face-to-Face Privacy Shield Toggle Row */}
+              <div className="p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div
+                    className={`w-7 h-7 rounded-xl flex items-center justify-center shrink-0 ${
+                      isPrivacyMode
+                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800"
+                        : "bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300"
+                    }`}
+                  >
+                    {isPrivacyMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <span>Face-to-Face Privacy Shield</span>
+                      {isPrivacyMode && (
+                        <span className="text-[9px] font-black px-1.5 py-0.2 rounded-full bg-emerald-500 text-white uppercase shrink-0">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug truncate">
+                      Masks income, net worth &amp; balances when sharing
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={togglePrivacyMode}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    isPrivacyMode ? "bg-emerald-500" : "bg-slate-300 dark:bg-slate-700"
+                  }`}
+                  role="switch"
+                  aria-checked={isPrivacyMode}
+                  title="Toggle Face-to-Face Privacy Mode (Alt+P)"
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      isPrivacyMode ? "translate-x-5" : "translate-x-0"
+                    }`}
+                  />
+                </button>
               </div>
 
               {/* Appearance / Theme Selector Row */}

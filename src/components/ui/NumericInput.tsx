@@ -1,12 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useFinancialStore } from "@/context/financial-store";
 
 export interface NumericInputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange" | "value"> {
   value: number | undefined | null;
   onChange: (val: number) => void;
   allowDecimals?: boolean;
+  skipMask?: boolean;
 }
 
 /**
@@ -14,15 +16,21 @@ export interface NumericInputProps
  * 1. Typing '0.' or '.5' without stripping decimal points
  * 2. Backspacing all the way to empty without snapping back to 0 or initial values
  * 3. Fast mobile touch keyboard support with inputMode="decimal"
+ * 4. Face-to-Face Privacy Shield: automatically masks sensitive input when privacy mode is active unless focused or skipped
  */
 export const NumericInput: React.FC<NumericInputProps> = ({
   value,
   onChange,
   allowDecimals = true,
+  skipMask = false,
   className = "",
   placeholder = "0",
   ...props
 }) => {
+  const { isPrivacyMode } = useFinancialStore();
+  const [isFocused, setIsFocused] = useState<boolean>(false);
+  const shouldMask = Boolean(isPrivacyMode && !skipMask);
+
   const [localStr, setLocalStr] = useState<string>(() => {
     if (value === undefined || value === null || value === 0) return "";
     return String(value);
@@ -72,7 +80,13 @@ export const NumericInput: React.FC<NumericInputProps> = ({
     }
   };
 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(true);
+    if (props.onFocus) props.onFocus(e);
+  };
+
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsFocused(false);
     if (localStr === "." || localStr === "") {
       setLocalStr("");
       onChange(0);
@@ -84,15 +98,18 @@ export const NumericInput: React.FC<NumericInputProps> = ({
     if (props.onBlur) props.onBlur(e);
   };
 
+  const isMaskActive = shouldMask && !isFocused && localStr !== "";
+
   return (
     <input
-      type="text"
+      type={isMaskActive ? "password" : "text"}
       inputMode={allowDecimals ? "decimal" : "numeric"}
       value={localStr}
       onChange={handleChange}
+      onFocus={handleFocus}
       onBlur={handleBlur}
-      placeholder={placeholder}
-      className={className}
+      placeholder={shouldMask ? "••••" : placeholder}
+      className={`${className} ${isMaskActive ? "tracking-widest select-none" : ""}`}
       {...props}
     />
   );

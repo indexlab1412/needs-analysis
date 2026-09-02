@@ -12,7 +12,7 @@ import {
 } from "@/lib/fna/types";
 import { analyzeFinancialNeeds } from "@/lib/fna/engine";
 import { SAMPLE_PROFILES, DEFAULT_BLANK_PROFILE } from "@/lib/fna/sample-data";
-import { generateId } from "@/lib/utils";
+import { generateId, formatCurrency } from "@/lib/utils";
 import { encryptPayload, decryptPayload, EncryptedSyncPayload } from "@/lib/sync/crypto";
 
 type TabType = "dashboard" | "wizard" | "shortfall" | "priorities" | "simulator" | "vault";
@@ -76,6 +76,12 @@ interface FinancialStoreContextType {
   setThemeMode: (mode: ThemeMode) => void;
   toggleTheme: () => void;
 
+  // Face-to-Face Privacy Shield
+  isPrivacyMode: boolean;
+  setIsPrivacyMode: (val: boolean) => void;
+  togglePrivacyMode: () => void;
+  formatMoney: (amount: number, overrideDecimals?: number) => string;
+
   // Local Backup Tracking & Reminder
   lastBackupExportedAt: string | null;
   backupReminderSnoozedUntil: string | null;
@@ -104,6 +110,7 @@ const SYNC_CONFIG_KEY = "fna_sync_config_v1";
 const LAST_BACKUP_KEY = "fna_last_backup_exported_at_v1";
 const BACKUP_SNOOZED_KEY = "fna_backup_reminder_snoozed_v1";
 const THEME_KEY = "fna_theme_mode_v1";
+const PRIVACY_KEY = "fna_privacy_mode_v1";
 
 const FinancialStoreContext = createContext<FinancialStoreContextType | undefined>(undefined);
 
@@ -125,6 +132,9 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   // Theme Mode State
   const [themeMode, setThemeModeState] = useState<ThemeMode>("system");
 
+  // Face-to-Face Privacy Shield State
+  const [isPrivacyMode, setIsPrivacyModeState] = useState<boolean>(false);
+
   // Local Backup State
   const [lastBackupExportedAt, setLastBackupExportedAt] = useState<string | null>(null);
   const [backupReminderSnoozedUntil, setBackupReminderSnoozedUntil] = useState<string | null>(null);
@@ -136,6 +146,34 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("unpaired");
   const [isSyncModalOpen, setIsSyncModalOpen] = useState<boolean>(false);
   const [initialSyncIdParam, setInitialSyncIdParam] = useState<string | null>(null);
+
+  const setIsPrivacyMode = useCallback((val: boolean) => {
+    setIsPrivacyModeState(val);
+    try {
+      localStorage.setItem(PRIVACY_KEY, String(val));
+    } catch (e) {
+      console.error("Failed to save privacy mode:", e);
+    }
+  }, []);
+
+  const togglePrivacyMode = useCallback(() => {
+    setIsPrivacyModeState((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(PRIVACY_KEY, String(next));
+      } catch (e) {
+        console.error("Failed to save privacy mode:", e);
+      }
+      return next;
+    });
+  }, []);
+
+  const formatMoney = useCallback(
+    (amount: number, overrideDecimals: number = 0): string => {
+      return formatCurrency(amount, profile.currency || "SGD", overrideDecimals, isPrivacyMode);
+    },
+    [profile.currency, isPrivacyMode]
+  );
 
   // Ref to track whether local edit should trigger auto-push
   const isSyncingFromRemoteRef = useRef<boolean>(false);
@@ -157,6 +195,11 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       const savedLastBackup = localStorage.getItem(LAST_BACKUP_KEY);
       const savedSnooze = localStorage.getItem(BACKUP_SNOOZED_KEY);
       const savedTheme = localStorage.getItem(THEME_KEY) as ThemeMode | null;
+      const savedPrivacy = localStorage.getItem(PRIVACY_KEY);
+
+      if (savedPrivacy !== null) {
+        setIsPrivacyModeState(savedPrivacy === "true");
+      }
 
       if (savedTheme && (savedTheme === "light" || savedTheme === "dark" || savedTheme === "system")) {
         setThemeModeState(savedTheme);
@@ -293,6 +336,21 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
       return () => mediaQuery.removeEventListener("change", handleChange);
     }
   }, [themeMode]);
+
+  // 5. Privacy Mode Keyboard Shortcut Listener (Alt+P or Ctrl/Cmd+Shift+P)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (
+        (e.altKey && (e.key === "p" || e.key === "P")) ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "p" || e.key === "P"))
+      ) {
+        e.preventDefault();
+        togglePrivacyMode();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [togglePrivacyMode]);
 
   // Push local changes to cloud (Encrypted with PIN)
   const pushEncryptedUpdate = useCallback(async (currentProfile: UserFinancialProfile, config: SyncConfig) => {
@@ -935,6 +993,12 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         themeMode,
         setThemeMode,
         toggleTheme,
+
+        // Face-to-Face Privacy Shield
+        isPrivacyMode,
+        setIsPrivacyMode,
+        togglePrivacyMode,
+        formatMoney,
 
         // Local Backup
         lastBackupExportedAt,

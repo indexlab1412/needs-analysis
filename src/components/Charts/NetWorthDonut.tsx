@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer } from "recharts";
+import { useFinancialStore } from "@/context/financial-store";
 import { formatCurrency } from "@/lib/utils";
 
 interface NetWorthDonutProps {
@@ -37,6 +38,7 @@ const CATEGORY_LABELS: { [key: string]: string } = {
 };
 
 export const NetWorthDonut: React.FC<NetWorthDonutProps> = ({ assets, insurancePolicies, currency }) => {
+  const { isPrivacyMode } = useFinancialStore();
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   // Aggregate by category
@@ -113,7 +115,7 @@ export const NetWorthDonut: React.FC<NetWorthDonutProps> = ({ assets, insuranceP
             Total Assets
           </span>
           <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white tracking-tight">
-            {formatCurrency(total, currency)}
+            {formatCurrency(total, currency, 0, isPrivacyMode)}
           </span>
           <span className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">
             100% Portfolio
@@ -136,7 +138,7 @@ export const NetWorthDonut: React.FC<NetWorthDonutProps> = ({ assets, insuranceP
             </div>
           </div>
           <div className="text-xs font-black text-slate-900 dark:text-white shrink-0 pl-2">
-            {formatCurrency(activeItem.value, currency)}
+            {formatCurrency(activeItem.value, currency, 0, isPrivacyMode)}
           </div>
         </div>
       ) : (
@@ -173,7 +175,7 @@ export const NetWorthDonut: React.FC<NetWorthDonutProps> = ({ assets, insuranceP
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 pl-2">
                   <span className="font-bold text-slate-900 dark:text-white text-[11px]">
-                    {formatCurrency(item.value, currency)}
+                    {formatCurrency(item.value, currency, 0, isPrivacyMode)}
                   </span>
                   <span className="text-[10px] font-bold text-slate-400 min-w-[28px] text-right">
                     {pct}%
