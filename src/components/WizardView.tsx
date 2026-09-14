@@ -704,6 +704,34 @@ export const WizardView: React.FC = () => {
             </div>
 
             <div className="space-y-3">
+              {/* Dividend Stocks & DRIP Snowball Banner */}
+              <div className="p-3 bg-gradient-to-r from-emerald-500/10 via-slate-50 to-indigo-500/10 dark:from-emerald-950/30 dark:via-slate-900 dark:to-indigo-950/30 rounded-2xl border border-emerald-500/30 flex items-center justify-between gap-3 text-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-sm shrink-0">
+                    ❄️
+                  </span>
+                  <div>
+                    <h4 className="font-extrabold text-slate-900 dark:text-white">
+                      Dividend Stocks &amp; DRIP Compounding
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {profile.stockHoldings && profile.stockHoldings.length > 0
+                        ? `${profile.stockHoldings.length} holding(s) tracked. Forecasting future dividends and DRIP.`
+                        : "Track individual stocks (shares, price, yields, DRIP) with multi-year future values."}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("dashboard")}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
+                >
+                  <span>Open Snowball</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               {profile.assets.map((ast) => (
                 <div
                   key={ast.id}

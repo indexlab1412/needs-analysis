@@ -72,6 +72,37 @@ export interface AssetItem {
   isAutoCalculatedIRR?: boolean; // whether expectedReturnRate is derived from exact IRR
 }
 
+export type DividendFrequency = "monthly" | "quarterly" | "semi-annual" | "annual";
+
+export interface StockHolding {
+  id: string;
+  ticker: string; // e.g. "SCHD", "O", "D05.SI", "AAPL"
+  name: string; // e.g. "Schwab US Dividend Equity ETF"
+  shares: number; // e.g. 100
+  costBasisPerShare: number; // e.g. 75.50 (purchase cost per share)
+  currentPrice: number; // e.g. 82.30
+  annualDividendPerShare: number; // e.g. 2.70
+  dividendYield: number; // e.g. 3.28 (%)
+  payoutFrequency: DividendFrequency;
+  expectedDividendGrowthRate: number; // e.g. 6.0 (%) annual dividend growth
+  expectedPriceGrowthRate: number; // e.g. 5.0 (%) annual capital growth
+  isDripEnabled: boolean; // Reinvest dividends?
+  notes?: string;
+}
+
+export interface DividendSnowballPoint {
+  yearIndex: number;
+  clientAge: number;
+  calendarYear: number;
+  portfolioValueWithDrip: number;
+  portfolioValueWithoutDrip: number;
+  annualDividendsWithDrip: number;
+  annualDividendsWithoutDrip: number;
+  monthlyPassiveIncome: number;
+  cumulativeDividendsWithDrip: number;
+  yieldOnCostWithDrip: number;
+}
+
 export interface LiabilityItem {
   id: string;
   category: "mortgage_primary" | "mortgage_investment" | "car_loan" | "personal_loan" | "credit_card" | "study_loan" | "other";
@@ -250,6 +281,7 @@ export interface UserFinancialProfile {
   liabilities: LiabilityItem[];
   insurancePolicies: InsurancePolicy[];
   goals: FinancialGoal[];
+  stockHoldings?: StockHolding[];
   
   assumptions: {
     generalInflationRate: number;

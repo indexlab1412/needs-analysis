@@ -9,8 +9,10 @@ import {
   PlanningScope,
   MonthlyCashflowLog,
   YearlySnapshot,
+  StockHolding,
 } from "@/lib/fna/types";
 import { analyzeFinancialNeeds } from "@/lib/fna/engine";
+import { calculatePortfolioMetrics } from "@/lib/fna/snowball-engine";
 import { SAMPLE_PROFILES, DEFAULT_BLANK_PROFILE } from "@/lib/fna/sample-data";
 import { generateId, formatCurrency } from "@/lib/utils";
 import { encryptPayload, decryptPayload, EncryptedSyncPayload } from "@/lib/sync/crypto";
@@ -101,6 +103,12 @@ interface FinancialStoreContextType {
   joinSync: (syncId: string, pin: string) => Promise<void>;
   disconnectSync: () => Promise<void>;
   triggerManualSync: () => Promise<void>;
+  
+  // Stock Holdings & Dividend Snowball
+  addStockHolding: (holding: Omit<StockHolding, "id">) => void;
+  updateStockHolding: (id: string, updates: Partial<StockHolding>) => void;
+  removeStockHolding: (id: string) => void;
+  syncStockHoldingsToFna: () => { assetUpdated: boolean; incomeUpdated: boolean; totalValue: number; monthlyDividends: number };
 }
 
 const STORAGE_KEY = "fna_user_profile_v1";
@@ -749,6 +757,107 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     updateProfile((p) => ({ ...p, currency: c }));
   };
 
+  const addStockHolding = (holding: Omit<StockHolding, "id">) => {
+    const newHolding: StockHolding = {
+      ...holding,
+      id: generateId("stk"),
+    };
+    updateProfile((p) => ({
+      ...p,
+      stockHoldings: [...(p.stockHoldings || []), newHolding],
+    }));
+  };
+
+  const updateStockHolding = (id: string, updates: Partial<StockHolding>) => {
+    updateProfile((p) => ({
+      ...p,
+      stockHoldings: (p.stockHoldings || []).map((h) => (h.id === id ? { ...h, ...updates } : h)),
+    }));
+  };
+
+  const removeStockHolding = (id: string) => {
+    updateProfile((p) => ({
+      ...p,
+      stockHoldings: (p.stockHoldings || []).filter((h) => h.id !== id),
+    }));
+  };
+
+  const syncStockHoldingsToFna = () => {
+    const holdings = profile.stockHoldings || [];
+    const metrics = calculatePortfolioMetrics(holdings);
+
+    let assetUpdated = false;
+    let incomeUpdated = false;
+
+    updateProfile((p) => {
+      // 1. Update or add asset
+      const assets = [...p.assets];
+      const existingAssetIndex = assets.findIndex(
+        (a) =>
+          a.description.toLowerCase().includes("dividend stock") ||
+          a.description.toLowerCase().includes("stock holdings") ||
+          a.description.toLowerCase().includes("stock portfolio")
+      );
+
+      const blendedReturn = Math.max(5.0, Math.round((metrics.portfolioYield + 4.5) * 10) / 10);
+
+      if (existingAssetIndex >= 0) {
+        assets[existingAssetIndex] = {
+          ...assets[existingAssetIndex],
+          currentValue: metrics.totalValue,
+          expectedReturnRate: blendedReturn,
+        };
+        assetUpdated = true;
+      } else if (metrics.totalValue > 0) {
+        assets.push({
+          id: generateId("ast"),
+          category: "stocks_funds",
+          description: "Dividend Stock Portfolio",
+          platformOrVehicle: "Direct Equities / Brokerage",
+          currentValue: metrics.totalValue,
+          isLiquid: false,
+          expectedReturnRate: blendedReturn,
+          monthlyContribution: 0,
+          targetPurpose: "retirement",
+        });
+        assetUpdated = true;
+      }
+
+      // 2. Update or add dividend income
+      const incomes = [...p.incomes];
+      const existingIncomeIndex = incomes.findIndex((i) => i.category === "dividends");
+
+      if (existingIncomeIndex >= 0) {
+        incomes[existingIncomeIndex] = {
+          ...incomes[existingIncomeIndex],
+          monthlyAmount: metrics.monthlyDividends,
+        };
+        incomeUpdated = true;
+      } else if (metrics.monthlyDividends > 0) {
+        incomes.push({
+          id: generateId("inc"),
+          category: "dividends",
+          description: "Stock Dividend Payouts",
+          monthlyAmount: metrics.monthlyDividends,
+        });
+        incomeUpdated = true;
+      }
+
+      return {
+        ...p,
+        assets,
+        incomes,
+      };
+    });
+
+    return {
+      assetUpdated,
+      incomeUpdated,
+      totalValue: metrics.totalValue,
+      monthlyDividends: metrics.monthlyDividends,
+    };
+  };
+
   const setThemeMode = (mode: ThemeMode) => {
     setThemeModeState(mode);
     try {
@@ -1019,6 +1128,12 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         joinSync,
         disconnectSync,
         triggerManualSync,
+
+        // Stock Holdings & Dividend Snowball
+        addStockHolding,
+        updateStockHolding,
+        removeStockHolding,
+        syncStockHoldingsToFna,
       }}
     >
       {children}
