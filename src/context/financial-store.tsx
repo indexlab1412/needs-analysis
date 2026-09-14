@@ -109,6 +109,13 @@ interface FinancialStoreContextType {
   updateStockHolding: (id: string, updates: Partial<StockHolding>) => void;
   removeStockHolding: (id: string) => void;
   syncStockHoldingsToFna: () => { assetUpdated: boolean; incomeUpdated: boolean; totalValue: number; monthlyDividends: number };
+
+  // Dashboard Sub-navigation & Deep Linking
+  dashboardMainTab: "overview" | "goals" | "invest" | "debts" | "couple";
+  setDashboardMainTab: (tab: "overview" | "goals" | "invest" | "debts" | "couple") => void;
+  dashboardInvestSubTab: "dca_growth" | "dividends" | "expense_audit";
+  setDashboardInvestSubTab: (subTab: "dca_growth" | "dividends" | "expense_audit") => void;
+  openDividendSnowball: () => void;
 }
 
 const STORAGE_KEY = "fna_user_profile_v1";
@@ -129,6 +136,8 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
     planningScope: "individual",
   });
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
+  const [dashboardMainTab, setDashboardMainTab] = useState<"overview" | "goals" | "invest" | "debts" | "couple">("overview");
+  const [dashboardInvestSubTab, setDashboardInvestSubTab] = useState<"dca_growth" | "dividends" | "expense_audit">("dca_growth");
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [isQuickCheckinOpen, setIsQuickCheckinOpen] = useState<boolean>(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
@@ -587,6 +596,12 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const goToWizardStep = (step: number) => {
     setWizardStep(step);
     setActiveTab("wizard");
+  };
+
+  const openDividendSnowball = () => {
+    setDashboardMainTab("invest");
+    setDashboardInvestSubTab("dividends");
+    setActiveTab("dashboard");
   };
 
   const handleSetWelcomeGuideDismissed = (dismissed: boolean) => {
@@ -1134,6 +1149,13 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         updateStockHolding,
         removeStockHolding,
         syncStockHoldingsToFna,
+
+        // Dashboard Sub-navigation & Deep Linking
+        dashboardMainTab,
+        setDashboardMainTab,
+        dashboardInvestSubTab,
+        setDashboardInvestSubTab,
+        openDividendSnowball,
       }}
     >
       {children}

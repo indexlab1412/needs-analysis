@@ -46,6 +46,7 @@ export const WizardView: React.FC = () => {
     wizardStep,
     setWizardStep,
     setIsQuickCheckinOpen,
+    openDividendSnowball,
   } = useFinancialStore();
   const currentStep = wizardStep;
   const setCurrentStep = setWizardStep;
@@ -724,7 +725,7 @@ export const WizardView: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab("dashboard")}
+                  onClick={() => openDividendSnowball()}
                   className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shrink-0 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs"
                 >
                   <span>Open Snowball</span>

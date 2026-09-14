@@ -73,6 +73,10 @@ export const DashboardView: React.FC = () => {
     closeMonthAndRollNext,
     captureYearlySnapshot,
     setPlanningCadence,
+    dashboardMainTab,
+    setDashboardMainTab,
+    dashboardInvestSubTab,
+    setDashboardInvestSubTab,
   } = useFinancialStore();
   
   const [loggedToast, setLoggedToast] = useState<string | null>(null);
@@ -109,11 +113,13 @@ export const DashboardView: React.FC = () => {
     computedGoals,
   } = summary;
 
-  const [activeTab, setActiveMainTab] = useState<MainDashboardTab>("overview");
+  const activeTab = dashboardMainTab;
+  const setActiveMainTab = setDashboardMainTab;
   
   // Secondary sub-tab states inside each category
   const [goalsSubTab, setGoalsSubTab] = useState<"milestones" | "education">("milestones");
-  const [investSubTab, setInvestSubTab] = useState<"dca_growth" | "dividends" | "expense_audit">("dca_growth");
+  const investSubTab = dashboardInvestSubTab;
+  const setInvestSubTab = setDashboardInvestSubTab;
   const [debtSubTab, setDebtSubTab] = useState<"rundown" | "refinance">("rundown");
 
   const criticalCount = shortfalls.filter((s) => s.status === "critical").length;
