@@ -40,6 +40,12 @@ interface MergeResult {
   error?: string;
 }
 
+export type DashboardFocusArea = "hub" | "cashflow" | "net_worth" | "invest" | "safety" | "goals" | "couple";
+export type CashflowSubTab = "split" | "audit" | "history";
+export type NetWorthSubTab = "balance_sheet" | "rundown" | "refinance";
+export type SafetySubTab = "gaps" | "illness_shield" | "priorities";
+export type GoalsSubTab = "milestones" | "education";
+
 interface FinancialStoreContextType {
   profile: UserFinancialProfile;
   summary: FNAReportSummary;
@@ -47,7 +53,10 @@ interface FinancialStoreContextType {
   setActiveTab: (tab: TabType) => void;
   wizardStep: number;
   setWizardStep: (step: number) => void;
-  goToWizardStep: (step: number) => void;
+  goToWizardStep: (step: number, fromFocusArea?: DashboardFocusArea) => void;
+  returnFocusArea: DashboardFocusArea | null;
+  setReturnFocusArea: (area: DashboardFocusArea | null) => void;
+  returnToFocusArea: () => void;
   isQuickCheckinOpen: boolean;
   setIsQuickCheckinOpen: (open: boolean) => void;
   isSamplePreset: boolean;
@@ -116,6 +125,18 @@ interface FinancialStoreContextType {
   dashboardInvestSubTab: "dca_growth" | "dividends" | "expense_audit";
   setDashboardInvestSubTab: (subTab: "dca_growth" | "dividends" | "expense_audit") => void;
   openDividendSnowball: () => void;
+
+  // Hub-and-Spoke Focused Workspaces
+  dashboardFocusArea: DashboardFocusArea;
+  setDashboardFocusArea: (area: DashboardFocusArea) => void;
+  cashflowSubTab: CashflowSubTab;
+  setCashflowSubTab: (tab: CashflowSubTab) => void;
+  netWorthSubTab: NetWorthSubTab;
+  setNetWorthSubTab: (tab: NetWorthSubTab) => void;
+  safetySubTab: SafetySubTab;
+  setSafetySubTab: (tab: SafetySubTab) => void;
+  goalsSubTab: GoalsSubTab;
+  setGoalsSubTab: (tab: GoalsSubTab) => void;
 }
 
 const STORAGE_KEY = "fna_user_profile_v1";
@@ -138,6 +159,12 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
   const [dashboardMainTab, setDashboardMainTab] = useState<"overview" | "goals" | "invest" | "debts" | "couple">("overview");
   const [dashboardInvestSubTab, setDashboardInvestSubTab] = useState<"dca_growth" | "dividends" | "expense_audit">("dca_growth");
+  const [dashboardFocusArea, setDashboardFocusArea] = useState<DashboardFocusArea>("hub");
+  const [cashflowSubTab, setCashflowSubTab] = useState<CashflowSubTab>("split");
+  const [netWorthSubTab, setNetWorthSubTab] = useState<NetWorthSubTab>("balance_sheet");
+  const [safetySubTab, setSafetySubTab] = useState<SafetySubTab>("gaps");
+  const [goalsSubTab, setGoalsSubTab] = useState<GoalsSubTab>("milestones");
+  const [returnFocusArea, setReturnFocusArea] = useState<DashboardFocusArea | null>(null);
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [isQuickCheckinOpen, setIsQuickCheckinOpen] = useState<boolean>(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
@@ -593,9 +620,20 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
   // Compute live FNA summary
   const summary: FNAReportSummary = analyzeFinancialNeeds(profile);
 
-  const goToWizardStep = (step: number) => {
+  const goToWizardStep = (step: number, fromFocusArea?: DashboardFocusArea) => {
+    if (fromFocusArea) {
+      setReturnFocusArea(fromFocusArea);
+    }
     setWizardStep(step);
     setActiveTab("wizard");
+  };
+
+  const returnToFocusArea = () => {
+    if (returnFocusArea) {
+      setDashboardFocusArea(returnFocusArea);
+      setReturnFocusArea(null);
+    }
+    setActiveTab("dashboard");
   };
 
   const openDividendSnowball = () => {
@@ -1156,6 +1194,21 @@ export function FinancialStoreProvider({ children }: { children: ReactNode }) {
         dashboardInvestSubTab,
         setDashboardInvestSubTab,
         openDividendSnowball,
+
+        // Hub-and-Spoke Focused Workspaces
+        dashboardFocusArea,
+        setDashboardFocusArea,
+        cashflowSubTab,
+        setCashflowSubTab,
+        netWorthSubTab,
+        setNetWorthSubTab,
+        safetySubTab,
+        setSafetySubTab,
+        goalsSubTab,
+        setGoalsSubTab,
+        returnFocusArea,
+        setReturnFocusArea,
+        returnToFocusArea,
       }}
     >
       {children}

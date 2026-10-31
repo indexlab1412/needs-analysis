@@ -21,9 +21,9 @@ if (process.env.NODE_ENV !== "production") {
 // GET: Retrieve latest encrypted snapshot for a sync room
 export async function GET(
   request: Request,
-  context: { params: Promise<{ syncId: string }> | { syncId: string } }
+  context: { params: Promise<{ syncId: string }> }
 ) {
-  const { syncId } = await Promise.resolve(context.params);
+  const { syncId } = await context.params;
 
   if (!syncId || syncId.length < 4) {
     return NextResponse.json({ error: "Invalid sync room ID" }, { status: 400 });
@@ -45,9 +45,9 @@ export async function GET(
 // POST: Save or update encrypted snapshot for a sync room
 export async function POST(
   request: Request,
-  context: { params: Promise<{ syncId: string }> | { syncId: string } }
+  context: { params: Promise<{ syncId: string }> }
 ) {
-  const { syncId } = await Promise.resolve(context.params);
+  const { syncId } = await context.params;
 
   if (!syncId || syncId.length < 4) {
     return NextResponse.json({ error: "Invalid sync room ID" }, { status: 400 });
@@ -82,9 +82,9 @@ export async function POST(
 // DELETE: Terminate and wipe sync room
 export async function DELETE(
   request: Request,
-  context: { params: Promise<{ syncId: string }> | { syncId: string } }
+  context: { params: Promise<{ syncId: string }> }
 ) {
-  const { syncId } = await Promise.resolve(context.params);
+  const { syncId } = await context.params;
 
   if (syncId) {
     syncStore.delete(syncId);

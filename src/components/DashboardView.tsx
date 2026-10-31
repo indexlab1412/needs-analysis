@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { useFinancialStore } from "@/context/financial-store";
-import { formatCurrency } from "@/lib/utils";
+import { useFinancialStore, DashboardFocusArea, CashflowSubTab, NetWorthSubTab, SafetySubTab, GoalsSubTab } from "@/context/financial-store";
+import { formatCurrency, generateId } from "@/lib/utils";
+import { IncomeItem } from "@/lib/fna/types";
 import { NetWorthDonut } from "./Charts/NetWorthDonut";
 import { CashflowBreakdown } from "./Charts/CashflowBreakdown";
 import { ShortfallRadar } from "./Charts/ShortfallRadar";
@@ -13,12 +14,17 @@ import { ExpenseTrackerView } from "./ExpenseTrackerView";
 import { LoanRefinanceView } from "./LoanRefinanceView";
 import { CouplePlannerView } from "./CouplePlannerView";
 import { EducationPlannerView } from "./EducationPlannerView";
+import { PriorityPlannerView } from "./PriorityPlannerView";
+import { IllnessShieldCard } from "./IllnessShieldCard";
 import { MonthlyHistoryModal } from "./MonthlyHistoryModal";
 import { QuickMonthlyCheckinModal } from "./QuickMonthlyCheckinModal";
 import { FormulaModal, FormulaKey } from "./FormulaModal";
+import { InvestmentReturnCalculatorModal } from "./InvestmentReturnCalculatorModal";
+import { DividendSnowballView } from "./DividendSnowballView";
 import { GettingStartedBanner } from "./GettingStartedBanner";
 import { BackupReminderBanner } from "./BackupReminderBanner";
 import { CollapsibleSection } from "./ui/CollapsibleSection";
+import { NumericInput } from "./ui/NumericInput";
 import {
   Sparkles,
   ArrowRight,
@@ -37,6 +43,7 @@ import {
   GraduationCap,
   Layers,
   ChevronRight,
+  ChevronLeft,
   ArrowUpRight,
   Calendar,
   Zap,
@@ -51,16 +58,17 @@ import {
   ChevronsUpDown,
   Eye,
   EyeOff,
+  Plus,
+  Trash2,
+  ExternalLink,
+  LayoutGrid,
 } from "lucide-react";
-import { InvestmentReturnCalculatorModal } from "./InvestmentReturnCalculatorModal";
-import { DividendSnowballView } from "./DividendSnowballView";
-
-type MainDashboardTab = "overview" | "goals" | "invest" | "debts" | "couple";
 
 export const DashboardView: React.FC = () => {
   const {
     summary,
     profile,
+    updateProfile,
     currency,
     isPrivacyMode,
     togglePrivacyMode,
@@ -72,20 +80,27 @@ export const DashboardView: React.FC = () => {
     logMonthlyCashflow,
     closeMonthAndRollNext,
     captureYearlySnapshot,
-    setPlanningCadence,
-    dashboardMainTab,
-    setDashboardMainTab,
+    dashboardFocusArea,
+    setDashboardFocusArea,
+    cashflowSubTab,
+    setCashflowSubTab,
+    netWorthSubTab,
+    setNetWorthSubTab,
+    safetySubTab,
+    setSafetySubTab,
+    goalsSubTab,
+    setGoalsSubTab,
     dashboardInvestSubTab,
     setDashboardInvestSubTab,
   } = useFinancialStore();
-  
+
   const [loggedToast, setLoggedToast] = useState<string | null>(null);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [isFormulaModalOpen, setIsFormulaModalOpen] = useState(false);
   const [isInvestCalcOpen, setIsInvestCalcOpen] = useState(false);
-  const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("retirement_nest_egg");
+  const [selectedFormulaKey, setSelectedFormulaKey] = useState<FormulaKey>("savings_rate");
 
-  // Inner collapsible card states
+  // Inner collapsible states for overview widgets
   const [isPaycheckOpen, setIsPaycheckOpen] = useState<boolean>(true);
   const [isAssetsOpen, setIsAssetsOpen] = useState<boolean>(true);
   const [isRadarOpen, setIsRadarOpen] = useState<boolean>(false);
@@ -113,14 +128,7 @@ export const DashboardView: React.FC = () => {
     computedGoals,
   } = summary;
 
-  const activeTab = dashboardMainTab;
-  const setActiveMainTab = setDashboardMainTab;
-  
-  // Secondary sub-tab states inside each category
-  const [goalsSubTab, setGoalsSubTab] = useState<"milestones" | "education">("milestones");
-  const investSubTab = dashboardInvestSubTab;
-  const setInvestSubTab = setDashboardInvestSubTab;
-  const [debtSubTab, setDebtSubTab] = useState<"rundown" | "refinance">("rundown");
+  const discretionaryExpenses = Math.max(0, cashFlow.totalMonthlyExpenses - cashFlow.essentialMonthlyExpenses);
 
   const criticalCount = shortfalls.filter((s) => s.status === "critical").length;
   const childCount = profile.dependents.filter((d) => d.relationship === "child").length;
@@ -140,8 +148,146 @@ export const DashboardView: React.FC = () => {
   const nextDate = new Date(nextYearNum, nextMonthNum - 1, 1);
   const nextMonthLabel = nextDate.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 
+  // Inline income editing helpers for Monthly Cashflow
+  const handleAddIncome = () => {
+    const newItem: IncomeItem = {
+      id: generateId("inc"),
+      category: "employment",
+      description: "Additional Income",
+      monthlyAmount: 500,
+    };
+    updateProfile((p) => ({ ...p, incomes: [newItem, ...p.incomes] }));
+  };
+
+  const handleUpdateIncome = (id: string, updates: Partial<IncomeItem>) => {
+    updateProfile((p) => ({
+      ...p,
+      incomes: p.incomes.map((i) => (i.id === id ? { ...i, ...updates } : i)),
+    }));
+  };
+
+  const handleRemoveIncome = (id: string) => {
+    updateProfile((p) => ({
+      ...p,
+      incomes: p.incomes.filter((i) => i.id !== id),
+    }));
+  };
+
+  const openFormula = (key: FormulaKey) => {
+    setSelectedFormulaKey(key);
+    setIsFormulaModalOpen(true);
+  };
+
+  // Focus Area Definitions
+  const focusAreas: {
+    id: DashboardFocusArea;
+    label: string;
+    shortLabel: string;
+    icon: any;
+    color: string;
+    accentBg: string;
+    accentBorder: string;
+    primaryMetric: string;
+    secondaryMetric: string;
+    statusBadge: string;
+    subpagesLabel: string;
+    formulaKey: FormulaKey;
+    wizardStep: number;
+  }[] = [
+    {
+      id: "cashflow",
+      label: "Monthly Cashflow & Spending",
+      shortLabel: "Cashflow",
+      icon: Zap,
+      color: "text-amber-600 dark:text-amber-400",
+      accentBg: "bg-amber-500/10",
+      accentBorder: "border-amber-500/30",
+      primaryMetric: `+${formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo`,
+      secondaryMetric: `${cashFlow.savingsRatePercentage}% of income saved`,
+      statusBadge: cashFlow.savingsRatePercentage >= 20 ? "Healthy Savings" : "Tight Buffer",
+      subpagesLabel: "Paycheck Split • Spending Audit • Check-In",
+      formulaKey: "savings_rate",
+      wizardStep: 2,
+    },
+    {
+      id: "net_worth",
+      label: "Net Worth, Assets & Loans",
+      shortLabel: "Net Worth",
+      icon: Wallet,
+      color: "text-emerald-600 dark:text-emerald-400",
+      accentBg: "bg-emerald-500/10",
+      accentBorder: "border-emerald-500/30",
+      primaryMetric: formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode),
+      secondaryMetric: `Assets: ${formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)} • Debts: ${formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}`,
+      statusBadge: netWorth.netWorth >= 0 ? "Positive Equity" : "Debt Heavy",
+      subpagesLabel: "Balance Sheet • Loan Run-Down • Refinance",
+      formulaKey: "net_worth",
+      wizardStep: 3,
+    },
+    {
+      id: "invest",
+      label: "Investments & Wealth Engine",
+      shortLabel: "Investments",
+      icon: TrendingUp,
+      color: "text-indigo-600 dark:text-indigo-400",
+      accentBg: "bg-indigo-500/10",
+      accentBorder: "border-indigo-500/30",
+      primaryMetric: `${formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode)}/mo DCA`,
+      secondaryMetric: `Retire Target Age ${profile.targetRetirementAge}`,
+      statusBadge: cashFlow.totalMonthlyDCAInvestments > 0 ? "Compounding Active" : "No Regular DCA",
+      subpagesLabel: "Robo DCA Growth • Dividend Snowball • IRR Return",
+      formulaKey: "retirement_nest_egg",
+      wizardStep: 3,
+    },
+    {
+      id: "safety",
+      label: "Safety Net & Gaps",
+      shortLabel: "Safety Net",
+      icon: ShieldCheck,
+      color: "text-blue-600 dark:text-blue-400",
+      accentBg: "bg-blue-500/10",
+      accentBorder: "border-blue-500/30",
+      primaryMetric: `${summary.overallFinancialHealthScore}/100 Health`,
+      secondaryMetric: criticalCount > 0 ? `${criticalCount} Critical Gaps to Patch` : "100% Core Protected",
+      statusBadge: criticalCount > 0 ? "Gaps Present" : "Optimal Cover",
+      subpagesLabel: "Radar Gaps • Illness Shield • Priority Sequencer",
+      formulaKey: "emergency_fund",
+      wizardStep: 4,
+    },
+    {
+      id: "goals",
+      label: "Life Goals & Education",
+      shortLabel: "Goals",
+      icon: Target,
+      color: "text-purple-600 dark:text-purple-400",
+      accentBg: "bg-purple-500/10",
+      accentBorder: "border-purple-500/30",
+      primaryMetric: `${computedGoals.length} Active Goals`,
+      secondaryMetric: childCount > 0 ? `${childCount} Children University Funds` : "Target Milestones",
+      statusBadge: computedGoals.length > 0 ? "Tracked" : "Add Milestones",
+      subpagesLabel: "3-Bucket Milestones • Kids' University Fund",
+      formulaKey: "goal_sinking_fund",
+      wizardStep: 5,
+    },
+    {
+      id: "couple",
+      label: "Couple & Joint Plan",
+      shortLabel: "Couple Plan",
+      icon: Heart,
+      color: "text-rose-600 dark:text-rose-400",
+      accentBg: "bg-rose-500/10",
+      accentBorder: "border-rose-500/30",
+      primaryMetric: isCoupleEnabled ? `${profile.partner?.name || "Partner"}` : "Solo Plan",
+      secondaryMetric: isCoupleEnabled ? "Joint Cashflow & Dual CPF" : "Enable Joint Household",
+      statusBadge: isCoupleEnabled ? "Joint Enabled" : "Optional",
+      subpagesLabel: "Combined Cashflow • Dual CPF • 1-Salary Runway",
+      formulaKey: "couple_burn_rate",
+      wizardStep: 1,
+    },
+  ];
+
   return (
-    <div className="space-y-6 pb-20 animate-in fade-in duration-200">
+    <div className="w-full space-y-6 pb-20 animate-in fade-in duration-200">
       {/* Face-to-Face Privacy Shield Notice Banner (When Active) */}
       {isPrivacyMode && (
         <div className="p-3 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-2xl flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in">
@@ -167,569 +313,276 @@ export const DashboardView: React.FC = () => {
         </div>
       )}
 
-      {/* 1. Top Summary KPI 4-Card Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        {/* Card 1: Net Worth */}
-        <div className="p-5 bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-lg relative overflow-hidden border border-indigo-500/30 flex flex-col justify-between">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/15 rounded-full blur-xl pointer-events-none" />
-          <div className="relative z-10 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                  <Wallet className="w-4 h-4" />
-                </span>
-                <span className="text-xs uppercase font-black tracking-wider text-indigo-200">
-                  Net Worth
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => goToWizardStep(3)}
-                className="text-[10px] font-bold bg-white/15 hover:bg-white/25 text-white px-2 py-0.5 rounded-full border border-white/20 transition-all cursor-pointer"
-                title="Edit assets and debts"
-              >
-                Edit
-              </button>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black tracking-tight text-white mt-1">
-              {formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode)}
-            </div>
-            {isCoupleEnabled && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30">
-                <Heart className="w-2.5 h-2.5 fill-rose-400 text-rose-400" /> Couple ({profile.partner?.name || "Partner"})
-              </span>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-white/15 text-xs">
-            <div>
-              <span className="text-[10px] text-slate-300 block">Assets</span>
-              <span className="font-extrabold text-emerald-400 text-xs sm:text-sm">
-                {formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}
-              </span>
-            </div>
-            <div>
-              <span className="text-[10px] text-slate-300 block">Debts</span>
-              <span className="font-extrabold text-rose-400 text-xs sm:text-sm">
-                {formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 2: Monthly Cashflow */}
-        <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
-                  <Zap className="w-4 h-4" />
-                </span>
-                <span className="text-xs uppercase font-black tracking-wider text-slate-500 dark:text-slate-400">
-                  Monthly Cashflow
-                </span>
-              </div>
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400">
-                {cashFlow.savingsRatePercentage}% Saved
-              </span>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black tracking-tight text-emerald-600 dark:text-emerald-400 mt-1">
-              +{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}
-              <span className="text-xs text-slate-400 font-semibold ml-1">/mo</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-            <div>
-              <span className="text-[10px] text-slate-400 block">Income</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                {formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode)}
-              </span>
-            </div>
-            <div>
-              <span className="text-[10px] text-slate-400 block">Living Bills</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                {formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 3: Invested DCA */}
-        <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-                  <TrendingUp className="w-4 h-4" />
-                </span>
-                <span className="text-xs uppercase font-black tracking-wider text-slate-500 dark:text-slate-400">
-                  Investments & DCA
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveMainTab("invest");
-                  setInvestSubTab("dca_growth");
-                }}
-                className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                Growth
-              </button>
-            </div>
-            <div className="text-2xl sm:text-3xl font-black tracking-tight text-indigo-600 dark:text-indigo-400 mt-1">
-              {formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode)}
-              <span className="text-xs text-slate-400 font-semibold ml-1">/mo DCA</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-            <div>
-              <span className="text-[10px] text-slate-400 block">Liquid Assets</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                {formatCurrency(netWorth.liquidAssets, currency, 0, isPrivacyMode)}
-              </span>
-            </div>
-            <div>
-              <span className="text-[10px] text-slate-400 block">Retire Age</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                Age {profile.targetRetirementAge}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Card 4: Financial Health Score */}
-        <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col justify-between">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
-                  <ShieldCheck className="w-4 h-4" />
-                </span>
-                <span className="text-xs uppercase font-black tracking-wider text-slate-500 dark:text-slate-400">
-                  Health & Gaps
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveTab("shortfall")}
-                className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-              >
-                Gaps
-              </button>
-            </div>
-            <div className="flex items-baseline gap-2 mt-1">
-              <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                {summary.overallFinancialHealthScore}
-              </span>
-              <span className="text-xs text-slate-400 font-bold">/100 Score</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2 pt-3 mt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
-            <div>
-              <span className="text-[10px] text-slate-400 block">Critical Gaps</span>
-              <span className={`font-bold text-xs ${criticalCount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
-                {criticalCount > 0 ? `${criticalCount} Missing` : "None 🎉"}
-              </span>
-            </div>
-            <div>
-              <span className="text-[10px] text-slate-400 block">Status</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-                {summary.overallFinancialHealthScore >= 80 ? "Optimal" : summary.overallFinancialHealthScore >= 60 ? "On Track" : "Needs Review"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Primary Navigation Bar - Clean, spacious Pillar Tabs */}
-      <div className="p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1.5 border border-slate-200 dark:border-slate-700 shadow-inner">
-        <button
-          onClick={() => setActiveMainTab("overview")}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === "overview"
-              ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
-              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
-          }`}
-        >
-          <PieChart className="w-4 h-4 shrink-0" />
-          <span>Overview</span>
-        </button>
-
-        <button
-          onClick={() => setActiveMainTab("goals")}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === "goals"
-              ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
-              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
-          }`}
-        >
-          <Target className="w-4 h-4 shrink-0" />
-          <span>Goals</span>
-          {childCount > 0 && (
-            <span className="w-2 h-2 rounded-full bg-indigo-500 shrink-0" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setActiveMainTab("invest")}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === "invest"
-              ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
-              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
-          }`}
-        >
-          <TrendingUp className="w-4 h-4 shrink-0" />
-          <span>Invest</span>
-        </button>
-
-        <button
-          onClick={() => setActiveMainTab("debts")}
-          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            activeTab === "debts"
-              ? "bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm"
-              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/60 dark:hover:bg-slate-700/50"
-          }`}
-        >
-          <CreditCard className="w-4 h-4 shrink-0" />
-          <span>Debts</span>
-        </button>
-
-        {isCoupleEnabled && (
+      {/* Toast Notification */}
+      {loggedToast && (
+        <div className="p-3.5 bg-emerald-600 text-white rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
+          <span className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 shrink-0" /> {loggedToast}
+          </span>
           <button
-            onClick={() => setActiveMainTab("couple")}
-            className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              activeTab === "couple"
-                ? "bg-rose-500 text-white shadow-sm"
-                : "text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-            }`}
+            onClick={() => setLoggedToast(null)}
+            className="text-white/80 hover:text-white text-xs font-black ml-2 cursor-pointer"
           >
-            <Heart className="w-4 h-4 shrink-0 fill-current" />
-            <span>Couple</span>
+            ✕
           </button>
-        )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* DESKTOP & MOBILE TOP AREA SWITCHER BAR */}
+      {/* ========================================================================= */}
+      <div className="p-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-2xl flex items-center gap-1 overflow-x-auto no-scrollbar border border-slate-200 dark:border-slate-700/80 shadow-xs">
+        <button
+          type="button"
+          onClick={() => setDashboardFocusArea("hub")}
+          className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-extrabold transition-all shrink-0 cursor-pointer ${
+            dashboardFocusArea === "hub"
+              ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+              : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
+          }`}
+        >
+          <LayoutGrid className="w-3.5 h-3.5" />
+          <span>Command Hub</span>
+        </button>
+
+        <div className="h-4 w-px bg-slate-200 dark:bg-slate-700 shrink-0 mx-1" />
+
+        {focusAreas.map((area) => {
+          const Icon = area.icon;
+          const isActive = dashboardFocusArea === area.id;
+
+          if (area.id === "couple" && !isCoupleEnabled) return null;
+
+          return (
+            <button
+              key={area.id}
+              type="button"
+              onClick={() => setDashboardFocusArea(area.id)}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                isActive
+                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5" />
+              <span>{area.shortLabel}</span>
+              {area.id === "safety" && criticalCount > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* ========================================================================= */}
-      {/* PILLAR 1: OVERVIEW */}
+      {/* MODE 1: COMMAND HUB (High-Impact Scannable Launchpad) */}
       {/* ========================================================================= */}
-      {activeTab === "overview" && (
+      {dashboardFocusArea === "hub" && (
         <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Welcome & Getting Started Onboarding Banner for New Users */}
+          {/* Welcome & Getting Started Onboarding Banner */}
           <GettingStartedBanner />
 
           {/* Smart Local Backup Reminder */}
           <BackupReminderBanner />
 
-          {/* Toast Notification */}
-          {loggedToast && (
-            <div className="p-3.5 bg-emerald-600 text-white rounded-2xl text-xs sm:text-sm font-bold flex items-center justify-between shadow-lg animate-in fade-in slide-in-from-top-2">
-              <span className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 shrink-0" /> {loggedToast}
-              </span>
-              <button onClick={() => setLoggedToast(null)} className="text-white/80 hover:text-white text-xs font-black ml-2 cursor-pointer">
-                ✕
+          {/* 1. Full-Width Monthly Pulse Hero Bar */}
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl shadow-xl border border-indigo-500/30 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center gap-1">
+                  <Zap className="w-3 h-3 text-amber-400 fill-amber-400" /> Active Cadence
+                </span>
+                <span className="text-sm sm:text-base font-black tracking-tight text-white">
+                  {activeMonthLabel} Monthly Pulse
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-200">
+                  {summary.overallFinancialHealthScore}/100 Health Score
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
+                Retaining <strong className="text-emerald-400">+{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo</strong> ({cashFlow.savingsRatePercentage}% savings rate) from {formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode)} income. Tap any section below to focus and review.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsQuickCheckinOpen(true)}
+                className="py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Zap className="w-4 h-4 fill-current text-slate-950" />
+                <span>1-Click Monthly Check-In</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsHistoryModalOpen(true)}
+                className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all flex items-center justify-center gap-1.5 border border-white/15 cursor-pointer"
+                title="View past snapshots"
+              >
+                <History className="w-3.5 h-3.5 text-slate-300" />
+                <span className="hidden sm:inline">History ({profile.monthlyLogs?.length || 0})</span>
               </button>
             </div>
-          )}
+          </div>
 
-          {/* Responsive 12-Column Layout on Desktop */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* Left Analytical Charts & Breakdowns (Col 7 / 8) */}
-            <div className="lg:col-span-7 xl:col-span-8 space-y-6">
-              {/* Overview Section Controls / Compact Toggle */}
-              <div className="flex items-center justify-between px-1 text-xs">
-                <span className="text-xs font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-                  Financial Breakdown ({[isPaycheckOpen, isAssetsOpen, isRadarOpen].filter(Boolean).length}/3 Open)
-                </span>
-                <button
-                  type="button"
-                  onClick={toggleExpandAll}
-                  className="flex items-center gap-1.5 text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800 transition-all cursor-pointer shadow-xs"
-                >
-                  <ChevronsUpDown className="w-3.5 h-3.5" />
-                  <span>{areAllExpanded ? "Collapse All" : "Expand All"}</span>
-                </button>
-              </div>
-
-              {/* Card 1: Monthly Paycheck Split */}
-              <CollapsibleSection
-                variant="card"
-                accentColor="indigo"
-                title="Monthly Paycheck Split"
-                subtitle="Income vs Living Bills vs Savings"
-                icon={<Receipt className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-                isOpenControlled={isPaycheckOpen}
-                onToggleControlled={setIsPaycheckOpen}
-                collapsedSummary={
-                  <span className="font-extrabold text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm">
-                    +{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo ({cashFlow.savingsRatePercentage}% saved)
-                  </span>
-                }
-                badge={
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToWizardStep(2);
-                    }}
-                    className="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 cursor-pointer"
-                  >
-                    <Edit3 className="w-3 h-3" /> Edit
-                  </button>
-                }
-              >
-                <div className="pt-2">
-                  <CashflowBreakdown
-                    income={cashFlow.totalMonthlyIncome}
-                    expenses={cashFlow.totalMonthlyExpenses}
-                    savings={cashFlow.monthlyNetSavings}
-                    savingsRate={cashFlow.savingsRatePercentage}
-                    currency={currency}
-                  />
-                </div>
-              </CollapsibleSection>
-
-              {/* Card 2: Where Your Money Lives */}
-              <CollapsibleSection
-                variant="card"
-                accentColor="emerald"
-                title="Where Your Money Lives"
-                subtitle="Cash, stocks, property & retirement"
-                icon={<Wallet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-                isOpenControlled={isAssetsOpen}
-                onToggleControlled={setIsAssetsOpen}
-                collapsedSummary={
-                  <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
-                    Assets: {formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}
-                  </span>
-                }
-                badge={
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToWizardStep(3);
-                    }}
-                    className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 cursor-pointer"
-                  >
-                    <Edit3 className="w-3 h-3" /> Edit
-                  </button>
-                }
-              >
-                <div className="pt-2">
-                  <NetWorthDonut
-                    assets={profile.assets}
-                    insurancePolicies={profile.insurancePolicies}
-                    currency={currency}
-                  />
-                </div>
-              </CollapsibleSection>
-
-              {/* Card 3: Safety Net & Goal Health */}
-              <CollapsibleSection
-                variant="card"
-                accentColor="blue"
-                title="Safety Net & Goal Health"
-                subtitle="Emergency fund, critical illness & retirement"
-                icon={<ShieldCheck className="w-4 h-4 text-blue-600 dark:text-blue-400" />}
-                isOpenControlled={isRadarOpen}
-                onToggleControlled={setIsRadarOpen}
-                collapsedSummary={
-                  <span className="font-extrabold text-indigo-600 dark:text-indigo-400 text-xs sm:text-sm">
-                    Health Score: {summary.overallFinancialHealthScore}/100
-                  </span>
-                }
-                badge={
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      goToWizardStep(4);
-                    }}
-                    className="text-[11px] text-indigo-600 dark:text-indigo-400 font-bold hover:underline flex items-center gap-1 bg-indigo-50 dark:bg-indigo-950/60 px-2.5 py-1 rounded-lg border border-indigo-200 dark:border-indigo-800 cursor-pointer"
-                  >
-                    <Edit3 className="w-3 h-3" /> Edit
-                  </button>
-                }
-              >
-                <div className="pt-2">
-                  <ShortfallRadar
-                    shortfalls={shortfalls}
-                    currency={currency}
-                    onSelectCategory={() => setActiveTab("shortfall")}
-                  />
-                </div>
-              </CollapsibleSection>
+          {/* 2. Interactive Focus Launchpad 6-Card Grid (Full Desktop Canvas) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <h2 className="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                Financial Areas (Tap to focus &amp; work)
+              </h2>
+              <span className="text-[11px] text-slate-400">
+                Click any domain to review calculations &amp; subpages
+              </span>
             </div>
 
-            {/* Right Insights, Actions & Tools Column (Col 5 / 4) */}
-            <div className="lg:col-span-5 xl:col-span-4 space-y-6">
-              {/* High-Contrast Cadence Status & Monthly Lifecycle Card */}
-              {(profile.planningCadence || "monthly") === "monthly" ? (
-                <div className="fin-card p-5 bg-white dark:bg-slate-900 border-2 border-amber-500/30 dark:border-amber-500/40 rounded-3xl shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                        <Zap className="w-3 h-3 text-amber-500 fill-amber-500" /> Monthly Pulse
-                      </span>
-                      <span className="text-xs font-black text-slate-900 dark:text-white">
-                        {activeMonthLabel}
-                      </span>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-5">
+              {focusAreas.map((area) => {
+                const Icon = area.icon;
 
-                    <button
-                      type="button"
-                      onClick={() => setIsHistoryModalOpen(true)}
-                      className="text-[11px] font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-xl transition-colors cursor-pointer"
-                    >
-                      <History className="w-3.5 h-3.5 text-slate-500" />
-                      <span>Past Snapshots ({profile.monthlyLogs?.length || 0})</span>
-                    </button>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                        Net Cashflow:
-                      </span>
-                      <span className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                        +{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                        Savings Rate:
-                      </span>
-                      <span className="text-sm font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                        {cashFlow.savingsRatePercentage}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Monthly Transition Action Buttons */}
-                  <div className="space-y-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setIsQuickCheckinOpen(true)}
-                      className="w-full py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <Zap className="w-4 h-4 fill-current text-slate-950" />
-                      <span>1-Click Monthly Check-In</span>
-                    </button>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          logMonthlyCashflow();
-                          setLoggedToast(`Recorded ${activeMonthLabel} milestone snapshot!`);
-                          setTimeout(() => setLoggedToast(null), 3000);
-                        }}
-                        className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                        title="Archive current month numbers into Vault history without rolling the calendar"
-                      >
-                        <History className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>Log Snapshot</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          closeMonthAndRollNext();
-                          setLoggedToast(`Archived ${activeMonthLabel} snapshot & advanced to ${nextMonthLabel}!`);
-                          setTimeout(() => setLoggedToast(null), 4000);
-                        }}
-                        className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>Close &amp; Roll</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="fin-card p-5 bg-white dark:bg-slate-900 border-2 border-indigo-500/30 dark:border-indigo-500/40 rounded-3xl shadow-sm space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 flex items-center gap-1">
-                        <Calendar className="w-3 h-3 text-indigo-500" /> Annual Review
-                      </span>
-                    </div>
-                    <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold">
-                      {profile.yearlySnapshots?.length || 0} Records
-                    </span>
-                  </div>
-
-                  <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs">
-                    <div>
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                        Annual Savings Created:
-                      </span>
-                      <span className="text-sm sm:text-base font-black text-indigo-600 dark:text-indigo-400 mt-0.5 block">
-                        +{formatCurrency(cashFlow.monthlyNetSavings * 12, currency, 0, isPrivacyMode)} / year
-                      </span>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase block">
-                        Savings Rate:
-                      </span>
-                      <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5 block">
-                        {cashFlow.savingsRatePercentage}%
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
+                if (area.id === "couple" && !isCoupleEnabled) {
+                  return (
+                    <div
+                      key={area.id}
                       onClick={() => {
-                        captureYearlySnapshot();
-                        setLoggedToast(`Captured ${new Date().getFullYear()} Annual Snapshot!`);
-                        setTimeout(() => setLoggedToast(null), 3000);
+                        updateProfile((p) => ({
+                          ...p,
+                          planningScope: "joint",
+                          partner: {
+                            isEnabled: true,
+                            name: "Partner",
+                            currentAge: p.currentAge,
+                            targetRetirementAge: p.targetRetirementAge,
+                            monthlyIncome: 3500,
+                            monthlyPersonalExpenses: 800,
+                            personalDebts: 0,
+                            monthlyDebtRepayment: 0,
+                            liquidSavings: 15000,
+                            investmentsValue: 10000,
+                            monthlyDCA: 200,
+                            deathBenefit: 300000,
+                            ciBenefit: 150000,
+                            cpfLifeEstimatedMonthlyToday: 1650,
+                          },
+                        }));
+                        setDashboardFocusArea("couple");
                       }}
-                      className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="p-5 bg-white dark:bg-slate-900 border border-dashed border-rose-300 dark:border-rose-800/60 rounded-3xl p-5 hover:border-rose-500 transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
                     >
-                      <Calendar className="w-3.5 h-3.5" />
-                      <span>Capture Snapshot</span>
-                    </button>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+                              <Heart className="w-4 h-4" />
+                            </span>
+                            <span className="text-xs uppercase font-black tracking-wider text-slate-700 dark:text-slate-300">
+                              Couple &amp; Joint Plan
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
+                            Optional
+                          </span>
+                        </div>
+                        <div className="text-base font-extrabold text-slate-800 dark:text-slate-200">
+                          Planning together with a partner?
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                          Enable couple mode to simulate joint household cashflow, single-salary job-loss runway, and dual CPF LIFE floors.
+                        </p>
+                      </div>
 
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab("wizard")}
-                      className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <span>Annual Check-In</span>
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Card 4: Recommended Next Steps */}
-              <CollapsibleSection
-                variant="card"
-                accentColor="amber"
-                title="Recommended Next Steps"
-                subtitle="Automated guidance for your plan"
-                icon={<Lightbulb className="w-4 h-4 text-amber-500" />}
-                isOpenControlled={isActionsOpen}
-                onToggleControlled={setIsActionsOpen}
-                collapsedSummary={
-                  <span className="font-extrabold text-amber-600 dark:text-amber-400 text-xs">
-                    {keyActionItems.length} Action Steps
-                  </span>
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-rose-600 dark:text-rose-400 group-hover:underline">
+                        <span>Activate Couple Planner</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  );
                 }
-              >
-                <div className="space-y-2 pt-2">
-                  {keyActionItems.map((action, i) => (
+
+                return (
+                  <div
+                    key={area.id}
+                    onClick={() => setDashboardFocusArea(area.id)}
+                    className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs hover:shadow-md hover:border-indigo-400 dark:hover:border-indigo-600 transition-all cursor-pointer flex flex-col justify-between space-y-4 group"
+                  >
+                    <div className="space-y-2.5">
+                      {/* Card Header */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-8 h-8 rounded-xl ${area.accentBg} ${area.color} flex items-center justify-center font-bold`}>
+                            <Icon className="w-4 h-4" />
+                          </span>
+                          <span className="text-xs uppercase font-black tracking-wider text-slate-500 dark:text-slate-400">
+                            {area.label}
+                          </span>
+                        </div>
+                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${area.accentBg} ${area.color}`}>
+                          {area.statusBadge}
+                        </span>
+                      </div>
+
+                      {/* Primary Value */}
+                      <div>
+                        <div className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                          {area.primaryMetric}
+                        </div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5">
+                          {area.secondaryMetric}
+                        </div>
+                      </div>
+
+                      {/* Subpages Badge */}
+                      <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-300 font-medium flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                        <span className="truncate">{area.subpagesLabel}</span>
+                      </div>
+                    </div>
+
+                    {/* Bottom CTA Row */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openFormula(area.formulaKey);
+                        }}
+                        className="text-[11px] font-bold text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1 transition-colors"
+                        title="View mathematical derivation"
+                      >
+                        <Calculator className="w-3.5 h-3.5" />
+                        <span>Formula</span>
+                      </button>
+
+                      <div className="flex items-center gap-1 font-bold text-indigo-600 dark:text-indigo-400 group-hover:translate-x-0.5 transition-transform">
+                        <span>Focus on Area</span>
+                        <ChevronRight className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Bottom Next Steps & Full Setup Launcher */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-8 space-y-3">
+              <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs uppercase font-black tracking-wider text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                    <Lightbulb className="w-4 h-4 text-amber-500" /> Recommended Action Steps
+                  </span>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    Automated guidance
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {keyActionItems.slice(0, 3).map((action, i) => (
                     <div
                       key={i}
-                      className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
+                      className="flex items-start gap-2.5 text-xs text-slate-700 dark:text-slate-300 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-800"
                     >
                       <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-400 font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
                         {i + 1}
@@ -738,262 +591,730 @@ export const DashboardView: React.FC = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
 
-                {/* Advisory Suggestion Disclaimer */}
-                <div className="mt-3 p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-900/50 flex items-start gap-2 text-[11px] text-amber-800 dark:text-amber-300">
-                  <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                  <p className="leading-snug">
-                    <strong>Suggestion Disclaimer:</strong> These recommended next steps are automated guidance ideas based on your inputs and assumptions. They are helpful suggestions to consider, not mandatory requirements to follow.
-                  </p>
+            <div className="lg:col-span-4 space-y-3">
+              <div className="p-5 bg-gradient-to-br from-indigo-900 to-slate-900 text-white rounded-3xl shadow-sm space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="w-4 h-4 text-indigo-300" />
+                  <h3 className="text-xs uppercase font-black tracking-wider text-indigo-200">
+                    Holistic Setup Wizard
+                  </h3>
                 </div>
-
-                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2">
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Need to update your baseline family details, insurance policies, or retirement targets? Run through the 5-step guided wizard anytime.
+                </p>
+                <div className="pt-2 flex gap-2">
                   <button
                     type="button"
-                    onClick={() => goToWizardStep(1)}
-                    className="py-2 px-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 font-extrabold text-xs flex items-center justify-center gap-1 border border-indigo-200 dark:border-indigo-800 transition-colors cursor-pointer"
-                    title="Open the 5-step guided financial setup"
+                    onClick={() => goToWizardStep(1, "hub")}
+                    className="flex-1 py-2 px-3 rounded-xl bg-white text-slate-900 font-extrabold text-xs shadow-sm hover:bg-slate-100 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Wand2 className="w-3.5 h-3.5" /> Setup
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("simulator")}
-                    className="py-2 px-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
-                  >
-                    <Sliders className="w-3.5 h-3.5" /> What-If
+                    <span>Open Setup Wizard</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setIsReportModalOpen(true)}
-                    className="py-2 px-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1 shadow-sm transition-colors cursor-pointer"
+                    className="py-2 px-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition-all cursor-pointer"
                   >
-                    <ShieldCheck className="w-3.5 h-3.5" /> Proposal
+                    Report
                   </button>
                 </div>
-              </CollapsibleSection>
-
-              {/* Planning Tools */}
-              <CollapsibleSection
-                variant="card"
-                accentColor="purple"
-                title="Interactive Planning Tools"
-                subtitle="Calculators, refinance & guides"
-                icon={<Layers className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />}
-                isOpenControlled={isToolsOpen}
-                onToggleControlled={setIsToolsOpen}
-                collapsedSummary={
-                  <span className="font-bold text-slate-500 dark:text-slate-400 text-xs">
-                    6 Calculators
-                  </span>
-                }
-              >
-                <div className="grid grid-cols-2 gap-2.5 pt-2">
-                  <div
-                    onClick={() => setActiveTab("shortfall")}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Safety Gaps</span>
-                      <ShieldCheck className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      {criticalCount > 0 ? `${criticalCount} gap(s) to patch` : "100% Protected"}
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => {
-                      setActiveMainTab("goals");
-                      setGoalsSubTab("milestones");
-                    }}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Milestones</span>
-                      <Target className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      {computedGoals.length} goals active
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => {
-                      setActiveMainTab("invest");
-                      setInvestSubTab("expense_audit");
-                    }}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Spending Audit</span>
-                      <Receipt className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      Find leaky buckets
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => setActiveMainTab("couple")}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Couple &amp; Joint</span>
-                      <Heart className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      {isCoupleEnabled ? `Active: ${profile.partner?.name}` : "Retire together"}
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => {
-                      setSelectedFormulaKey("retirement_nest_egg");
-                      setIsFormulaModalOpen(true);
-                    }}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl cursor-pointer hover:border-indigo-300 transition-all"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">Formula Guide</span>
-                      <Calculator className="w-4 h-4 text-slate-400" />
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      Transparent math
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => setIsInvestCalcOpen(true)}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 rounded-2xl cursor-pointer transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        Actual % Return
-                      </span>
-                      <TrendingUp className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      Calculate CAGR / IRR 🧮
-                    </p>
-                  </div>
-
-                  <div
-                    onClick={() => {
-                      setActiveMainTab("invest");
-                      setInvestSubTab("dividends");
-                    }}
-                    className="fin-card fin-card-interactive p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-600 rounded-2xl cursor-pointer transition-all group"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        Dividend Snowball
-                      </span>
-                      <span className="text-sm group-hover:scale-110 transition-transform">❄️</span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                      DRIP &amp; Stock Tracker
-                    </p>
-                  </div>
-                </div>
-              </CollapsibleSection>
+              </div>
             </div>
           </div>
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* PILLAR 2: GOALS & KIDS EDUCATION */}
+      {/* MODE 2: FOCUSED AREA WORKSPACE: MONTHLY CASHFLOW */}
       {/* ========================================================================= */}
-      {activeTab === "goals" && (
-        <div className="space-y-4 animate-in fade-in duration-200">
-          {/* Sub-Switch: 3-Bucket Milestones vs. Kids Education */}
+      {dashboardFocusArea === "cashflow" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Workspace Sticky Header */}
+          <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDashboardFocusArea("hub")}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Return to Command Hub"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="w-7 h-7 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center font-bold">
+                  <Zap className="w-4 h-4" />
+                </span>
+                <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  Monthly Cashflow &amp; Spending Workspace
+                </h1>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 pl-9">
+                Focus strictly on monthly paycheck retention, 50/30/20 budget allocations, and spending audit.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pl-9 md:pl-0">
+              <button
+                type="button"
+                onClick={() => openFormula("savings_rate")}
+                className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+                <span>How It's Calculated</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => goToWizardStep(2, "cashflow")}
+                className="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Wizard Step 2</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Subpages Segmented Bar */}
           <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
             <button
-              onClick={() => setGoalsSubTab("milestones")}
-              className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                goalsSubTab === "milestones"
-                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              type="button"
+              onClick={() => setCashflowSubTab("split")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                cashflowSubTab === "split"
+                  ? "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Target className="w-3.5 h-3.5" />
-              <span>3-Bucket Life Goals ({computedGoals.length})</span>
+              <Receipt className="w-4 h-4" />
+              <span>1. Paycheck Split &amp; Calculations</span>
             </button>
 
             <button
-              onClick={() => setGoalsSubTab("education")}
-              className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                goalsSubTab === "education"
-                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              type="button"
+              onClick={() => setCashflowSubTab("audit")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                cashflowSubTab === "audit"
+                  ? "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <GraduationCap className="w-3.5 h-3.5" />
-              <span>Kids' University Fund ({childCount})</span>
+              <PieChart className="w-4 h-4" />
+              <span>2. Spending Audit &amp; Bills ({profile.expenses.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCashflowSubTab("history")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                cashflowSubTab === "history"
+                  ? "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <History className="w-4 h-4" />
+              <span>3. Check-In &amp; Past Logs ({profile.monthlyLogs?.length || 0})</span>
             </button>
           </div>
 
-          {goalsSubTab === "milestones" ? <GoalPlannerView /> : <EducationPlannerView />}
+          {/* Subpage 1: Paycheck Split & Interactive Calculation Trace */}
+          {cashflowSubTab === "split" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in duration-150">
+              {/* Left Column: Visual Split Chart & Key Metrics */}
+              <div className="lg:col-span-6 space-y-6">
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                        Monthly Paycheck Flow
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Inflow vs Living Expenses vs Free Retained Savings
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-extrabold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                      {cashFlow.savingsRatePercentage}% Retained
+                    </span>
+                  </div>
+
+                  <CashflowBreakdown
+                    income={cashFlow.totalMonthlyIncome}
+                    expenses={cashFlow.totalMonthlyExpenses}
+                    savings={cashFlow.monthlyNetSavings}
+                    savingsRate={cashFlow.savingsRatePercentage}
+                    currency={currency}
+                  />
+                </div>
+
+                {/* 50 / 30 / 20 Rule Card */}
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                      50 / 30 / 20 Budget Health
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCashflowSubTab("audit")}
+                      className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                    >
+                      Audit Bills &rarr;
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-xs">
+                    <div className="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900">
+                      <span className="text-[10px] text-amber-700 dark:text-amber-300 font-bold block">
+                        Needs (Target 50%)
+                      </span>
+                      <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white mt-0.5 block">
+                        {formatCurrency(cashFlow.essentialMonthlyExpenses, currency, 0, isPrivacyMode)}
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {cashFlow.totalMonthlyIncome > 0 ? Math.round((cashFlow.essentialMonthlyExpenses / cashFlow.totalMonthlyIncome) * 100) : 0}% of pay
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900">
+                      <span className="text-[10px] text-rose-700 dark:text-rose-300 font-bold block">
+                        Wants (Target 30%)
+                      </span>
+                      <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white mt-0.5 block">
+                        {formatCurrency(discretionaryExpenses, currency, 0, isPrivacyMode)}
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {cashFlow.totalMonthlyIncome > 0 ? Math.round((discretionaryExpenses / cashFlow.totalMonthlyIncome) * 100) : 0}% of pay
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900">
+                      <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold block">
+                        Save/Invest (20%)
+                      </span>
+                      <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white mt-0.5 block">
+                        {formatCurrency(cashFlow.monthlyNetSavings + cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode)}
+                      </span>
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold">
+                        {cashFlow.savingsRatePercentage}% achieved
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column: Calculation Lineage Trace + Inline Income Editor */}
+              <div className="lg:col-span-6 space-y-6">
+                {/* Mathematical Lineage Card */}
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                      <Calculator className="w-4 h-4" /> How These Numbers Are Calculated
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => openFormula("savings_rate")}
+                      className="text-[11px] font-bold text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    >
+                      Formula Details &rarr;
+                    </button>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 block">1. Total Monthly Income</span>
+                        <span className="text-[10px] text-slate-400">Sum of {profile.incomes.length} active income stream(s)</span>
+                      </div>
+                      <span className="font-black text-emerald-600 dark:text-emerald-400 text-sm">
+                        +{formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode)}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 block">2. Total Living Expenses</span>
+                        <span className="text-[10px] text-slate-400">Needs ({formatCurrency(cashFlow.essentialMonthlyExpenses, currency, 0, isPrivacyMode)}) + Wants ({formatCurrency(discretionaryExpenses, currency, 0, isPrivacyMode)})</span>
+                      </div>
+                      <span className="font-black text-rose-600 dark:text-rose-400 text-sm">
+                        -{formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode)}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-indigo-50/70 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 flex items-center justify-between">
+                      <div>
+                        <span className="font-black text-indigo-950 dark:text-indigo-200 block">3. Monthly Net Savings (1 - 2)</span>
+                        <span className="text-[10px] text-indigo-700/80 dark:text-indigo-300">Free surplus cash retained before DCA</span>
+                      </div>
+                      <span className="font-black text-indigo-600 dark:text-indigo-400 text-base">
+                        +{formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Inline Income Stream Quick-Editor */}
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <Wallet className="w-4 h-4 text-emerald-500" />
+                        Inline Monthly Income Editor
+                      </h3>
+                      <p className="text-[11px] text-slate-400">
+                        Edit take-home numbers directly without leaving this workspace
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddIncome}
+                      className="py-1 px-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 font-bold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Stream</span>
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {profile.incomes.map((inc) => (
+                      <div
+                        key={inc.id}
+                        className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200 dark:border-slate-700 flex items-center gap-2 text-xs"
+                      >
+                        <input
+                          type="text"
+                          value={inc.description}
+                          onChange={(e) => handleUpdateIncome(inc.id, { description: e.target.value })}
+                          className="flex-1 bg-white dark:bg-slate-900 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white outline-none"
+                          placeholder="e.g. Salary / Freelance"
+                        />
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className="text-[10px] text-slate-400 font-bold">{currency}</span>
+                          <NumericInput
+                            value={inc.monthlyAmount}
+                            onChange={(val) => handleUpdateIncome(inc.id, { monthlyAmount: val })}
+                            placeholder="0"
+                            className="w-24 bg-white dark:bg-slate-900 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-black text-right text-emerald-600 dark:text-emerald-400"
+                          />
+                        </div>
+
+                        {profile.incomes.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveIncome(inc.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-500 transition-colors"
+                            title="Remove income stream"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Subpage 2: Spending Audit & Itemized Bills */}
+          {cashflowSubTab === "audit" && (
+            <div className="animate-in fade-in duration-150">
+              <ExpenseTrackerView />
+            </div>
+          )}
+
+          {/* Subpage 3: Monthly Check-In, Close & History */}
+          {cashflowSubTab === "history" && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-5 bg-white dark:bg-slate-900 border-2 border-amber-500/40 rounded-3xl shadow-xs space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-black text-amber-700 dark:text-amber-300">
+                    <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
+                    <span>Quick Check-In for {activeMonthLabel}</span>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Update current month's take-home pay, bills, or irregular expenses in under 30 seconds.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setIsQuickCheckinOpen(true)}
+                    className="w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Zap className="w-4 h-4 fill-current text-slate-950" />
+                    <span>Open 1-Click Monthly Check-In</span>
+                  </button>
+                </div>
+
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xs space-y-3 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-black text-slate-900 dark:text-white">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-500" />
+                      <span>Close Month &amp; Advance</span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                      Archive {activeMonthLabel} numbers into your permanent financial history and roll forward to {nextMonthLabel}.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        logMonthlyCashflow();
+                        setLoggedToast(`Recorded ${activeMonthLabel} milestone snapshot!`);
+                        setTimeout(() => setLoggedToast(null), 3000);
+                      }}
+                      className="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs transition-colors cursor-pointer"
+                    >
+                      Log Snapshot
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        closeMonthAndRollNext();
+                        setLoggedToast(`Archived ${activeMonthLabel} snapshot & advanced to ${nextMonthLabel}!`);
+                        setTimeout(() => setLoggedToast(null), 4000);
+                      }}
+                      className="py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs shadow-sm transition-colors cursor-pointer"
+                    >
+                      Close &amp; Roll
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Monthly Historical Logs Table */}
+              <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                    <History className="w-4 h-4 text-indigo-500" />
+                    Archived Monthly Snapshots ({profile.monthlyLogs?.length || 0})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setIsHistoryModalOpen(true)}
+                    className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  >
+                    View Full History Modal &rarr;
+                  </button>
+                </div>
+
+                {(!profile.monthlyLogs || profile.monthlyLogs.length === 0) ? (
+                  <div className="p-8 text-center text-xs text-slate-400">
+                    No monthly snapshots archived yet. Complete a check-in or click "Log Snapshot" to start tracking.
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {profile.monthlyLogs.slice().reverse().map((log) => (
+                      <div
+                        key={log.id}
+                        className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex items-center justify-between text-xs"
+                      >
+                        <div>
+                          <span className="font-bold text-slate-900 dark:text-white block">
+                            {log.monthLabel || log.monthYear}
+                          </span>
+                          <span className="text-[10px] text-slate-400">{log.keyNotes || "Monthly Snapshot"}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="font-black text-emerald-600 dark:text-emerald-400 block">
+                            +{formatCurrency(log.netSavings, currency, 0, isPrivacyMode)}
+                          </span>
+                          <span className="text-[10px] text-slate-400">{log.savingsRatePercentage}% saved</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* PILLAR 3: INVEST & EXPENSE AUDIT */}
+      {/* MODE 2: FOCUSED AREA WORKSPACE: NET WORTH, ASSETS & LOANS */}
       {/* ========================================================================= */}
-      {activeTab === "invest" && (
-        <div className="space-y-4 animate-in fade-in duration-200">
-          {/* Sub-Switch: Robos & DCA vs. Dividend Snowball vs. Expense Audit */}
-          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex flex-wrap sm:flex-nowrap gap-1 border border-slate-200 dark:border-slate-700">
+      {dashboardFocusArea === "net_worth" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header */}
+          <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDashboardFocusArea("hub")}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Return to Command Hub"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="w-7 h-7 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
+                  <Wallet className="w-4 h-4" />
+                </span>
+                <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  Net Worth, Assets &amp; Loans Workspace
+                </h1>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 pl-9">
+                Manage your balance sheet, asset allocation, loan amortization, and refinancing savings.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pl-9 md:pl-0">
+              <button
+                type="button"
+                onClick={() => openFormula("net_worth")}
+                className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+                <span>How It's Calculated</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => goToWizardStep(3, "net_worth")}
+                className="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Wizard Step 3</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Subpages Segmented Bar */}
+          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
             <button
-              onClick={() => setInvestSubTab("dca_growth")}
-              className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                investSubTab === "dca_growth"
+              type="button"
+              onClick={() => setNetWorthSubTab("balance_sheet")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                netWorthSubTab === "balance_sheet"
                   ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span>Robo-Advisors & DCA</span>
+              <PieChart className="w-4 h-4" />
+              <span>1. Balance Sheet &amp; Asset Allocation</span>
             </button>
 
             <button
-              onClick={() => setInvestSubTab("dividends")}
-              className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                investSubTab === "dividends"
-                  ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              type="button"
+              onClick={() => setNetWorthSubTab("rundown")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                netWorthSubTab === "rundown"
+                  ? "bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <span className="text-xs">❄️</span>
-              <span>Dividend Snowball ({profile.stockHoldings?.length || 0})</span>
+              <CreditCard className="w-4 h-4" />
+              <span>2. Loan Run-Down Schedule</span>
             </button>
 
             <button
-              onClick={() => setInvestSubTab("expense_audit")}
-              className={`flex-1 py-2 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                investSubTab === "expense_audit"
-                  ? "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
+              type="button"
+              onClick={() => setNetWorthSubTab("refinance")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                netWorthSubTab === "refinance"
+                  ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              <Receipt className="w-3.5 h-3.5" />
-              <span>Spending Audit</span>
+              <Percent className="w-4 h-4" />
+              <span>3. Refinance &amp; Early Payoff</span>
             </button>
           </div>
 
-          {investSubTab === "dca_growth" && (
-            <div className="space-y-4">
-              <div className="fin-card p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
-                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-emerald-500" />
-                  Robo-Advisor & Dollar-Cost Averaging (DCA) Growth
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                  Tracking your regular monthly contributions (e.g. $100/mo into Syfe, Endowus, or Retirement Insurance) and projecting your compounded future value at age {profile.targetRetirementAge}.
-                </p>
+          {netWorthSubTab === "balance_sheet" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in duration-150">
+              <div className="lg:col-span-6 space-y-4">
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                        Where Your Wealth Lives
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Total Assets: {formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}
+                      </p>
+                    </div>
+                    <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
+                      {profile.assets.length} Assets
+                    </span>
+                  </div>
+
+                  <NetWorthDonut
+                    assets={profile.assets}
+                    insurancePolicies={profile.insurancePolicies}
+                    currency={currency}
+                  />
+                </div>
               </div>
 
+              <div className="lg:col-span-6 space-y-4">
+                {/* Balance Sheet Calculation Lineage */}
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                    <Calculator className="w-4 h-4" /> Balance Sheet Math
+                  </h3>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 block">Total Assets</span>
+                        <span className="text-[10px] text-slate-400">Liquid Cash + Investments + CPF + Real Estate</span>
+                      </div>
+                      <span className="font-black text-emerald-600 dark:text-emerald-400 text-sm">
+                        +{formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-slate-800 dark:text-slate-200 block">Total Liabilities</span>
+                        <span className="text-[10px] text-slate-400">Mortgages, personal &amp; study loans ({profile.liabilities.length})</span>
+                      </div>
+                      <span className="font-black text-rose-600 dark:text-rose-400 text-sm">
+                        -{formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-between">
+                      <div>
+                        <span className="font-black text-emerald-950 dark:text-emerald-200 block">Current Net Worth</span>
+                        <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300">Equity free of debt</span>
+                      </div>
+                      <span className="font-black text-emerald-600 dark:text-emerald-400 text-base">
+                        {formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => goToWizardStep(3, "net_worth")}
+                      className="w-full py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                      <span>Edit Assets &amp; Liabilities in Wizard &rarr;</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {netWorthSubTab === "rundown" && (
+            <div className="animate-in fade-in duration-150">
+              <LoanRundownChart
+                trajectory={loanPayoffTrajectory}
+                liabilities={profile.liabilities}
+                currency={currency}
+                totalLifetimeInterest={totalLoanInterestLifetime}
+              />
+            </div>
+          )}
+
+          {netWorthSubTab === "refinance" && (
+            <div className="animate-in fade-in duration-150">
+              <LoanRefinanceView />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODE 2: FOCUSED AREA WORKSPACE: INVESTMENTS & WEALTH ENGINE */}
+      {/* ========================================================================= */}
+      {dashboardFocusArea === "invest" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDashboardFocusArea("hub")}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Return to Command Hub"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="w-7 h-7 rounded-xl bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 flex items-center justify-center font-bold">
+                  <TrendingUp className="w-4 h-4" />
+                </span>
+                <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  Investments &amp; Wealth Engine Workspace
+                </h1>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 pl-9">
+                Robo-advisor regular DCA compounding, dividend snowball passive income, and return calculators.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pl-9 md:pl-0">
+              <button
+                type="button"
+                onClick={() => openFormula("retirement_nest_egg")}
+                className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+                <span>How Nest Egg is Calculated</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsInvestCalcOpen(true)}
+                className="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Percent className="w-3.5 h-3.5" />
+                <span>Calculate IRR / CAGR</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => setDashboardInvestSubTab("dca_growth")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                dashboardInvestSubTab === "dca_growth"
+                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>1. Robos &amp; DCA Growth</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setDashboardInvestSubTab("dividends")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                dashboardInvestSubTab === "dividends"
+                  ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <span>❄️</span>
+              <span>2. Dividend Snowball ({profile.stockHoldings?.length || 0})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsInvestCalcOpen(true)}
+              className="flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40"
+            >
+              <Calculator className="w-4 h-4" />
+              <span>3. Return Calculator (IRR)</span>
+            </button>
+          </div>
+
+          {dashboardInvestSubTab === "dca_growth" && (
+            <div className="space-y-4 animate-in fade-in duration-150">
               <InvestmentGrowthChart
                 trajectory={investmentGrowthTrajectory}
                 assets={profile.assets}
@@ -1004,73 +1325,325 @@ export const DashboardView: React.FC = () => {
             </div>
           )}
 
-          {investSubTab === "dividends" && <DividendSnowballView />}
-
-          {investSubTab === "expense_audit" && <ExpenseTrackerView />}
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* PILLAR 4: DEBTS & REFINANCING */}
-      {/* ========================================================================= */}
-      {activeTab === "debts" && (
-        <div className="space-y-4 animate-in fade-in duration-200">
-          {/* Sub-Switch: Run-Down vs. Refinancing */}
-          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
-            <button
-              onClick={() => setDebtSubTab("rundown")}
-              className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                debtSubTab === "rundown"
-                  ? "bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-              }`}
-            >
-              <CreditCard className="w-3.5 h-3.5" />
-              <span>Loan Amortization Run-Down</span>
-            </button>
-
-            <button
-              onClick={() => setDebtSubTab("refinance")}
-              className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                debtSubTab === "refinance"
-                  ? "bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm"
-                  : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-              }`}
-            >
-              <Percent className="w-3.5 h-3.5" />
-              <span>Refinance & Early Payoff Savings</span>
-            </button>
-          </div>
-
-          {debtSubTab === "rundown" ? (
-            <LoanRundownChart
-              trajectory={loanPayoffTrajectory}
-              liabilities={profile.liabilities}
-              currency={currency}
-              totalLifetimeInterest={totalLoanInterestLifetime}
-            />
-          ) : (
-            <LoanRefinanceView />
+          {dashboardInvestSubTab === "dividends" && (
+            <div className="animate-in fade-in duration-150">
+              <DividendSnowballView />
+            </div>
           )}
         </div>
       )}
 
       {/* ========================================================================= */}
-      {/* PILLAR 5: COUPLE & JOINT HOUSEHOLD PLAN */}
+      {/* MODE 2: FOCUSED AREA WORKSPACE: SAFETY NET & GAPS */}
       {/* ========================================================================= */}
-      {activeTab === "couple" && (
-        <div className="animate-in fade-in duration-200">
+      {dashboardFocusArea === "safety" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDashboardFocusArea("hub")}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Return to Command Hub"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="w-7 h-7 rounded-xl bg-blue-500/15 text-blue-600 dark:text-blue-400 flex items-center justify-center font-bold">
+                  <ShieldCheck className="w-4 h-4" />
+                </span>
+                <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  Safety Net &amp; Priority Protection Workspace
+                </h1>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 pl-9">
+                Audit insurance coverage gaps, Critical Illness salary replacement, and step-by-step priority sequencing.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pl-9 md:pl-0">
+              <button
+                type="button"
+                onClick={() => openFormula("critical_illness")}
+                className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+                <span>How Gap is Calculated</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => goToWizardStep(4, "safety")}
+                className="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Edit Policies</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => setSafetySubTab("gaps")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                safetySubTab === "gaps"
+                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>1. Radar Gaps &amp; Health</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSafetySubTab("illness_shield")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                safetySubTab === "illness_shield"
+                  ? "bg-white dark:bg-slate-900 text-pink-600 dark:text-pink-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <Zap className="w-4 h-4" />
+              <span>2. Illness &amp; Income Shield</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setSafetySubTab("priorities")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                safetySubTab === "priorities"
+                  ? "bg-white dark:bg-slate-900 text-amber-600 dark:text-amber-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <ListOrdered className="w-4 h-4" />
+              <span>3. Priority Sequencer</span>
+            </button>
+          </div>
+
+          {safetySubTab === "gaps" && (
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start animate-in fade-in duration-150">
+              <div className="lg:col-span-5 space-y-4">
+                <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white">
+                        Safety Radar
+                      </h3>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        Coverage across 5 financial pillars
+                      </p>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                      Score: {summary.overallFinancialHealthScore}/100
+                    </span>
+                  </div>
+
+                  <ShortfallRadar
+                    shortfalls={shortfalls}
+                    currency={currency}
+                    onSelectCategory={() => {}}
+                  />
+                </div>
+              </div>
+
+              <div className="lg:col-span-7 space-y-3">
+                {shortfalls.map((item) => (
+                  <div
+                    key={item.category}
+                    className="p-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xs space-y-2"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-black text-slate-900 dark:text-white">
+                        {item.title}
+                      </span>
+                      <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
+                        item.status === "critical"
+                          ? "bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-400"
+                          : item.status === "warning"
+                          ? "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-400"
+                          : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
+                      }`}>
+                        {item.coverageRatio}% Covered
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 text-xs pt-1">
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Required</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          {formatCurrency(item.requiredAmount, currency, 0, isPrivacyMode)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Existing</span>
+                        <span className="font-bold text-slate-800 dark:text-slate-200">
+                          {formatCurrency(item.existingAmount, currency, 0, isPrivacyMode)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block uppercase">Shortfall</span>
+                        <span className={`font-black ${item.shortfallAmount > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                          {item.shortfallAmount > 0 ? `-${formatCurrency(item.shortfallAmount, currency, 0, isPrivacyMode)}` : "None 🎉"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-xl mt-1">
+                      {item.recommendation}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {safetySubTab === "illness_shield" && (
+            <div className="animate-in fade-in duration-150">
+              <IllnessShieldCard />
+            </div>
+          )}
+
+          {safetySubTab === "priorities" && (
+            <div className="animate-in fade-in duration-150">
+              <PriorityPlannerView />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODE 2: FOCUSED AREA WORKSPACE: LIFE GOALS & KIDS */}
+      {/* ========================================================================= */}
+      {dashboardFocusArea === "goals" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDashboardFocusArea("hub")}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                  title="Return to Command Hub"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <span className="w-7 h-7 rounded-xl bg-purple-500/15 text-purple-600 dark:text-purple-400 flex items-center justify-center font-bold">
+                  <Target className="w-4 h-4" />
+                </span>
+                <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  Life Goals &amp; Kids' Education Workspace
+                </h1>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 pl-9">
+                Time-horizon bucketed sinking funds, inflation compounding, and children's university funds.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 pl-9 md:pl-0">
+              <button
+                type="button"
+                onClick={() => openFormula("goal_sinking_fund")}
+                className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+                <span>How Sinking Fund is Calculated</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => goToWizardStep(5, "goals")}
+                className="py-2 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-extrabold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Add Goal</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex gap-1 border border-slate-200 dark:border-slate-700">
+            <button
+              type="button"
+              onClick={() => setGoalsSubTab("milestones")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                goalsSubTab === "milestones"
+                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <Target className="w-4 h-4" />
+              <span>1. 3-Bucket Milestones ({computedGoals.length})</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setGoalsSubTab("education")}
+              className={`flex-1 py-2.5 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                goalsSubTab === "education"
+                  ? "bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span>2. Kids' University Fund ({childCount})</span>
+            </button>
+          </div>
+
+          {goalsSubTab === "milestones" ? <GoalPlannerView /> : <EducationPlannerView />}
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODE 2: FOCUSED AREA WORKSPACE: COUPLE PLAN */}
+      {/* ========================================================================= */}
+      {dashboardFocusArea === "couple" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="p-4 sm:p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-sm flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setDashboardFocusArea("hub")}
+                className="p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
+                title="Return to Command Hub"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              <span className="w-7 h-7 rounded-xl bg-rose-500/15 text-rose-600 dark:text-rose-400 flex items-center justify-center font-bold">
+                <Heart className="w-4 h-4 fill-current" />
+              </span>
+              <div>
+                <h1 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                  Couple &amp; Joint Household Workspace
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Retiring together with {profile.partner?.name || "Partner"}
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => openFormula("couple_burn_rate")}
+              className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Calculator className="w-3.5 h-3.5 text-indigo-500" />
+              <span>How Runway is Calculated</span>
+            </button>
+          </div>
+
           <CouplePlannerView />
         </div>
       )}
 
-      {/* Monthly Historical Snapshots Modal */}
+      {/* Historical Monthly Snapshots Modal */}
       <MonthlyHistoryModal
         isOpen={isHistoryModalOpen}
         onClose={() => setIsHistoryModalOpen(false)}
       />
 
-      {/* 1-Click Streamlined Monthly Check-In Modal */}
+      {/* 1-Click Monthly Check-In Modal */}
       <QuickMonthlyCheckinModal
         isOpen={isQuickCheckinOpen}
         onClose={() => setIsQuickCheckinOpen(false)}

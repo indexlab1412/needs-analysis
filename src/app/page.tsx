@@ -47,8 +47,8 @@ export default function Home() {
       {/* Mobile-Optimized Top App Bar */}
       <MobileHeader />
 
-      {/* Main Responsive View Container */}
-      <div className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+      {/* Main Responsive View Container (Full monitor canvas on desktop) */}
+      <div className="flex-1 max-w-[1920px] w-full mx-auto px-3 sm:px-6 md:px-8 lg:px-10 xl:px-12 py-4 sm:py-6">
         {activeTab === "dashboard" && <DashboardView />}
         {activeTab === "shortfall" && <ShortfallView />}
         {activeTab === "priorities" && <PriorityPlannerView />}

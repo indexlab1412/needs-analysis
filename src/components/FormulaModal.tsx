@@ -17,9 +17,14 @@ import {
   ChevronDown,
   ChevronRight,
   Info,
+  Target,
+  Percent,
+  ArrowRight,
 } from "lucide-react";
 
 export type FormulaKey =
+  | "savings_rate"
+  | "net_worth"
   | "retirement_nest_egg"
   | "emergency_fund"
   | "life_protection"
@@ -29,7 +34,6 @@ export type FormulaKey =
   | "education_compounding"
   | "couple_burn_rate"
   | "dual_cpf_life"
-  | "savings_rate"
   | "loan_refinance";
 
 interface FormulaModalProps {
@@ -43,8 +47,15 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
   onClose,
   initialKey = "retirement_nest_egg",
 }) => {
-  const { profile, summary, currency, isPrivacyMode } = useFinancialStore();
+  const { profile, summary, currency, isPrivacyMode, goToWizardStep } = useFinancialStore();
   const [selectedKey, setSelectedKey] = useState<FormulaKey>(initialKey);
+
+  // Sync selectedKey whenever initialKey changes
+  React.useEffect(() => {
+    if (initialKey) {
+      setSelectedKey(initialKey);
+    }
+  }, [initialKey]);
 
   if (!isOpen) return null;
 
@@ -67,7 +78,99 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
     derivationSteps: string[];
     resultLabel: string;
     resultValue: string;
+    editAction?: { label: string; onClick: () => void };
   }[] = [
+    {
+      key: "savings_rate",
+      title: "Monthly Cashflow & Savings Rate",
+      category: "Cashflow & Budgeting",
+      icon: Wallet,
+      summaryText:
+        "Measures how much free cash you retain each month after all living bills, and the percentage of your total income saved or invested towards your future.",
+      formulaLaTeX: "Net Savings = Total Income - Total Living Expenses; Savings Rate (%) = (Net Savings + Monthly DCA) ÷ Total Income",
+      variables: [
+        {
+          label: "Total Monthly Inflow",
+          value: formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode) + "/mo",
+          note: "Take-home pay, bonuses, side hustle & passive income",
+        },
+        {
+          label: "Total Monthly Living Bills",
+          value: formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode) + "/mo",
+          note: "Essential needs (housing, food, transport) + discretionary lifestyle",
+        },
+        {
+          label: "Monthly Net Cashflow",
+          value: `+${formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo`,
+          note: `${formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode)} - ${formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode)}`,
+        },
+        {
+          label: "Monthly Automated DCA / Investments",
+          value: formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode) + "/mo",
+          note: "Robo-advisors, index ETFs, and regular savings plans",
+        },
+      ],
+      derivationSteps: [
+        `Step 1: Sum all monthly income streams = ${formatCurrency(cashFlow.totalMonthlyIncome, currency, 0, isPrivacyMode)}.`,
+        `Step 2: Deduct itemized living bills = ${formatCurrency(cashFlow.totalMonthlyExpenses, currency, 0, isPrivacyMode)}, yielding net cash savings of +${formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/month.`,
+        `Step 3: Add regular investment contributions (${formatCurrency(cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode)}/mo) for total retained wealth creation of ${formatCurrency(cashFlow.monthlyNetSavings + cashFlow.totalMonthlyDCAInvestments, currency, 0, isPrivacyMode)}/mo.`,
+        `Step 4: Divide retained wealth by total monthly income = ${cashFlow.savingsRatePercentage}% savings rate.`,
+      ],
+      resultLabel: "Monthly Net Savings",
+      resultValue: `+${formatCurrency(cashFlow.monthlyNetSavings, currency, 0, isPrivacyMode)}/mo (${cashFlow.savingsRatePercentage}%)`,
+      editAction: {
+        label: "Edit Monthly Paycheck & Bills",
+        onClick: () => {
+          onClose();
+          goToWizardStep(2, "cashflow");
+        },
+      },
+    },
+    {
+      key: "net_worth",
+      title: "Total Net Worth & Balance Sheet",
+      category: "Assets & Liabilities",
+      icon: TrendingUp,
+      summaryText:
+        "The true measure of your financial foundation: the sum of everything you own (liquid bank accounts, stocks, real estate, pension/CPF, and cash values) minus everything you owe (mortgages, study loans, car loans).",
+      formulaLaTeX: "Net Worth = Total Assets (Liquid + Investments + CPF + Properties) - Total Liabilities (Debts & Mortgages)",
+      variables: [
+        {
+          label: "Total Assets",
+          value: formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode),
+          note: "Cash, investments, CPF/EPF, real estate & insurance cash value",
+        },
+        {
+          label: "Total Liabilities",
+          value: formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode),
+          note: "Outstanding balance on all loans and mortgages",
+        },
+        {
+          label: "Liquid Assets Cushion",
+          value: formatCurrency(netWorth.liquidAssets, currency, 0, isPrivacyMode),
+          note: "Cash readily available within 48 hours",
+        },
+        {
+          label: "Debt-to-Asset Ratio",
+          value: `${netWorth.totalAssets > 0 ? Math.round((netWorth.totalLiabilities / netWorth.totalAssets) * 100) : 0}%`,
+          note: "Percentage of assets financed by borrowed debt",
+        },
+      ],
+      derivationSteps: [
+        `Step 1: Aggregate asset categories: Cash & Savings (${formatCurrency(profile.assets.filter(a => a.isLiquid || a.category === "cash_savings").reduce((s, a) => s + (Number(a.currentValue) || 0), 0), currency, 0, isPrivacyMode)}) + Invested Portfolio + CPF/Pension + Real Estate = ${formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}.`,
+        `Step 2: Aggregate outstanding liabilities: Mortgages + Personal/Study Loans = ${formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}.`,
+        `Step 3: Total Assets (${formatCurrency(netWorth.totalAssets, currency, 0, isPrivacyMode)}) - Total Liabilities (${formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode)}) = ${formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode)}.`,
+      ],
+      resultLabel: "Current Net Worth",
+      resultValue: formatCurrency(netWorth.netWorth, currency, 0, isPrivacyMode),
+      editAction: {
+        label: "Edit Assets & Liabilities",
+        onClick: () => {
+          onClose();
+          goToWizardStep(3, "net_worth");
+        },
+      },
+    },
     {
       key: "retirement_nest_egg",
       title: "Retirement Nest Egg Capital Required",
@@ -301,6 +404,81 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
       resultValue: formatCurrency((profile.cpfLife?.estimatedMonthlyPayoutToday ?? 1650) + (profile.partner?.cpfLifeEstimatedMonthlyToday ?? 1650), currency, 0, isPrivacyMode) + "/mo",
     },
     {
+      key: "goal_sinking_fund",
+      title: "Goal Compounding & Monthly Sinking Fund",
+      category: "Goals & Milestones",
+      icon: Target,
+      summaryText:
+        "Calculates the future cost of your dream milestones (e.g. house downpayment, wedding, sabbatical) adjusted for inflation, and determines the exact monthly auto-savings required to hit it right on schedule.",
+      formulaLaTeX: "Future Cost = Today Cost × (1 + Inflation)^Years; Monthly PMT = Remaining Gap × r ÷ [((1 + r)^Years - 1) × 12]",
+      variables: [
+        {
+          label: "Active Tracked Goals",
+          value: `${profile.goals.length} Goals`,
+          note: "Short-term, mid-term, and long-term milestones",
+        },
+        {
+          label: "General Inflation Assumption",
+          value: `${generalInf}% per year`,
+          note: "Applied to mid and long term horizons",
+        },
+        {
+          label: "Assumed Investment Growth Rate",
+          value: `${investReturn}% per year`,
+          note: "Based on balanced/equity allocation for goal horizon",
+        },
+      ],
+      derivationSteps: [
+        `Step 1: Determine goal target year and compound current cost by inflation rate.`,
+        `Step 2: Compound any currently earmarked seed savings at the target portfolio return rate.`,
+        `Step 3: Solve for the exact monthly contribution (PMT) needed to close the remaining gap before your target deadline.`,
+      ],
+      resultLabel: "Goal Sinking Fund Engine",
+      resultValue: `${summary.computedGoals.length} Computed Goals`,
+      editAction: {
+        label: "Manage Life Goals",
+        onClick: () => {
+          onClose();
+          goToWizardStep(5, "goals");
+        },
+      },
+    },
+    {
+      key: "loan_refinance",
+      title: "Loan Refinance & Interest Savings",
+      category: "Debts & Mortgages",
+      icon: Percent,
+      summaryText:
+        "Analyzes how shaving even 0.5%–1.0% off your mortgage or personal loan interest rate drops your monthly repayment and saves tens of thousands in lifetime bank interest.",
+      formulaLaTeX: "Lifetime Interest Savings = Total Interest at Existing Rate - Total Interest at Refinanced Rate - Refinance Fees",
+      variables: [
+        {
+          label: "Total Outstanding Loan Balance",
+          value: formatCurrency(netWorth.totalLiabilities, currency, 0, isPrivacyMode),
+          note: "Principal remaining across all debt facilities",
+        },
+        {
+          label: "Current Total Lifetime Interest",
+          value: formatCurrency(summary.totalLoanInterestLifetime, currency, 0, isPrivacyMode),
+          note: "Cumulative interest if held to full maturity without early payoff",
+        },
+      ],
+      derivationSteps: [
+        `Step 1: Compute monthly amortization schedule and cumulative interest on existing loan terms.`,
+        `Step 2: Simulate lower interest rate refinancing across the remaining tenure.`,
+        `Step 3: Difference between existing interest and new interest minus legal/valuation fees yields net profit into your pocket.`,
+      ],
+      resultLabel: "Lifetime Interest at Stake",
+      resultValue: formatCurrency(summary.totalLoanInterestLifetime, currency, 0, isPrivacyMode),
+      editAction: {
+        label: "Review Loan Details",
+        onClick: () => {
+          onClose();
+          goToWizardStep(3, "net_worth");
+        },
+      },
+    },
+    {
       key: "education_compounding",
       title: "Children's University Education Compounding",
       category: "Goals & Sinking Funds",
@@ -466,10 +644,22 @@ export const FormulaModal: React.FC<FormulaModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex justify-end">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between gap-3">
+          {activeFormula.editAction ? (
+            <button
+              onClick={activeFormula.editAction.onClick}
+              className="px-3.5 py-2 bg-indigo-50 dark:bg-indigo-950/70 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 font-extrabold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-all"
+            >
+              <span>{activeFormula.editAction.label}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          ) : (
+            <div />
+          )}
+
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-xl"
+            className="px-4 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-xs rounded-xl cursor-pointer"
           >
             Close Guide
           </button>

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 export const BottomNav: React.FC = () => {
-  const { activeTab, setActiveTab, summary } = useFinancialStore();
+  const { activeTab, setActiveTab, summary, dashboardFocusArea, setDashboardFocusArea } = useFinancialStore();
 
   const criticalShortfallsCount = summary.shortfalls.filter((s) => s.status === "critical").length;
 
@@ -53,11 +53,23 @@ export const BottomNav: React.FC = () => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
 
+          const handleTabClick = () => {
+            if (tab.id === "dashboard") {
+              if (activeTab === "dashboard" && dashboardFocusArea !== "hub") {
+                setDashboardFocusArea("hub");
+              } else {
+                setActiveTab("dashboard");
+              }
+            } else {
+              setActiveTab(tab.id);
+            }
+          };
+
           if (tab.highlight) {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={handleTabClick}
                 className="relative flex flex-col items-center justify-center -mt-5"
               >
                 <div
@@ -83,7 +95,7 @@ export const BottomNav: React.FC = () => {
           return (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={handleTabClick}
               className={`relative flex flex-col items-center justify-center py-1 px-3 rounded-xl transition-colors ${
                 isActive
                   ? "text-indigo-600 dark:text-indigo-400"

@@ -47,6 +47,8 @@ export const WizardView: React.FC = () => {
     setWizardStep,
     setIsQuickCheckinOpen,
     openDividendSnowball,
+    returnFocusArea,
+    returnToFocusArea,
   } = useFinancialStore();
   const currentStep = wizardStep;
   const setCurrentStep = setWizardStep;
@@ -165,8 +167,45 @@ export const WizardView: React.FC = () => {
     updateProfile((p) => ({ ...p, insurancePolicies: p.insurancePolicies.filter((pol) => pol.id !== id) }));
   };
 
+  const getReturnAreaLabel = () => {
+    switch (returnFocusArea) {
+      case "cashflow":
+        return "Monthly Cashflow & Spending";
+      case "net_worth":
+        return "Net Worth & Balance Sheet";
+      case "invest":
+        return "Investments & Wealth";
+      case "safety":
+        return "Safety Net & Protection";
+      case "goals":
+        return "Life Goals & Education";
+      case "couple":
+        return "Couple & Joint Plan";
+      default:
+        return "Financial Command Hub";
+    }
+  };
+
   return (
     <div className="space-y-4 pb-24 animate-in fade-in duration-200">
+      {/* Return to Focused Area Breadcrumb Bar (When deep-linked) */}
+      {returnFocusArea && (
+        <div className="p-3 bg-indigo-50 dark:bg-indigo-950/70 border border-indigo-200 dark:border-indigo-800 rounded-2xl flex items-center justify-between gap-3 shadow-xs animate-in slide-in-from-top-1">
+          <div className="flex items-center gap-2 text-xs text-indigo-950 dark:text-indigo-200">
+            <span className="w-2 h-2 rounded-full bg-indigo-600 animate-pulse" />
+            <span>Editing inputs from <strong>{getReturnAreaLabel()}</strong></span>
+          </div>
+          <button
+            type="button"
+            onClick={returnToFocusArea}
+            className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
+          >
+            <ChevronLeft className="w-3.5 h-3.5" />
+            <span>Back to {getReturnAreaLabel().split(" ")[0]}</span>
+          </button>
+        </div>
+      )}
+
       {/* Wizard Guidance Top Banner */}
       <div className="fin-card p-4 bg-gradient-to-r from-indigo-900 via-slate-900 to-indigo-950 text-white border border-indigo-500/30 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-md">
         <div>
